@@ -203,11 +203,11 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
       {/* Header */}
       <div className="px-5 pt-2 pb-3 flex justify-between items-center bg-white/80 border-b border-gray-100/50">
         <div>
-          <p className="text-[9px] text-gray-400 font-semibold uppercase tracking-widest">Location</p>
-          <div className="flex items-center mt-0.5">
-            <span className="text-lg mr-1.5">📍</span>
-            <h1 className="text-lg font-extrabold text-gray-900 tracking-tight">Ghaziabad</h1>
-            <span className="ml-1 text-gray-400 text-xs">▼</span>
+          <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 tracking-tight">EarthGram</h1>
+          <div className="flex items-center mt-0.5 cursor-pointer">
+            <span className="text-xs mr-1 text-indigo-500">📍</span>
+            <span className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">Ghaziabad</span>
+            <span className="ml-1 text-[9px] text-gray-400">▼</span>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -294,6 +294,56 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
         </div>
       </div>
 
+      {/* Scope-based Providers (Services Around You) */}
+      <div className="mt-6 pb-4">
+        <div className="px-5 flex justify-between items-center mb-4">
+          <h2 className="text-lg font-extrabold text-gray-900">
+            {currentScopeId === 'local' ? 'Services Around You' : currentScopeId === 'national' ? 'Top National Services' : 'Global Services'}
+          </h2>
+          <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center space-x-1">
+            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full online-dot"></span>
+            <span>{currentScopeId === 'local' ? 'AVAILABLE NOW' : currentScopeId === 'national' ? 'PAN INDIA' : 'WORLDWIDE'}</span>
+          </span>
+        </div>
+
+        {/* Provider Cards (Horizontal Scroll) */}
+        <div className="flex overflow-x-auto px-5 space-x-4 hide-scrollbar pb-4">
+          {scopeProviders.map((provider, i) => (
+            <div key={provider.id} onClick={() => navigate('/provider', { state: { profile: provider } })}
+              className="flex-shrink-0 w-72 bg-white p-4 rounded-2xl shadow-premium border border-gray-100/50 cursor-pointer card-lift animate-fade-in gradient-border flex flex-col"
+              style={{ animationDelay: `${i * 0.07}s`, opacity: 0 }}>
+              <div className="flex justify-between items-start mb-2 pl-2">
+                <div className="flex items-center space-x-3">
+                  <div className="w-11 h-11 bg-gradient-to-br from-indigo-100 to-purple-50 rounded-xl flex items-center justify-center text-xl shadow-sm border border-indigo-100/50">{provider.avatar}</div>
+                  <div>
+                    <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full inline-block mb-0.5">{provider.tag}</span>
+                    <h3 className="text-sm font-bold text-gray-900 truncate w-32">{provider.name}</h3>
+                  </div>
+                </div>
+                <span className="text-[9px] font-bold bg-gray-100 px-2 py-0.5 rounded-full text-gray-600 whitespace-nowrap">📍 {provider.distance}</span>
+              </div>
+              <div className="flex items-center justify-between mb-2 pl-2 flex-1">
+                <div className="flex items-center text-sm text-gray-500">
+                  <span className="text-yellow-500 mr-1">⭐</span>
+                  <span className="font-bold text-gray-700 mr-1">{provider.rating}</span>
+                  <span>({provider.reviews})</span>
+                </div>
+                {currentScopeId === 'local' && <p className="text-[10px] text-gray-400">Used by 12 neighbors</p>}
+                {currentScopeId === 'national' && <p className="text-[10px] text-indigo-400">{provider.city}</p>}
+                {currentScopeId === 'global' && <p className="text-[10px] text-purple-400">{provider.city}</p>}
+              </div>
+              <div className="flex justify-between items-center border-t border-gray-50 pt-3 pl-2 mt-auto">
+                <span className="font-extrabold text-gray-900">{provider.price}</span>
+                <button onClick={(e) => { e.stopPropagation(); navigate('/provider', { state: { profile: provider } }); }}
+                  className="bg-gradient-to-r from-gray-900 to-gray-700 text-white px-5 py-2 rounded-xl font-bold text-xs active:scale-95 transition-transform shadow-sm">
+                  {currentScopeId === 'local' ? 'Book' : 'View'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ====== SCOPE MAP ====== */}
       <div className="px-5 mt-6">
         <ScopeMap scope={currentScopeId} />
@@ -372,55 +422,7 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
         </div>
       </div>
 
-      {/* Scope-based Providers */}
-      <div className="mt-6 pb-4">
-        <div className="px-5 flex justify-between items-center mb-4">
-          <h2 className="text-lg font-extrabold text-gray-900">
-            {currentScopeId === 'local' ? 'Services Near You' : currentScopeId === 'national' ? 'Top National Services' : 'Global Services'}
-          </h2>
-          <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center space-x-1">
-            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full online-dot"></span>
-            <span>{currentScopeId === 'local' ? 'AVAILABLE NOW' : currentScopeId === 'national' ? 'PAN INDIA' : 'WORLDWIDE'}</span>
-          </span>
-        </div>
 
-        {/* Provider Cards */}
-        <div className="px-5 space-y-3">
-          {scopeProviders.map((provider, i) => (
-            <div key={provider.id} onClick={() => navigate('/provider', { state: { profile: provider } })}
-              className="bg-white p-4 rounded-2xl shadow-premium border border-gray-100/50 cursor-pointer card-lift animate-fade-in gradient-border"
-              style={{ animationDelay: `${i * 0.07}s`, opacity: 0 }}>
-              <div className="flex justify-between items-start mb-2 pl-2">
-                <div className="flex items-center space-x-3">
-                  <div className="w-11 h-11 bg-gradient-to-br from-indigo-100 to-purple-50 rounded-xl flex items-center justify-center text-xl shadow-sm border border-indigo-100/50">{provider.avatar}</div>
-                  <div>
-                    <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full inline-block mb-0.5">{provider.tag}</span>
-                    <h3 className="text-sm font-bold text-gray-900">{provider.name}</h3>
-                  </div>
-                </div>
-                <span className="text-[9px] font-bold bg-gray-100 px-2 py-0.5 rounded-full text-gray-600">📍 {provider.distance}</span>
-              </div>
-              <div className="flex items-center justify-between mb-2 pl-2">
-                <div className="flex items-center text-sm text-gray-500">
-                  <span className="text-yellow-500 mr-1">⭐</span>
-                  <span className="font-bold text-gray-700 mr-1">{provider.rating}</span>
-                  <span>({provider.reviews})</span>
-                </div>
-                {currentScopeId === 'local' && <p className="text-[10px] text-gray-400">Used by 12 neighbors recently</p>}
-                {currentScopeId === 'national' && <p className="text-[10px] text-indigo-400">{provider.city}</p>}
-                {currentScopeId === 'global' && <p className="text-[10px] text-purple-400">{provider.city}</p>}
-              </div>
-              <div className="flex justify-between items-center border-t border-gray-50 pt-3 pl-2">
-                <span className="font-extrabold text-gray-900">{provider.price}</span>
-                <button onClick={(e) => { e.stopPropagation(); navigate('/provider', { state: { profile: provider } }); }}
-                  className="bg-gradient-to-r from-gray-900 to-gray-700 text-white px-5 py-2 rounded-xl font-bold text-xs active:scale-95 transition-transform shadow-sm">
-                  {currentScopeId === 'local' ? 'Book' : 'View'}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Top Experts */}
       <div className="mt-2 pb-6">
