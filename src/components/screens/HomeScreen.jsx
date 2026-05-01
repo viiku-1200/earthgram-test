@@ -245,10 +245,7 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
         </div>
       </div>
 
-      {/* ====== SCOPE MAP ====== */}
-      <div className="px-5 mt-4">
-        <ScopeMap scope={currentScopeId} />
-      </div>
+
 
       {/* Hero Banner Carousel */}
       <div className="px-5 mt-5">
@@ -295,6 +292,11 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* ====== SCOPE MAP ====== */}
+      <div className="px-5 mt-6">
+        <ScopeMap scope={currentScopeId} />
       </div>
 
       {/* Professional Expertise - Premium Grid */}
