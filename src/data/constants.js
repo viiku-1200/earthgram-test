@@ -78,7 +78,7 @@ export const GLOBAL_PROVIDERS = [
 
 export const CATEGORIES = [
   {
-    id: '1', name: 'Emergency', icon: '⚡', color: 'from-red-500 to-red-700', badge: '20m',
+    id: '1', name: 'Emergency', icon: '⚡', color: 'from-red-500 to-red-700', badge: '20m', visibility: ['default', 'city', 'town', 'village'],
     subTabs: [
       { name: 'Electric', icon: '⚡', bg: 'bg-yellow-100' },
       { name: 'Plumber', icon: '🔧', bg: 'bg-blue-100' },
@@ -92,7 +92,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '2', name: 'Repair', icon: '🔧', color: 'from-blue-500 to-blue-700',
+    id: '2', name: 'Repair', icon: '🔧', color: 'from-blue-500 to-blue-700', visibility: ['default', 'city', 'town', 'village'],
     subTabs: [
       { name: 'Fan', icon: '🌀', bg: 'bg-blue-100' },
       { name: 'AC', icon: '❄️', bg: 'bg-cyan-100' },
@@ -111,7 +111,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '3', name: 'Beauty', icon: '💅', color: 'from-pink-500 to-pink-700',
+    id: '3', name: 'Beauty', icon: '💅', color: 'from-pink-500 to-pink-700', visibility: ['default', 'city', 'town'],
     subTabs: [
       { name: 'Makeup', icon: '💄', bg: 'bg-pink-100' },
       { name: 'Massage', icon: '💆', bg: 'bg-purple-100' },
@@ -127,7 +127,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '4', name: 'Staff', icon: '👨‍🍳', color: 'from-orange-500 to-orange-700',
+    id: '4', name: 'Staff', icon: '👨‍🍳', color: 'from-orange-500 to-orange-700', visibility: ['default', 'city', 'town'],
     subTabs: [
       { name: 'Maid', icon: '🧹', bg: 'bg-green-100' },
       { name: 'Driver', icon: '🚗', bg: 'bg-blue-100' },
@@ -141,7 +141,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '5', name: 'Tutors', icon: '📚', color: 'from-purple-500 to-purple-700',
+    id: '5', name: 'Tutors', icon: '📚', color: 'from-purple-500 to-purple-700', visibility: ['default', 'city', 'town', 'village'],
     subTabs: [
       { name: 'Math', icon: '🔢', bg: 'bg-blue-100' },
       { name: 'Science', icon: '🔬', bg: 'bg-green-100' },
@@ -155,7 +155,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '6', name: 'Events', icon: '🎉', color: 'from-yellow-500 to-yellow-700',
+    id: '6', name: 'Events', icon: '🎉', color: 'from-yellow-500 to-yellow-700', visibility: ['default', 'city', 'town', 'village'],
     subTabs: [
       { name: 'Birthday', icon: '🎂', bg: 'bg-pink-100' },
       { name: 'Wedding', icon: '💒', bg: 'bg-red-100' },
@@ -170,7 +170,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '7', name: 'Consultancy', icon: '💼', color: 'from-gray-600 to-gray-800',
+    id: '7', name: 'Consultancy', icon: '💼', color: 'from-gray-600 to-gray-800', visibility: ['default', 'city', 'town', 'village'],
     subTabs: [
       { name: 'Software', icon: '💻', bg: 'bg-blue-100' },
       { name: 'Doctor', icon: '⚕️', bg: 'bg-green-100' },
@@ -186,7 +186,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '8', name: 'ItzRunner', icon: '🏃', color: 'from-red-600 to-orange-600', label: 'Chotu',
+    id: '8', name: 'ItzRunner', icon: '🏃', color: 'from-red-600 to-orange-600', label: 'Chotu', visibility: ['default', 'city', 'town', 'village'],
     subTabs: [
       { name: 'Pick & Drop', icon: '📦', bg: 'bg-orange-100' },
       { name: 'Buy from Store', icon: '🛒', bg: 'bg-green-100' },
@@ -198,7 +198,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '9', name: 'Lifestyle', icon: '🌿', color: 'from-emerald-400 to-teal-500',
+    id: '9', name: 'Lifestyle', icon: '🌿', color: 'from-emerald-400 to-teal-500', visibility: ['default', 'city', 'town'],
     subTabs: [
       { name: 'Fitness', icon: '🏋️', bg: 'bg-blue-100' },
       { name: 'Pets', icon: '🐕', bg: 'bg-orange-100' },
@@ -211,7 +211,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '10', name: 'Local Produce & Crafts', icon: '🧺', color: 'from-green-600 to-emerald-800',
+    id: '10', name: 'Local Produce & Crafts', icon: '🧺', color: 'from-green-600 to-emerald-800', visibility: ['default', 'city', 'town', 'village'],
     subTabs: [
       { name: 'Farmers', icon: '🌾', bg: 'bg-green-100' },
       { name: 'Artisans', icon: '🏺', bg: 'bg-orange-100' },
@@ -224,6 +224,20 @@ export const CATEGORIES = [
       { id: 'c1', name: 'Aunty Kitchen Sweets', sub: 'Home Chefs', distance: '0.8 km', rating: '4.9', reviews: 320, price: '₹300/box', tag: 'Fresh', available: true }
     ],
   },
+  {
+    id: '11', name: 'Agri & Farm', icon: '🚜', color: 'from-yellow-600 to-green-700', visibility: ['village'],
+    subTabs: [
+      { name: 'Tractors', icon: '🚜', bg: 'bg-yellow-100' },
+      { name: 'Seeds', icon: '🌱', bg: 'bg-green-100' },
+      { name: 'Vet', icon: '🐄', bg: 'bg-blue-100' },
+      { name: 'All', icon: '📋', bg: 'bg-gray-100' },
+    ],
+    providers: [
+      { id: 'ag1', name: 'Raju Tractors', sub: 'Tractors', distance: '2.0 km', rating: '4.8', reviews: 45, price: '₹500/hr', tag: 'Available', available: true },
+      { id: 'ag2', name: 'Kisan Seeds', sub: 'Seeds', distance: '4.5 km', rating: '4.9', reviews: 120, price: 'Wholesale', tag: 'Organic', available: true },
+      { id: 'ag3', name: 'Dr. Singh Vet', sub: 'Vet', distance: '8.0 km', rating: '4.7', reviews: 88, price: '₹300/visit', tag: 'Cattle Expert', available: true },
+    ]
+  }
 ];
 
 // --- HOMEPAGE PROVIDERS (for "Services Near You" section) ---

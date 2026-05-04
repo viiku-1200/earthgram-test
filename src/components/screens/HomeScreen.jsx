@@ -8,6 +8,8 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
   const [activeBanner, setActiveBanner] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
+  const [locationMode, setLocationMode] = useState('default'); // 'default', 'city', 'village'
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
 
   // Auto-rotate banners
   useEffect(() => {
@@ -204,10 +206,10 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
       <div className="px-5 pt-2 pb-3 flex justify-between items-center bg-white/80 border-b border-gray-100/50">
         <div>
           <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 tracking-tight">EarthGram</h1>
-          <div className="flex items-center mt-0.5 cursor-pointer">
-            <span className="text-xs mr-1 text-indigo-500">📍</span>
-            <span className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">Ghaziabad</span>
-            <span className="ml-1 text-[9px] text-gray-400">▼</span>
+          <div className="flex items-center mt-0.5 opacity-60">
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+              📍 {locationMode === 'default' ? 'Select Area' : locationMode === 'city' ? 'Ghaziabad (City)' : 'Pipar (Village)'}
+            </span>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -223,10 +225,61 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
 
       {/* ====== SCOPE TABS ====== */}
       <div className="px-5 mt-4">
-        <div className="flex bg-gray-100 rounded-2xl p-1 relative">
-          {SCOPES.map((scope) => (
+        <div className="flex bg-gray-100 rounded-2xl p-1 relative z-40">
+          {/* LOCAL DROPDOWN TAB */}
+          <div className="flex-1 relative">
+            <button 
+              onClick={() => {
+                setActiveScope('local');
+                setShowLocationDropdown(!showLocationDropdown);
+              }}
+              className={`w-full flex items-center justify-center space-x-1.5 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-300 ${
+                currentScopeId === 'local'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-glow-indigo'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}>
+              <span className="text-sm">
+                {locationMode === 'default' ? '🌍' : locationMode === 'city' ? '🏙️' : '🌾'}
+              </span>
+              <span className="truncate">
+                {locationMode === 'default' ? 'Local' : locationMode === 'city' ? 'City' : 'Village'}
+              </span>
+              <span className="text-[8px] opacity-60">▼</span>
+            </button>
+
+            {/* Dropdown Menu for Local Modes */}
+            {showLocationDropdown && currentScopeId === 'local' && (
+              <div className="absolute top-full left-0 mt-2 w-40 bg-white rounded-2xl shadow-premium-lg border border-gray-100 overflow-hidden animate-fade-in z-50">
+                {[
+                  { id: 'default', label: 'Default (All)', icon: '🌍' },
+                  { id: 'city', label: 'City View', icon: '🏙️' },
+                  { id: 'village', label: 'Village View', icon: '🌾' },
+                ].map((mode) => (
+                  <button
+                    key={mode.id}
+                    onClick={() => {
+                      setLocationMode(mode.id);
+                      setShowLocationDropdown(false);
+                    }}
+                    className={`w-full text-left px-4 py-3 text-[10px] font-bold flex items-center space-x-3 hover:bg-indigo-50 transition-colors border-b border-gray-50 last:border-0 ${
+                      locationMode === mode.id ? 'text-indigo-600 bg-indigo-50/50' : 'text-gray-600'
+                    }`}
+                  >
+                    <span className="text-sm">{mode.icon}</span>
+                    <span>{mode.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* NATIONAL & GLOBAL TABS */}
+          {SCOPES.filter(s => s.id !== 'local').map((scope) => (
             <button key={scope.id}
-              onClick={() => setActiveScope(scope.id)}
+              onClick={() => {
+                setActiveScope(scope.id);
+                setShowLocationDropdown(false);
+              }}
               className={`flex-1 flex items-center justify-center space-x-1.5 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-300 ${
                 currentScopeId === scope.id
                   ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-glow-indigo'
@@ -237,9 +290,10 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
             </button>
           ))}
         </div>
+
         {/* Scope description */}
-        <div className="flex justify-center mt-2">
-          <span className="text-[9px] text-gray-400 font-medium">
+        <div className="flex justify-center mt-3">
+          <span className="text-[9px] text-gray-400 font-medium opacity-70">
             {SCOPES.find(s => s.id === currentScopeId)?.desc} — {SCOPES.find(s => s.id === currentScopeId)?.radius}
           </span>
         </div>
@@ -278,7 +332,7 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
       <div className="mt-6">
         <h2 className="px-5 text-lg font-extrabold text-gray-900 mb-4">Home & Personal Services</h2>
         <div className="px-5 grid grid-cols-4 gap-3">
-          {CATEGORIES.filter(c => c.id !== '7' && c.id !== '10').map((cat, i) => (
+          {CATEGORIES.filter(c => c.id !== '7' && c.id !== '10' && (!c.visibility || c.visibility.includes(locationMode))).map((cat, i) => (
             <button key={cat.id} onClick={() => { setSelectedCategory(cat.id); setSelectedSubCategory(null); }}
               className="flex flex-col items-center active:scale-90 transition-all duration-200 relative animate-fade-in"
               style={{ animationDelay: `${i * 0.04}s`, opacity: 0 }}>
@@ -294,8 +348,30 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
         </div>
       </div>
 
+      {/* Empower Banner (Start Virtual Company) */}
+      <div className="px-5 mt-8 animate-fade-in">
+        <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-black p-5 rounded-3xl relative overflow-hidden shadow-premium-lg border border-indigo-500/20">
+          {/* Decorative background shapes */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl transform translate-x-10 -translate-y-10"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-pink-500/20 rounded-full blur-xl transform -translate-x-5 translate-y-5"></div>
+          
+          <div className="relative z-10 flex flex-col items-start text-left">
+            <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1 shadow-sm">Empower Your Skill</span>
+            <h2 className="text-xl font-black text-white leading-tight">Start Your Own<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500 drop-shadow-sm">Virtual Company</span></h2>
+            <p className="text-[11px] text-gray-300 mt-2 max-w-[200px] leading-relaxed opacity-90">Turn your skills into a global startup. Zero setup cost. 100% your brand.</p>
+            
+            <button onClick={() => navigate('/register')} className="mt-4 bg-white text-indigo-900 px-6 py-2.5 rounded-xl text-xs font-black active:scale-95 transition-transform shadow-lg hover:shadow-xl flex items-center space-x-2">
+              <span>Start Now</span>
+              <span>→</span>
+            </button>
+          </div>
+          
+          <div className="absolute bottom-2 right-2 text-7xl opacity-50 drop-shadow-2xl animate-float" style={{ animationDuration: '4s' }}>🚀</div>
+        </div>
+      </div>
+
       {/* Scope-based Providers (Services Around You) */}
-      <div className="mt-6 pb-4">
+      <div className="mt-8 pb-4">
         <div className="px-5 flex justify-between items-center mb-4">
           <h2 className="text-lg font-extrabold text-gray-900">
             {currentScopeId === 'local' ? 'Services Around You' : currentScopeId === 'national' ? 'Top National Services' : 'Global Services'}
