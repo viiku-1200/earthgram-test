@@ -1,8 +1,19 @@
 // --- PROTOTYPE DATA ---
 
+export const COUNTRIES = [
+  { id: 'in', name: 'India', icon: '🇮🇳', flag: '🇮🇳', region: 'asia' },
+  { id: 'np', name: 'Nepal', icon: '🇳🇵', flag: '🇳🇵', region: 'asia' },
+  { id: 'bd', name: 'Bangladesh', icon: '🇧🇩', flag: '🇧🇩', region: 'asia' },
+  { id: 'sl', name: 'Sri Lanka', icon: '🇱🇰', flag: '🇱🇰', region: 'asia' },
+  { id: 'sg', name: 'Singapore', icon: '🇸🇬', flag: '🇸🇬', region: 'asia' },
+  { id: 'th', name: 'Thailand', icon: '🇹🇭', flag: '🇹🇭', region: 'asia' },
+  { id: 'jp', name: 'Japan', icon: '🇯🇵', flag: '🇯🇵', region: 'asia' },
+  { id: 'vn', name: 'Vietnam', icon: '🇻🇳', flag: '🇻🇳', region: 'asia' },
+];
+
 export const SCOPES = [
   { id: 'local', label: 'Local', icon: '📍', desc: 'Your Neighborhood', radius: '5 km' },
-  { id: 'national', label: 'National', icon: '🇮🇳', desc: 'Across India', radius: 'Nationwide' },
+  { id: 'national', label: 'Nationwide', icon: '🇮🇳', desc: 'Across Country', radius: 'Nationwide' },
   { id: 'global', label: 'Global', icon: '🌍', desc: 'Worldwide', radius: 'Planet Earth' },
 ];
 
@@ -55,30 +66,11 @@ export const SCOPE_MAP_DATA = {
   },
 };
 
-// National-scope featured providers
-export const NATIONAL_PROVIDERS = [
-  { id: 'np1', name: 'UrbanClap Pro', city: 'Delhi NCR', distance: 'Delhi', rating: '4.8', reviews: '5.2k', price: '₹299 start', tag: '🏆 Top National', category: 'Multi-Service', avatar: '🏢', available: true },
-  { id: 'np2', name: 'Bombay Sparkle', city: 'Mumbai', distance: 'Mumbai', rating: '4.9', reviews: '3.1k', price: '₹499 start', tag: '✨ Premium', category: 'Deep Cleaning', avatar: '✨', available: true },
-  { id: 'np3', name: 'TechFix India', city: 'Bangalore', distance: 'Bangalore', rating: '4.7', reviews: '1.8k', price: '₹350 visit', tag: '💻 Tech Expert', category: 'Electronics', avatar: '💻', available: true },
-  { id: 'np4', name: 'Chennai Cooks', city: 'Chennai', distance: 'Chennai', rating: '4.8', reviews: '2.4k', price: '₹3,000/mo', tag: '🍛 Authentic', category: 'Home Chef', avatar: '🍛', available: true },
-  { id: 'np5', name: 'CodeCrafters Hub', city: 'Bangalore', distance: 'Bangalore', rating: '4.9', reviews: '320', price: '₹2000/hr', tag: '🚀 Top Devs', category: 'Software', avatar: '💻', available: true },
-  { id: 'np6', name: 'National Tax Assocs', city: 'Mumbai', distance: 'Mumbai', rating: '4.8', reviews: '410', price: '₹5000/session', tag: '📊 CA Expert', category: 'Consultancy', avatar: '📊', available: true },
-];
-
-// Global-scope featured providers
-export const GLOBAL_PROVIDERS = [
-  { id: 'gp1', name: 'EarthServe UAE', city: 'Dubai', distance: 'UAE', rating: '4.9', reviews: '1.2k', price: '$45 start', tag: '🌟 International', category: 'Home Services', avatar: '🏙️', available: true },
-  { id: 'gp2', name: 'CleanStar USA', city: 'New York', distance: 'USA', rating: '4.7', reviews: '680', price: '$89 start', tag: '🇺🇸 Verified', category: 'Professional Cleaning', avatar: '🧹', available: true },
-  { id: 'gp3', name: 'HandyHub UK', city: 'London', distance: 'UK', rating: '4.8', reviews: '430', price: '£35 start', tag: '🇬🇧 Trusted', category: 'Handyman', avatar: '🔨', available: true },
-  { id: 'gp4', name: 'Global Tech Cloud', city: 'Silicon Valley', distance: 'USA', rating: '4.9', reviews: '890', price: '$150/hr', tag: '🌐 Remote', category: 'Software', avatar: '💻', available: true },
-  { id: 'gp5', name: 'Global MediConsult', city: 'London', distance: 'UK', rating: '4.8', reviews: '510', price: '£100/visit', tag: '⚕️ Specialist', category: 'Doctor', avatar: '⚕️', available: true },
-];
-
 // --- 8 SERVICE CATEGORIES WITH SUB-TABS ---
 
 export const CATEGORIES = [
   {
-    id: '1', name: 'Emergency', icon: '⚡', color: 'from-red-500 to-red-700', badge: '20m', visibility: ['default', 'city', 'town', 'village'],
+    id: '1', name: 'Emergency', icon: '⚡', lucide: 'Zap', realImage: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=400&fit=crop', color: 'from-red-500 to-red-700', badge: '20m', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Electric', icon: '⚡', bg: 'bg-yellow-100' },
       { name: 'Plumber', icon: '🔧', bg: 'bg-blue-100' },
@@ -92,7 +84,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '2', name: 'Repair', icon: '🔧', color: 'from-blue-500 to-blue-700', visibility: ['default', 'city', 'town', 'village'],
+    id: '2', name: 'Repair', icon: '🔧', lucide: 'Wrench', realImage: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=400&fit=crop', color: 'from-blue-500 to-blue-700', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Fan', icon: '🌀', bg: 'bg-blue-100' },
       { name: 'AC', icon: '❄️', bg: 'bg-cyan-100' },
@@ -111,7 +103,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '3', name: 'Beauty', icon: '💅', color: 'from-pink-500 to-pink-700', visibility: ['default', 'city', 'town'],
+    id: '3', name: 'Beauty', icon: '💅', lucide: 'Sparkles', realImage: 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400&h=400&fit=crop', color: 'from-pink-500 to-pink-700', visibility: ['default', 'city', 'town'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Makeup', icon: '💄', bg: 'bg-pink-100' },
       { name: 'Massage', icon: '💆', bg: 'bg-purple-100' },
@@ -127,7 +119,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '4', name: 'Staff', icon: '👨‍🍳', color: 'from-orange-500 to-orange-700', visibility: ['default', 'city', 'town'],
+    id: '4', name: 'Staff', icon: '👨‍🍳', lucide: 'Users', realImage: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=400&h=400&fit=crop', color: 'from-orange-500 to-orange-700', visibility: ['default', 'city', 'town'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Maid', icon: '🧹', bg: 'bg-green-100' },
       { name: 'Driver', icon: '🚗', bg: 'bg-blue-100' },
@@ -141,7 +133,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '5', name: 'Tutors', icon: '📚', color: 'from-purple-500 to-purple-700', visibility: ['default', 'city', 'town', 'village'],
+    id: '5', name: 'Tutors', icon: '📚', lucide: 'GraduationCap', realImage: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=400&fit=crop', color: 'from-purple-500 to-purple-700', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Math', icon: '🔢', bg: 'bg-blue-100' },
       { name: 'Science', icon: '🔬', bg: 'bg-green-100' },
@@ -155,7 +147,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '6', name: 'Events', icon: '🎉', color: 'from-yellow-500 to-yellow-700', visibility: ['default', 'city', 'town', 'village'],
+    id: '6', name: 'Events', icon: '🎉', lucide: 'PartyPopper', realImage: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop', color: 'from-yellow-500 to-yellow-700', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Birthday', icon: '🎂', bg: 'bg-pink-100' },
       { name: 'Wedding', icon: '💒', bg: 'bg-red-100' },
@@ -170,12 +162,12 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '7', name: 'Consultancy', icon: '💼', color: 'from-gray-600 to-gray-800', visibility: ['default', 'city', 'town', 'village'],
+    id: '7', name: 'Consultancy', icon: '💼', lucide: 'Briefcase', realImage: 'https://images.unsplash.com/photo-1454165833767-0266b196773f?w=400&h=400&fit=crop', color: 'from-gray-600 to-gray-800', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
-      { name: 'Software', icon: '💻', bg: 'bg-blue-100' },
-      { name: 'Doctor', icon: '⚕️', bg: 'bg-green-100' },
-      { name: 'CA', icon: '📊', bg: 'bg-yellow-100' },
-      { name: 'Legal', icon: '⚖️', bg: 'bg-gray-100' },
+      { name: 'Software', icon: '💻', realImage: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=400&fit=crop', bg: 'bg-blue-100' },
+      { name: 'Doctor', icon: '⚕️', realImage: 'https://images.unsplash.com/photo-1505751172107-597d5a4d4b9c?w=400&h=400&fit=crop', bg: 'bg-green-100' },
+      { name: 'CA', icon: '📊', realImage: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=400&fit=crop', bg: 'bg-yellow-100' },
+      { name: 'Legal', icon: '⚖️', realImage: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=400&h=400&fit=crop', bg: 'bg-gray-100' },
       { name: 'All', icon: '📋', bg: 'bg-purple-100' },
     ],
     providers: [
@@ -186,7 +178,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '8', name: 'ItzRunner', icon: '🏃', color: 'from-red-600 to-orange-600', label: 'Chotu', visibility: ['default', 'city', 'town', 'village'],
+    id: '8', name: 'ItzRunner', icon: '🏃', lucide: 'Truck', realImage: 'https://images.unsplash.com/photo-1595246140625-573b715d11dc?w=400&h=400&fit=crop', color: 'from-red-600 to-orange-600', label: 'Chotu', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Pick & Drop', icon: '📦', bg: 'bg-orange-100' },
       { name: 'Buy from Store', icon: '🛒', bg: 'bg-green-100' },
@@ -198,7 +190,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '9', name: 'Lifestyle', icon: '🌿', color: 'from-emerald-400 to-teal-500', visibility: ['default', 'city', 'town'],
+    id: '9', name: 'Lifestyle', icon: '🌿', lucide: 'Leaf', realImage: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=400&fit=crop', color: 'from-emerald-400 to-teal-500', visibility: ['default', 'city', 'town'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn', 'us', 'uk'],
     subTabs: [
       { name: 'Fitness', icon: '🏋️', bg: 'bg-blue-100' },
       { name: 'Pets', icon: '🐕', bg: 'bg-orange-100' },
@@ -211,11 +203,11 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '10', name: 'Local Produce & Crafts', icon: '🧺', color: 'from-green-600 to-emerald-800', visibility: ['default', 'city', 'town', 'village'],
+    id: '10', name: 'Local Produce & Crafts', icon: '🧺', lucide: 'ShoppingBag', realImage: 'https://images.unsplash.com/photo-1488459711615-228239797f86?w=400&h=400&fit=crop', color: 'from-green-600 to-emerald-800', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
-      { name: 'Farmers', icon: '🌾', bg: 'bg-green-100' },
-      { name: 'Artisans', icon: '🏺', bg: 'bg-orange-100' },
-      { name: 'Home Chefs', icon: '🍲', bg: 'bg-rose-100' },
+      { name: 'Farmers', icon: '🌾', realImage: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=400&h=400&fit=crop', bg: 'bg-green-100' },
+      { name: 'Artisans', icon: '🏺', realImage: 'https://images.unsplash.com/photo-1565191999001-551c187427bb?w=400&h=400&fit=crop', bg: 'bg-orange-100' },
+      { name: 'Home Chefs', icon: '🍲', realImage: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&h=400&fit=crop', bg: 'bg-rose-100' },
       { name: 'All', icon: '📋', bg: 'bg-gray-100' },
     ],
     providers: [
@@ -225,7 +217,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '11', name: 'Agri & Farm', icon: '🚜', color: 'from-yellow-600 to-green-700', visibility: ['village'],
+    id: '11', name: 'Agri & Farm', icon: '🚜', lucide: 'Tractor', realImage: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=400&fit=crop', color: 'from-yellow-600 to-green-700', visibility: ['village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Tractors', icon: '🚜', bg: 'bg-yellow-100' },
       { name: 'Seeds', icon: '🌱', bg: 'bg-green-100' },
@@ -237,6 +229,71 @@ export const CATEGORIES = [
       { id: 'ag2', name: 'Kisan Seeds', sub: 'Seeds', distance: '4.5 km', rating: '4.9', reviews: 120, price: 'Wholesale', tag: 'Organic', available: true },
       { id: 'ag3', name: 'Dr. Singh Vet', sub: 'Vet', distance: '8.0 km', rating: '4.7', reviews: 88, price: '₹300/visit', tag: 'Cattle Expert', available: true },
     ]
+  },
+  {
+    id: '12', name: 'Mandi Connect', icon: '🌽', lucide: 'ShoppingBag', realImage: 'https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=400&h=400&fit=crop', color: 'from-amber-500 to-orange-700', visibility: ['village', 'default'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    subTabs: [
+      { name: 'Wheat', icon: '🌾', bg: 'bg-yellow-50' },
+      { name: 'Rice', icon: '🍚', bg: 'bg-gray-50' },
+      { name: 'Mustard', icon: '🌼', bg: 'bg-yellow-100' },
+      { name: 'Sugarcane', icon: '🎋', bg: 'bg-green-50' },
+      { name: 'Potato', icon: '🥔', bg: 'bg-orange-50' },
+      { name: 'All', icon: '📋', bg: 'bg-gray-100' },
+    ],
+    providers: [
+      { id: 'm1', name: 'Desi Farmer Collective', sub: 'Wheat', distance: '1.2 km', rating: '4.9', reviews: 500, price: '₹2,125/qtl', tag: 'Premium Sharbati', available: true },
+      { id: 'm2', name: 'Kisan Shakti', sub: 'Wheat', distance: '3.5 km', rating: '4.7', reviews: 210, price: '₹2,050/qtl', tag: 'Bulk Available', available: true },
+      { id: 'm3', name: 'Bio-Organic Farms', sub: 'Rice', distance: '5.0 km', rating: '4.8', reviews: 150, price: '₹4,500/qtl', tag: 'Basmati Special', available: true },
+      { id: 'm4', name: 'Ram Singh & Sons', sub: 'Mustard', distance: '0.8 km', rating: '4.6', reviews: 90, price: '₹5,400/qtl', tag: 'High Oil Content', available: true },
+      { id: 'm5', name: 'Sugarcane Hub', sub: 'Sugarcane', distance: '10.0 km', rating: '4.9', reviews: 300, price: '₹350/qtl', tag: 'Direct to Mill', available: true },
+    ]
+  },
+  {
+    id: '13', name: 'Transport', icon: '🚛', lucide: 'Truck', realImage: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&h=400&fit=crop', color: 'from-blue-600 to-indigo-800', visibility: ['village', 'city', 'default'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    subTabs: [
+      { name: 'Tractor', icon: '🚜', bg: 'bg-yellow-50' },
+      { name: 'Mini Truck', icon: '🚚', bg: 'bg-blue-50' },
+      { name: 'Heavy Truck', icon: '🚛', bg: 'bg-gray-100' },
+      { name: 'Auto/Rickshaw', icon: '🛺', bg: 'bg-green-50' },
+      { name: 'All', icon: '📋', bg: 'bg-gray-100' },
+    ],
+    providers: [
+      { id: 't1', name: 'Shera Transport', sub: 'Mini Truck', distance: '1.0 km', rating: '4.8', reviews: 150, price: '₹15/km', tag: 'Chotu Hathi Expert', available: true },
+      { id: 't2', name: 'Desi Wheels', sub: 'Tractor', distance: '0.5 km', rating: '4.9', reviews: 85, price: '₹500/trip', tag: 'Local Hauling', available: true },
+      { id: 't3', name: 'National Cargo', sub: 'Heavy Truck', distance: '5.0 km', rating: '4.7', reviews: 320, price: '₹45/km', tag: 'All India Permit', available: true },
+      { id: 't4', name: 'Village Auto', sub: 'Auto/Rickshaw', distance: '0.3 km', rating: '4.5', reviews: 110, price: '₹10/km', tag: 'Quick & Small', available: true },
+    ]
+  },
+  {
+    id: '14', name: 'Tour & Travel', icon: '🏔️', lucide: 'Mountain', realImage: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=400&fit=crop', color: 'from-cyan-600 to-blue-800', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    subTabs: [
+      { name: 'Trek Guides', icon: '🥾', realImage: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=400&fit=crop', bg: 'bg-green-100' },
+      { name: 'Cultural', icon: '🏯', realImage: 'https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=400&h=400&fit=crop', bg: 'bg-orange-100' },
+      { name: 'Adventure', icon: '🪂', realImage: 'https://images.unsplash.com/photo-1521033335976-a47f54e227ad?w=400&h=400&fit=crop', bg: 'bg-blue-100' },
+      { name: 'Homestays', icon: '🏡', realImage: 'https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=400&h=400&fit=crop', bg: 'bg-amber-100' },
+      { name: 'All', icon: '📋', bg: 'bg-gray-100' },
+    ],
+    providers: [
+      { id: 'tour1', name: 'Himalayan Sherpa Guides', sub: 'Trek Guides', distance: 'Kathmandu', rating: '4.9', reviews: 520, price: '₨ 2500/day', tag: '🏔️ Everest Expert', available: true, country: 'np' },
+      { id: 'tour2', name: 'Pokhara Paragliding', sub: 'Adventure', distance: 'Pokhara', rating: '4.8', reviews: 840, price: '₨ 8000/flight', tag: '🪂 Certified', available: true, country: 'np' },
+      { id: 'tour3', name: 'Kathmandu Heritage Walk', sub: 'Cultural', distance: 'Kathmandu', rating: '4.9', reviews: 310, price: '₨ 1500/tour', tag: '🏛️ Historian', available: true, country: 'np' },
+      { id: 'tour4', name: 'Lakeside Homestay', sub: 'Homestays', distance: 'Pokhara', rating: '4.7', reviews: 120, price: '₨ 2000/night', tag: '🛌 Lake View', available: true, country: 'np' },
+      { id: 'tour5', name: 'Goa Beach Tours', sub: 'Adventure', distance: 'Goa', rating: '4.8', reviews: 450, price: '₹3500/day', tag: '🌊 Water Sports', available: true, country: 'in' },
+    ],
+  },
+  {
+    id: '15', name: 'Village Tool Rental', icon: '🛠️', lucide: 'Hammer', realImage: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=400&fit=crop', color: 'from-slate-600 to-slate-800', visibility: ['village'], countries: ['in'],
+    subTabs: [
+      { name: 'Pumps', icon: '🚰', bg: 'bg-blue-100' },
+      { name: 'Tillers', icon: '🚜', bg: 'bg-green-100' },
+      { name: 'Sprayers', icon: '💨', bg: 'bg-yellow-100' },
+      { name: 'All', icon: '📋', bg: 'bg-gray-100' },
+    ],
+    providers: [
+      { id: 'tr1', name: 'Verma\'s Power Pump', sub: 'Pumps', distance: '0.4 km', rating: '4.9', reviews: 28, price: '₹100/day', tag: 'Diesel Powered', available: true },
+      { id: 'tr2', name: 'Kisan Tiller Hub', sub: 'Tillers', distance: '1.2 km', rating: '4.7', reviews: 15, price: '₹300/day', tag: 'New Machine', available: true },
+      { id: 'tr3', name: 'Deepak Sprayers', sub: 'Sprayers', distance: '0.8 km', rating: '4.8', reviews: 42, price: '₹50/day', tag: 'Manual/Electric', available: true },
+    ]
   }
 ];
 
@@ -246,6 +303,20 @@ export const PROVIDERS = [
   { id: '2', name: 'Amit Plumber', distance: '0.8 km', rating: '4.5', reviews: 85, price: '₹150 visit', tag: 'Fastest', category: 'Plumber', avatar: '🔧' },
   { id: '3', name: 'ShineX Clean', distance: '1.2 km', rating: '4.8', reviews: '300+', price: '₹499 start', tag: 'Trusted', category: 'Cleaning', avatar: '✨' },
   { id: '4', name: 'Kumar AC', distance: '1.5 km', rating: '4.6', reviews: 95, price: '₹300 visit', tag: 'Expert', category: 'AC Repair', avatar: '❄️' },
+];
+
+// --- NATIONAL PROVIDERS ---
+export const NATIONAL_PROVIDERS = [
+  { id: 'n1', name: 'TechSolutions Pro', city: 'Bangalore', rating: '4.9', reviews: '1.2k', price: '₹1,500/hr', tag: 'Elite Expert', category: 'Software', avatar: '💻', distance: 'Verified' },
+  { id: 'n2', name: 'Legal Hub India', city: 'Delhi', rating: '4.7', reviews: '850', price: '₹2,000/hr', tag: 'Top Firm', category: 'Legal', avatar: '⚖️', distance: 'Verified' },
+  { id: 'n3', name: 'HealthCare Plus', city: 'Mumbai', rating: '4.8', reviews: '2.5k', price: '₹800/consult', tag: 'Pan India', category: 'Doctor', avatar: '⚕️', distance: 'Verified' },
+];
+
+// --- GLOBAL PROVIDERS ---
+export const GLOBAL_PROVIDERS = [
+  { id: 'g1', name: 'Silicon Valley Devs', city: 'California, US', rating: '5.0', reviews: '5k', price: '$50/hr', tag: 'Global Elite', category: 'Software', avatar: '🚀', distance: 'Worldwide' },
+  { id: 'g2', name: 'London Law Associates', city: 'London, UK', rating: '4.9', reviews: '1.1k', price: '£100/hr', tag: 'Premium', category: 'Legal', avatar: '💼', distance: 'Worldwide' },
+  { id: 'g3', name: 'Swiss Medical Group', city: 'Zurich, CH', rating: '4.9', reviews: '3.2k', price: '$150/visit', tag: 'World Class', category: 'Doctor', avatar: '🏥', distance: 'Worldwide' },
 ];
 
 // --- TOP EXPERTS ---
@@ -265,6 +336,40 @@ export const HERO_BANNERS = [
     cta: 'Book Now',
     gradient: 'from-gray-900 to-black',
     icon: '⚡',
+    country: 'in'
+  },
+  {
+    id: 'nepal_special',
+    badge: '🇳🇵 NAMASTE',
+    title: 'Discover Nepal\'s',
+    highlight: 'Best Artisans',
+    desc: 'Direct from Kathmandu to your doorstep.',
+    cta: 'Browse Crafts',
+    gradient: 'from-red-600 to-blue-800',
+    icon: '🏔️',
+    country: 'np'
+  },
+  {
+    id: 'west_premium',
+    badge: '✨ EXCLUSIVE',
+    title: 'Hire World-Class',
+    highlight: 'Global Experts',
+    desc: 'From Silicon Valley devs to London consultants. Verified & Trusted.',
+    cta: 'Explore Talent',
+    gradient: 'from-slate-900 to-slate-700',
+    icon: '💎',
+    country: 'us'
+  },
+  {
+    id: 'london_art',
+    badge: '🎨 CURATED',
+    title: 'London\'s Finest',
+    highlight: 'Artisan Crafts',
+    desc: 'Exclusive handmade decor from local UK studios.',
+    cta: 'Shop Collection',
+    gradient: 'from-indigo-900 to-blue-900',
+    icon: '🏺',
+    country: 'uk'
   },
   {
     id: 'virtual',
@@ -275,6 +380,7 @@ export const HERO_BANNERS = [
     cta: 'Create Profile',
     gradient: 'from-blue-600 via-purple-600 to-blue-700',
     icon: '🏢',
+    country: 'all'
   },
   {
     id: 'itzpass',
@@ -285,6 +391,7 @@ export const HERO_BANNERS = [
     cta: 'Get Pass',
     gradient: 'from-purple-600 to-pink-600',
     icon: '👑',
+    country: 'all'
   },
 ];
 

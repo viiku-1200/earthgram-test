@@ -1,21 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CATEGORIES, PROVIDERS, TOP_EXPERTS, HERO_BANNERS, SCOPES, NATIONAL_PROVIDERS, GLOBAL_PROVIDERS } from '../../data/constants';
+import { 
+  Zap, Wrench, Sparkles, Users, GraduationCap, PartyPopper, 
+  Briefcase, Leaf, ShoppingBag, Tractor, Truck, Mountain, 
+  ChevronRight, Search, Bell, MapPin, Menu, Star, Play
+} from 'lucide-react';
+import { CATEGORIES, PROVIDERS, NATIONAL_PROVIDERS, GLOBAL_PROVIDERS, TOP_EXPERTS, HERO_BANNERS, COUNTRIES, SCOPES } from '../../data/constants';
 import ScopeMap from '../maps/ScopeMap';
 
-const HomeScreen = ({ activeScope, setActiveScope }) => {
+const LucideIcon = ({ name, className, size = 24 }) => {
+  const IconMap = {
+    Zap, Wrench, Sparkles, Users, GraduationCap, PartyPopper, 
+    Briefcase, Leaf, ShoppingBag, Tractor, Truck, Mountain, Star
+  };
+  const Icon = IconMap[name] || Zap;
+  return <Icon className={className} size={size} strokeWidth={2.5} />;
+};
+
+const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedCountry }) => {
   const navigate = useNavigate();
   const [activeBanner, setActiveBanner] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
-  const [locationMode, setLocationMode] = useState('default'); // 'default', 'city', 'village'
+  const [locationMode, setLocationMode] = useState('default'); 
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
 
-  // Auto-rotate banners
+  const country = COUNTRIES.find(c => c.id === selectedCountry);
+  const isWestern = country?.region === 'west';
+  const currency = selectedCountry === 'us' ? '$' : selectedCountry === 'uk' ? '£' : selectedCountry === 'np' ? '₨' : '₹';
+
+  const filteredBanners = HERO_BANNERS.filter(b => b.country === 'all' || b.country === selectedCountry);
+
   useEffect(() => {
-    const timer = setInterval(() => setActiveBanner(b => (b + 1) % HERO_BANNERS.length), 4000);
+    const timer = setInterval(() => setActiveBanner(b => (b + 1) % filteredBanners.length), 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [filteredBanners.length]);
 
   const currentCategory = CATEGORIES.find(c => c.id === selectedCategory);
 
@@ -201,17 +221,59 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
   const scopeProviders = getScopeProviders();
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-b from-white to-gray-50/80 pt-8 pb-20 overflow-y-auto hide-scrollbar">
+    <div className={`h-full flex flex-col pt-8 pb-20 overflow-y-auto hide-scrollbar transition-colors duration-500 ${
+      isWestern ? 'bg-slate-50 text-slate-900' : 'bg-gradient-to-b from-white to-gray-50/80'
+    }`}>
       {/* Header */}
-      <div className="px-5 pt-2 pb-3 flex justify-between items-center bg-white/80 border-b border-gray-100/50">
-        <div>
-          <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 tracking-tight">EarthGram</h1>
-          <div className="flex items-center mt-0.5 opacity-60">
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-              📍 {locationMode === 'default' ? 'Select Area' : locationMode === 'city' ? 'Ghaziabad (City)' : 'Pipar (Village)'}
-            </span>
+      <div className={`px-5 pt-2 pb-3 flex justify-between items-center border-b border-gray-100/50 transition-all ${
+        isWestern ? 'bg-white shadow-sm' : 'bg-white/80'
+      }`}>
+        <div className="flex items-center space-x-3">
+          <div className="relative">
+            <button 
+              onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+              className="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded-lg text-lg active:scale-95 transition-transform"
+            >
+              <span>{COUNTRIES.find(c => c.id === selectedCountry)?.flag}</span>
+              <span className="text-[10px] font-bold text-gray-500">▼</span>
+            </button>
+            
+            {showCountryDropdown && (
+              <div className="absolute top-full left-0 mt-2 w-32 bg-white rounded-xl shadow-premium-lg border border-gray-100 z-50 animate-fade-in overflow-hidden">
+                {COUNTRIES.map(country => (
+                  <button
+                    key={country.id}
+                    onClick={() => {
+                      setSelectedCountry(country.id);
+                      setShowCountryDropdown(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs font-bold flex items-center space-x-2 hover:bg-indigo-50 transition-colors ${
+                      selectedCountry === country.id ? 'text-indigo-600 bg-indigo-50/50' : 'text-gray-600'
+                    }`}
+                  >
+                    <span>{country.flag}</span>
+                    <span>{country.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
+            <h1 className={`text-xl font-black tracking-tight ${
+              isWestern ? 'text-slate-900' : 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600'
+            }`}>
+              {isWestern ? 'EarthGram Elite' : 'EarthGram'}
+            </h1>
+            {!isWestern && (
+              <div className="flex items-center mt-0.5 opacity-60">
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                  📍 {locationMode === 'default' ? 'Select Area' : locationMode === 'city' ? 'Ghaziabad (City)' : 'Pipar (Village)'}
+                </span>
+              </div>
+            )}
+            {isWestern && (
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Global Luxury Network</p>
+            )}
+          </div>
         <div className="flex items-center space-x-2">
           <button onClick={() => navigate('/search')} className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-sm active:scale-90 transition-transform">
             🔍
@@ -225,26 +287,26 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
 
       {/* ====== SCOPE TABS ====== */}
       <div className="px-5 mt-4">
-        <div className="flex bg-gray-100 rounded-2xl p-1 relative z-40">
+        <div className={`flex rounded-2xl p-1 relative z-40 ${isWestern ? 'bg-slate-200/50' : 'bg-gray-100'}`}>
           {/* LOCAL DROPDOWN TAB */}
           <div className="flex-1 relative">
             <button 
               onClick={() => {
                 setActiveScope('local');
-                setShowLocationDropdown(!showLocationDropdown);
+                if (!isWestern) setShowLocationDropdown(!showLocationDropdown);
               }}
               className={`w-full flex items-center justify-center space-x-1.5 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-300 ${
                 currentScopeId === 'local'
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-glow-indigo'
+                  ? (isWestern ? 'bg-slate-900 text-white shadow-lg' : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-glow-indigo')
                   : 'text-gray-500 hover:text-gray-700'
               }`}>
               <span className="text-sm">
-                {locationMode === 'default' ? '🌍' : locationMode === 'city' ? '🏙️' : '🌾'}
+                {isWestern ? '🏙️' : locationMode === 'default' ? '🌍' : locationMode === 'city' ? '🏙️' : '🌾'}
               </span>
               <span className="truncate">
-                {locationMode === 'default' ? 'Local' : locationMode === 'city' ? 'City' : 'Village'}
+                {isWestern ? 'Local Studio' : locationMode === 'default' ? 'Local' : locationMode === 'city' ? 'City' : 'Village'}
               </span>
-              <span className="text-[8px] opacity-60">▼</span>
+              {!isWestern && <span className="text-[8px] opacity-60">▼</span>}
             </button>
 
             {/* Dropdown Menu for Local Modes */}
@@ -282,10 +344,10 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
               }}
               className={`flex-1 flex items-center justify-center space-x-1.5 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-300 ${
                 currentScopeId === scope.id
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-glow-indigo'
+                  ? (isWestern ? 'bg-slate-900 text-white shadow-lg' : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-glow-indigo')
                   : 'text-gray-500 hover:text-gray-700'
               }`}>
-              <span className="text-sm">{scope.icon}</span>
+              <span className="text-sm">{scope.id === 'national' ? country?.flag : scope.icon}</span>
               <span>{scope.label}</span>
             </button>
           ))}
@@ -304,7 +366,7 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
       {/* Hero Banner Carousel */}
       <div className="px-5 mt-5">
         <div className="relative overflow-hidden rounded-2xl">
-          {HERO_BANNERS.map((banner, i) => (
+          {filteredBanners.map((banner, i) => (
             <div key={banner.id}
               className={`bg-gradient-to-r ${banner.gradient} rounded-2xl p-5 text-white relative overflow-hidden ${i === activeBanner ? 'block animate-crossfade' : 'hidden'}`}>
               <span className="text-[9px] font-bold bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full uppercase tracking-wider">{banner.badge}</span>
@@ -320,7 +382,7 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
           ))}
           {/* Dots */}
           <div className="flex justify-center space-x-1.5 mt-3">
-            {HERO_BANNERS.map((_, i) => (
+            {filteredBanners.map((_, i) => (
               <button key={i} onClick={() => setActiveBanner(i)}
                 className={`h-1.5 rounded-full transition-all duration-300 ${i === activeBanner ? 'w-6 bg-indigo-600' : 'w-1.5 bg-gray-300'}`} />
             ))}
@@ -328,47 +390,84 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
         </div>
       </div>
 
-      {/* Services Grid */}
-      <div className="mt-6">
-        <h2 className="px-5 text-lg font-extrabold text-gray-900 mb-4">Home & Personal Services</h2>
-        <div className="px-5 grid grid-cols-4 gap-3">
-          {CATEGORIES.filter(c => c.id !== '7' && c.id !== '10' && (!c.visibility || c.visibility.includes(locationMode))).map((cat, i) => (
+      {/* Home & Personal Services - Premium Grid Style */}
+      <div className="mt-8">
+        <h2 className={`px-5 text-lg font-extrabold mb-4 ${isWestern ? 'text-slate-900' : 'text-gray-900'}`}>
+          {isWestern ? 'Lifestyle & Professional Services' : 'Home & Personal Services'}
+        </h2>
+        <div className="px-5 grid grid-cols-3 gap-3">
+          {CATEGORIES.filter(c => {
+            if (selectedCountry !== 'in' && c.id === '1') return false;
+            return !['7', '10', '11', '12', '13', '14'].includes(c.id) && 
+                   (!c.visibility || c.visibility.includes(locationMode)) && 
+                   (!c.countries || c.countries.includes(selectedCountry));
+          }).map((cat, i) => (
             <button key={cat.id} onClick={() => { setSelectedCategory(cat.id); setSelectedSubCategory(null); }}
-              className="flex flex-col items-center active:scale-90 transition-all duration-200 relative animate-fade-in"
+              className={`relative overflow-hidden aspect-[1.6] rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br ${cat.color}`}
               style={{ animationDelay: `${i * 0.04}s`, opacity: 0 }}>
-              <div className={`w-14 h-14 bg-gradient-to-br ${cat.color} rounded-2xl flex items-center justify-center text-2xl shadow-premium`}>
-                {cat.icon}
+              
+              <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center mb-1.5 shadow-inner border border-white/20">
+                <span className="text-base">{cat.icon}</span>
               </div>
-              {cat.badge && (
-                <span className="absolute -top-1 -right-0 text-[7px] font-black bg-red-500 text-white px-1.5 py-0.5 rounded-full shadow">{cat.badge}</span>
-              )}
-              <span className="text-[10px] font-bold text-gray-700 mt-1.5 text-center leading-tight">{cat.name}</span>
+              
+              <span className="text-[9px] font-black text-white leading-tight uppercase tracking-wide">{cat.name}</span>
             </button>
           ))}
         </div>
       </div>
-
-      {/* Empower Banner (Start Virtual Company) */}
-      <div className="px-5 mt-8 animate-fade-in">
-        <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-black p-5 rounded-3xl relative overflow-hidden shadow-premium-lg border border-indigo-500/20">
-          {/* Decorative background shapes */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl transform translate-x-10 -translate-y-10"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-pink-500/20 rounded-full blur-xl transform -translate-x-5 translate-y-5"></div>
-          
-          <div className="relative z-10 flex flex-col items-start text-left">
-            <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1 shadow-sm">Empower Your Skill</span>
-            <h2 className="text-xl font-black text-white leading-tight">Start Your Own<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500 drop-shadow-sm">Virtual Company</span></h2>
-            <p className="text-[11px] text-gray-300 mt-2 max-w-[200px] leading-relaxed opacity-90">Turn your skills into a global startup. Zero setup cost. 100% your brand.</p>
-            
-            <button onClick={() => navigate('/register')} className="mt-4 bg-white text-indigo-900 px-6 py-2.5 rounded-xl text-xs font-black active:scale-95 transition-transform shadow-lg hover:shadow-xl flex items-center space-x-2">
-              <span>Start Now</span>
-              <span>→</span>
-            </button>
+      
+      {/* Community Tool Rental - ONLY for India Village */}
+      {selectedCountry === 'in' && locationMode === 'village' && (
+        <div className="mt-8 animate-fade-in">
+          <div className="px-5 mb-4 flex justify-between items-end">
+            <div>
+              <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-600 tracking-tight">Village Tool Rental</h2>
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mt-0.5">Rent Private Tools from Neighbors</p>
+            </div>
+            <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full uppercase tracking-widest">Village Exclusive</span>
           </div>
           
-          <div className="absolute bottom-2 right-2 text-7xl opacity-50 drop-shadow-2xl animate-float" style={{ animationDuration: '4s' }}>🚀</div>
+          <div className="px-5 grid grid-cols-3 gap-3">
+            {CATEGORIES.find(c => c.id === '15')?.subTabs?.filter(t => t.name !== 'All').map((tab, i) => (
+              <button key={tab.name} onClick={() => { setSelectedCategory('15'); setSelectedSubCategory(tab.name); }}
+                className="relative overflow-hidden aspect-[1.6] rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br from-slate-700 to-slate-900"
+                style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
+                
+                <div className="w-9 h-9 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-1.5 shadow-inner border border-white/20">
+                  <span className="text-lg">{tab.icon}</span>
+                </div>
+                
+                <span className="text-[9px] font-black text-white leading-tight uppercase tracking-wide">{tab.name}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Empower Banner (Start Virtual Company) */}
+      {selectedCountry === 'in' && (
+        <div className="px-5 mt-8 animate-fade-in">
+          <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-black p-5 rounded-3xl relative overflow-hidden shadow-premium-lg border border-indigo-500/20">
+            {/* Decorative background shapes */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl transform translate-x-10 -translate-y-10"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-pink-500/20 rounded-full blur-xl transform -translate-x-5 translate-y-5"></div>
+            
+            <div className="relative z-10 flex flex-col items-start text-left">
+              <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1 shadow-sm">Empower Your Skill</span>
+              <h2 className="text-xl font-black text-white leading-tight">Start Your Own<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500 drop-shadow-sm">Virtual Company</span></h2>
+              <p className="text-[11px] text-gray-300 mt-2 max-w-[200px] leading-relaxed opacity-90">Turn your skills into a global startup. Zero setup cost. 100% your brand.</p>
+              
+              <button onClick={() => navigate('/register')} className="mt-4 bg-white text-indigo-900 px-6 py-2.5 rounded-xl text-xs font-black active:scale-95 transition-transform shadow-lg hover:shadow-xl flex items-center space-x-2">
+                <span>Start Now</span>
+                <span>→</span>
+              </button>
+            </div>
+            
+            <div className="absolute bottom-2 right-2 text-7xl opacity-50 drop-shadow-2xl animate-float" style={{ animationDuration: '4s' }}>🚀</div>
+          </div>
+        </div>
+      )}
+
 
       {/* Scope-based Providers (Services Around You) */}
       <div className="mt-8 pb-4">
@@ -409,9 +508,11 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
                 {currentScopeId === 'global' && <p className="text-[10px] text-purple-400">{provider.city}</p>}
               </div>
               <div className="flex justify-between items-center border-t border-gray-50 pt-3 pl-2 mt-auto">
-                <span className="font-extrabold text-gray-900">{provider.price}</span>
+                <span className="font-extrabold text-gray-900">{provider.price.replace('₹', currency).replace('₨', currency)}</span>
                 <button onClick={(e) => { e.stopPropagation(); navigate('/provider', { state: { profile: provider } }); }}
-                  className="bg-gradient-to-r from-gray-900 to-gray-700 text-white px-5 py-2 rounded-xl font-bold text-xs active:scale-95 transition-transform shadow-sm">
+                  className={`px-5 py-2 rounded-xl font-bold text-xs active:scale-95 transition-transform shadow-sm ${
+                    isWestern ? 'bg-slate-900 text-white' : 'bg-gradient-to-r from-gray-900 to-gray-700 text-white'
+                  }`}>
                   {currentScopeId === 'local' ? 'Book' : 'View'}
                 </button>
               </div>
@@ -423,6 +524,70 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
       {/* ====== SCOPE MAP ====== */}
       <div className="px-5 mt-6">
         <ScopeMap scope={currentScopeId} />
+      </div>
+
+      {/* ====== VIRTUAL COMPANY SECTION - PREMIUM GRID ====== */}
+      {selectedCountry === 'in' && (
+        <div className="mt-10">
+          <div className="px-5 mb-4">
+            <h2 className="text-xl font-black text-gray-900 tracking-tight">Direct from Farmers & Pros</h2>
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mt-1">Certified Virtual Companies</p>
+          </div>
+
+        <div className="px-5 grid grid-cols-3 gap-3 mb-8">
+          {CATEGORIES.filter(c => ['11', '12', '13'].includes(c.id) && (!c.countries || c.countries.includes(selectedCountry))).map((cat, i) => {
+            let bgGradient = 'from-green-600 to-emerald-800';
+            if (cat.id === '12') bgGradient = 'from-amber-500 to-orange-700';
+            if (cat.id === '13') bgGradient = 'from-blue-600 to-indigo-800';
+
+            return (
+              <button key={cat.id} onClick={() => { setSelectedCategory(cat.id); setSelectedSubCategory(null); }}
+                className={`relative overflow-hidden aspect-[1.6] rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br ${bgGradient}`}
+                style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
+                
+                <div className="w-9 h-9 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-1.5 shadow-inner border border-white/20">
+                  <span className="text-lg">{cat.icon}</span>
+                </div>
+                
+                <span className="text-[9px] font-black text-white leading-tight uppercase tracking-wide">{cat.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    )}
+
+      {/* ====== LIVE REELS PREVIEW ====== */}
+      <div className="mt-6 mb-4">
+        <div className="px-5 flex justify-between items-center mb-3">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            <h2 className="text-sm font-black text-gray-900 uppercase tracking-widest">Live Work Reels</h2>
+          </div>
+          <button onClick={() => navigate('/reels')} className="text-indigo-600 text-[10px] font-black uppercase tracking-widest">Watch More</button>
+        </div>
+        
+        <div className="flex space-x-3 overflow-x-auto px-5 no-scrollbar">
+          {[1, 2, 3, 4, 5].map((item) => (
+            <div key={item} onClick={() => navigate('/reels')} className="flex-shrink-0 w-28 h-44 rounded-2xl bg-gray-200 relative overflow-hidden active:scale-95 transition-transform shadow-md border border-white">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+              <div className="absolute top-2 left-2 bg-red-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded-md flex items-center space-x-1">
+                <span className="w-1 h-1 bg-white rounded-full animate-ping"></span>
+                <span>LIVE</span>
+              </div>
+              <div className="absolute bottom-2 left-2 right-2">
+                <p className="text-white text-[9px] font-bold truncate">Artisan at work...</p>
+                <p className="text-white/70 text-[7px]">Kathmandu, NP</p>
+              </div>
+              {/* Mock Video Icon */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
+                  <span className="text-white text-xs ml-0.5">▶</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Professional Expertise - Premium Grid */}
@@ -445,18 +610,17 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
 
             return (
               <button key={tab.name} onClick={() => { setSelectedCategory('7'); setSelectedSubCategory(tab.name); }}
-                className={`relative overflow-hidden p-4 rounded-2xl flex flex-col items-start text-left active:scale-[0.98] transition-transform shadow-premium card-lift animate-fade-in bg-gradient-to-br ${bgGradient}`}
+                className={`relative overflow-hidden aspect-[2.4] rounded-2xl p-3 flex items-center space-x-3 text-left active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br ${bgGradient}`}
                 style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
                 
-                {/* Decorative background glow */}
-                <div className="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-white/10 blur-xl"></div>
-                
-                <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-xl mb-3 border border-white/20 shadow-inner">
-                  {tab.icon}
+                <div className="w-10 h-10 flex-shrink-0 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center shadow-inner border border-white/20">
+                  <span className="text-xl">{tab.icon}</span>
                 </div>
                 
-                <span className="text-xs font-bold text-white leading-tight">{tab.name === 'CA' ? 'Chartered Acc.' : tab.name}</span>
-                <span className="text-[9px] text-white/70 font-medium mt-0.5">Consultants</span>
+                <div className="flex flex-col">
+                  <h3 className="text-xs font-black text-white leading-tight">{tab.name === 'CA' ? 'Chartered Acc.' : tab.name}</h3>
+                  <p className="text-[8px] font-bold text-white/70 uppercase tracking-wider">Expertise</p>
+                </div>
               </button>
             );
           })}
@@ -474,31 +638,95 @@ const HomeScreen = ({ activeScope, setActiveScope }) => {
         </div>
         
         <div className="px-5 grid grid-cols-3 gap-3">
-          {CATEGORIES.find(c => c.id === '10')?.subTabs?.filter(t => t.name !== 'All').map((tab, i) => {
+          {CATEGORIES.find(c => c.id === '10')?.subTabs?.filter(t => t.name !== 'All' && (!t.countries || t.countries.includes(selectedCountry))).map((tab, i) => {
             let bgGradient = 'from-green-500 to-emerald-700';
             if (tab.name === 'Artisans') bgGradient = 'from-amber-600 to-orange-800';
             if (tab.name === 'Home Chefs') bgGradient = 'from-rose-500 to-red-700';
 
-            return (
-              <button key={tab.name} onClick={() => { setSelectedCategory('10'); setSelectedSubCategory(tab.name); }}
-                className={`relative overflow-hidden p-3 rounded-2xl flex flex-col items-center justify-center text-center active:scale-[0.98] transition-transform shadow-premium card-lift animate-fade-in bg-gradient-to-br ${bgGradient}`}
-                style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
-                
-                {/* Decorative background glow */}
-                <div className="absolute -bottom-4 -right-4 w-16 h-16 rounded-full bg-white/20 blur-xl"></div>
-                
-                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl mb-2 border border-white/30 shadow-inner">
-                  {tab.icon}
-                </div>
-                
-                <span className="text-[11px] font-bold text-white leading-tight">{tab.name}</span>
-              </button>
-            );
+              return (
+                <button key={tab.name} onClick={() => { setSelectedCategory('10'); setSelectedSubCategory(tab.name); }}
+                  className={`relative overflow-hidden aspect-[1.6] rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br ${bgGradient}`}
+                  style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
+                  
+                  <div className="w-9 h-9 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-1.5 shadow-inner border border-white/20">
+                    <span className="text-lg">{tab.icon}</span>
+                  </div>
+                  
+                  <span className="text-[9px] font-black text-white leading-tight uppercase tracking-wide">{tab.name}</span>
+                </button>
+              );
           })}
         </div>
       </div>
 
 
+
+      {/* ====== TOURISM SECTION (ASIA ONLY) ====== */}
+      {!isWestern && (
+        <div className="mt-10 mb-8">
+          <div className="px-5 flex justify-between items-end mb-4">
+            <div>
+              <h2 className="text-xl font-black text-gray-900 tracking-tight">Experience {country?.name}</h2>
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mt-1">Tourism & Local Adventures</p>
+            </div>
+            <button className="text-indigo-600 text-xs font-black uppercase tracking-widest">See All</button>
+          </div>
+
+          {/* Tour Sub-categories - Premium Grid Style */}
+          <div className="px-5 grid grid-cols-3 gap-3 mb-6">
+            {CATEGORIES.find(c => c.id === '14')?.subTabs?.filter(t => t.name !== 'All').map((tab, i) => {
+              let bgGradient = 'from-cyan-500 to-blue-700';
+              if (tab.name === 'Trek Guides') bgGradient = 'from-emerald-600 to-green-800';
+              if (tab.name === 'Cultural') bgGradient = 'from-amber-600 to-orange-800';
+              if (tab.name === 'Adventure') bgGradient = 'from-blue-600 to-indigo-800';
+              if (tab.name === 'Homestays') bgGradient = 'from-rose-500 to-pink-700';
+
+              return (
+                <button key={tab.name} onClick={() => { setSelectedCategory('14'); setSelectedSubCategory(tab.name); }}
+                  className={`relative overflow-hidden aspect-[1.6] rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br ${bgGradient}`}
+                  style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
+                  
+                  <div className="w-9 h-9 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-1.5 shadow-inner border border-white/20">
+                    <span className="text-lg">{tab.icon}</span>
+                  </div>
+                  
+                  <span className="text-[9px] font-black text-white leading-tight uppercase tracking-wide">{tab.name}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Featured Tours */}
+          <div className="flex space-x-4 overflow-x-auto px-5 pb-4 no-scrollbar snap-x">
+            {CATEGORIES.find(c => c.id === '14')?.providers?.filter(p => p.country === selectedCountry).map((tour) => (
+              <div key={tour.id} className="flex-shrink-0 w-64 bg-white rounded-3xl overflow-hidden shadow-premium-lg border border-gray-100 snap-center">
+                <div className="h-32 bg-gradient-to-br from-indigo-500 to-blue-700 relative flex items-center justify-center">
+                   <span className="text-6xl animate-float">{tour.sub === 'Trek Guides' ? '🏔️' : tour.sub === 'Adventure' ? '🪂' : '🏯'}</span>
+                   <div className="absolute top-3 left-3 bg-white/20 backdrop-blur-md px-2 py-1 rounded-full text-[9px] font-bold text-white uppercase tracking-widest">
+                     {tour.tag}
+                   </div>
+                </div>
+                <div className="p-4">
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-black text-gray-900 text-sm leading-tight w-2/3">{tour.name}</h4>
+                    <div className="flex items-center space-x-0.5 bg-yellow-50 px-1.5 py-0.5 rounded-lg">
+                      <span className="text-yellow-500 text-[10px]">★</span>
+                      <span className="text-[10px] font-black text-yellow-700">{tour.rating}</span>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-gray-500 font-bold mt-1 uppercase tracking-wider">{tour.distance}</p>
+                  <div className="flex justify-between items-center mt-4">
+                    <span className="text-sm font-black text-indigo-600">{tour.price.replace('₨', currency).replace('₹', currency)}</span>
+                    <button className="bg-indigo-600 text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-transform shadow-md shadow-indigo-100">
+                      Book Trip
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Top Experts */}
       <div className="mt-2 pb-6">

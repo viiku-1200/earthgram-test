@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getMockResponse } from '../../utils/gemini';
+// botAvatar accessed via public path
 
 const ChatScreen = ({ onClose }) => {
   const [inputText, setInputText] = useState('');
@@ -37,14 +38,12 @@ const ChatScreen = ({ onClose }) => {
         </button>
 
         {/* Dynamic Expression Face */}
-        <div className={`w-20 h-20 rounded-full flex items-center justify-center shadow-premium-lg border-4 border-white transition-all duration-500 relative ${
-          botMood === 'speaking' ? 'bg-gradient-to-br from-indigo-100 to-purple-100 scale-105' :
-          botMood === 'thinking' ? 'bg-gradient-to-br from-amber-100 to-orange-100' :
-          'bg-gradient-to-br from-gray-50 to-gray-100'
+        <div className={`w-20 h-20 rounded-full overflow-hidden shadow-premium-lg border-4 border-white transition-all duration-500 relative ${
+          botMood === 'speaking' ? 'scale-105' :
+          botMood === 'thinking' ? 'scale-100' :
+          ''
         }`}>
-          <span className={`text-4xl transition-transform duration-300 ${botMood === 'thinking' ? 'animate-bounce' : ''}`}>
-            {botMood === 'listening' ? '👀' : botMood === 'thinking' ? '🤔' : botMood === 'speaking' ? '🤗' : '😊'}
-          </span>
+          <img src="/bot-avatar.png" alt="AI Assistant" className="w-full h-full object-cover" />
           <div className="absolute bottom-0 right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full online-dot"></div>
         </div>
 
