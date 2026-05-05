@@ -403,7 +403,7 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
                    (!c.countries || c.countries.includes(selectedCountry));
           }).map((cat, i) => (
             <button key={cat.id} onClick={() => { setSelectedCategory(cat.id); setSelectedSubCategory(null); }}
-              className={`relative overflow-hidden aspect-[1.6] rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br ${cat.color}`}
+              className={`relative overflow-hidden aspect-square rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br ${cat.color}`}
               style={{ animationDelay: `${i * 0.04}s`, opacity: 0 }}>
               
               <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center mb-1.5 shadow-inner border border-white/20">
@@ -430,7 +430,7 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
           <div className="px-5 grid grid-cols-3 gap-3">
             {CATEGORIES.find(c => c.id === '15')?.subTabs?.filter(t => t.name !== 'All').map((tab, i) => (
               <button key={tab.name} onClick={() => { setSelectedCategory('15'); setSelectedSubCategory(tab.name); }}
-                className="relative overflow-hidden aspect-[1.6] rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br from-slate-700 to-slate-900"
+                className="relative overflow-hidden aspect-square rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br from-slate-700 to-slate-900"
                 style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
                 
                 <div className="w-9 h-9 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-1.5 shadow-inner border border-white/20">
@@ -542,7 +542,7 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
 
             return (
               <button key={cat.id} onClick={() => { setSelectedCategory(cat.id); setSelectedSubCategory(null); }}
-                className={`relative overflow-hidden aspect-[1.6] rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br ${bgGradient}`}
+                className={`relative overflow-hidden aspect-square rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br ${bgGradient}`}
                 style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
                 
                 <div className="w-9 h-9 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-1.5 shadow-inner border border-white/20">
@@ -645,7 +645,7 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
 
               return (
                 <button key={tab.name} onClick={() => { setSelectedCategory('10'); setSelectedSubCategory(tab.name); }}
-                  className={`relative overflow-hidden aspect-[1.6] rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br ${bgGradient}`}
+                  className={`relative overflow-hidden aspect-square rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br ${bgGradient}`}
                   style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
                   
                   <div className="w-9 h-9 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-1.5 shadow-inner border border-white/20">
@@ -683,7 +683,7 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
 
               return (
                 <button key={tab.name} onClick={() => { setSelectedCategory('14'); setSelectedSubCategory(tab.name); }}
-                  className={`relative overflow-hidden aspect-[1.6] rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br ${bgGradient}`}
+                  className={`relative overflow-hidden aspect-square rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br ${bgGradient}`}
                   style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
                   
                   <div className="w-9 h-9 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-1.5 shadow-inner border border-white/20">
