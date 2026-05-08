@@ -18,6 +18,8 @@ import WalletScreen from './components/screens/WalletScreen';
 import ItzPassScreen from './components/screens/ItzPassScreen';
 import ServiceCatalogScreen from './components/screens/ServiceCatalogScreen';
 import UploadReelScreen from './components/screens/UploadReelScreen';
+import SplashScreen from './components/screens/SplashScreen';
+import ActivityScreen from './components/screens/ActivityScreen';
 // botAvatar moved to public folder for direct access
 
 // Layout Components
@@ -31,6 +33,8 @@ const AppContent = () => {
   const [botMood, setBotMood] = useState('idle');
   const [isRegistered, setIsRegistered] = useState(false);
   const [companyData, setCompanyData] = useState(null);
+  const [showSplash, setShowSplash] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Boss Mode AI State
   const [bizBio, setBizBio] = useState('');
@@ -50,10 +54,12 @@ const AppContent = () => {
   const hideOverlays = ['/chat', '/register', '/search', '/explore-search', '/messages', '/wallet', '/itzpass', '/catalog', '/book', '/provider', '/upload-reel'].some(p => location.pathname.startsWith(p));
 
   return (
-    <PhoneFrame>
+    <>
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} isDarkMode={isDarkMode} />}
+      <PhoneFrame>
       <div className="h-full w-full">
         <Routes>
-          <Route path="/" element={<HomeScreen activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} />} />
+          <Route path="/" element={<HomeScreen isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} />} />
           <Route path="/explore" element={<ExploreScreen />} />
           <Route path="/reels" element={<ReelsScreen />} />
           <Route path="/community" element={<CommunityScreen />} />
@@ -75,6 +81,7 @@ const AppContent = () => {
           <Route path="/register" element={<RegisterScreen onClose={() => navigate(-1)} onRegisterSuccess={(data) => { setCompanyData(data); setIsRegistered(true); setIsBossMode(true); navigate('/profile'); }} />} />
           <Route path="/provider" element={<ProviderProfileScreen onBack={() => navigate(-1)} />} />
           <Route path="/book" element={<BookingScreen onClose={() => navigate(-1)} />} />
+          <Route path="/activity" element={<ActivityScreen isDarkMode={isDarkMode} />} />
           <Route path="/search" element={<SearchScreen onClose={() => navigate(-1)} />} />
           <Route path="/explore-search" element={<ExploreSearchScreen onClose={() => navigate(-1)} />} />
           <Route path="/messages" element={<MessagingScreen onClose={() => navigate(-1)} />} />
@@ -102,7 +109,8 @@ const AppContent = () => {
           </span>
         </button>
       )}
-    </PhoneFrame>
+      </PhoneFrame>
+    </>
   );
 };
 

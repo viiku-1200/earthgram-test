@@ -17,7 +17,7 @@ const LucideIcon = ({ name, className, size = 24 }) => {
   return <Icon className={className} size={size} strokeWidth={2.5} />;
 };
 
-const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedCountry }) => {
+const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, selectedCountry, setSelectedCountry }) => {
   const navigate = useNavigate();
   const [activeBanner, setActiveBanner] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -27,7 +27,6 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
 
   const country = COUNTRIES.find(c => c.id === selectedCountry);
-  const isWestern = country?.region === 'west';
   const currency = selectedCountry === 'us' ? '$' : selectedCountry === 'uk' ? '£' : selectedCountry === 'np' ? '₨' : '₹';
 
   const filteredBanners = HERO_BANNERS.filter(b => b.country === 'all' || b.country === selectedCountry);
@@ -64,20 +63,30 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
     const cat = currentCategory;
     const filteredProviders = getFilteredProviders();
     return (
-      <div className="h-full flex flex-col bg-gray-50 pt-8 pb-20 overflow-y-auto hide-scrollbar">
+      <div className={`h-full flex flex-col pt-8 pb-20 overflow-y-auto hide-scrollbar transition-all duration-500 ${
+        isDarkMode ? 'bg-[#0f172a] text-white' : 'bg-gray-50 text-gray-900'
+      }`}>
         {/* Header */}
-        <div className="glass px-5 pt-2 pb-4 flex items-center space-x-4">
+        <div className={`px-5 pt-2 pb-4 flex items-center space-x-4 transition-all duration-300 ${
+          isDarkMode ? 'bg-[#0f172a]/95 backdrop-blur-md border-b border-slate-800' : 'glass'
+        }`}>
           <button onClick={() => setSelectedSubCategory(null)}
-            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 active:scale-90 transition-transform text-sm font-bold">←</button>
+            className={`w-8 h-8 rounded-full flex items-center justify-center active:scale-90 transition-transform text-sm font-bold ${
+              isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-gray-100 text-gray-600'
+            }`}>←</button>
           <div className="flex items-center space-x-2">
-            <h1 className="text-lg font-extrabold text-gray-900">{selectedSubCategory === '__ALL__' ? 'All Providers' : selectedSubCategory}</h1>
-            <span className="text-[9px] font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">{cat.name}</span>
+            <h1 className={`text-lg font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              {selectedSubCategory === '__ALL__' ? 'All Providers' : selectedSubCategory}
+            </h1>
+            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+              isDarkMode ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600'
+            }`}>{cat.name}</span>
           </div>
         </div>
 
         {/* Results count */}
         <div className="px-5 mt-4 mb-2">
-          <p className="text-xs text-gray-500 font-medium">
+          <p className={`text-xs font-medium ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
             {filteredProviders.length} Virtual {filteredProviders.length === 1 ? 'Company' : 'Companies'} found
           </p>
         </div>
@@ -98,7 +107,9 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
             filteredProviders.map((provider, i) => (
               <div key={provider.id}
                 onClick={() => navigate('/provider', { state: { profile: provider } })}
-                className="bg-white p-4 rounded-2xl shadow-premium border border-gray-100/50 cursor-pointer card-lift animate-fade-in gradient-border"
+                className={`p-4 rounded-2xl shadow-premium border cursor-pointer card-lift animate-fade-in gradient-border ${
+                  isDarkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-gray-100/50'
+                }`}
                 style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
                 <div className="flex justify-between items-start mb-2 pl-2">
                   <div className="flex items-center space-x-3">
@@ -106,26 +117,34 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
                       {cat.icon}
                     </div>
                     <div>
-                      <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full inline-block mb-0.5">{provider.tag}</span>
-                      <h3 className="text-sm font-bold text-gray-900">{provider.name}</h3>
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full inline-block mb-0.5 ${
+                        isDarkMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
+                      }`}>{provider.tag}</span>
+                      <h3 className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-gray-900'}`}>{provider.name}</h3>
                     </div>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-[9px] font-bold bg-gray-100 px-2 py-0.5 rounded-full text-gray-600">📍 {provider.distance}</span>
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                      isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-gray-100 text-gray-600'
+                    }`}>📍 {provider.distance}</span>
                     {provider.available && <span className="flex items-center space-x-1 mt-1"><span className="w-1.5 h-1.5 bg-green-500 rounded-full online-dot"></span><span className="text-[8px] font-bold text-green-600">Online</span></span>}
                   </div>
                 </div>
-                <div className="flex items-center text-sm text-gray-500 mb-3 pl-2">
+                <div className="flex items-center text-sm mb-3 pl-2">
                   <span className="text-yellow-500 mr-1">⭐</span>
-                  <span className="font-bold text-gray-700 mr-1">{provider.rating}</span>
-                  <span>({provider.reviews})</span>
-                  <span className="mx-2 text-gray-200">•</span>
-                  <span className="text-[10px] text-gray-400">Used by neighbors recently</span>
+                  <span className={`font-bold mr-1 ${isDarkMode ? 'text-slate-200' : 'text-gray-700'}`}>{provider.rating}</span>
+                  <span className="text-slate-500">({provider.reviews})</span>
+                  <span className={`mx-2 ${isDarkMode ? 'text-slate-800' : 'text-gray-200'}`}>•</span>
+                  <span className={`text-[10px] ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>Used by neighbors recently</span>
                 </div>
-                <div className="flex justify-between items-center border-t border-gray-50 pt-3 pl-2">
-                  <span className="font-extrabold text-gray-900">{provider.price}</span>
+                <div className={`flex justify-between items-center border-t pt-3 pl-2 ${
+                  isDarkMode ? 'border-slate-800' : 'border-gray-50'
+                }`}>
+                  <span className={`font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{provider.price}</span>
                   <button onClick={(e) => { e.stopPropagation(); navigate('/provider', { state: { profile: provider } }); }}
-                    className="bg-gradient-to-r from-gray-900 to-gray-700 text-white px-5 py-2 rounded-xl font-bold text-xs active:scale-95 transition-transform shadow-sm">
+                    className={`px-5 py-2 rounded-xl font-bold text-xs active:scale-95 transition-transform shadow-sm ${
+                      isDarkMode ? 'bg-slate-800 text-white border border-slate-700' : 'bg-gradient-to-r from-gray-900 to-gray-700 text-white'
+                    }`}>
                     View Profile
                   </button>
                 </div>
@@ -141,12 +160,18 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
   if (selectedCategory) {
     const cat = currentCategory;
     return (
-      <div className="h-full flex flex-col bg-gray-50 pt-8 pb-20 overflow-y-auto hide-scrollbar">
+      <div className={`h-full flex flex-col pt-8 pb-20 overflow-y-auto hide-scrollbar transition-all duration-500 ${
+        isDarkMode ? 'bg-[#0f172a] text-white' : 'bg-gray-50 text-gray-900'
+      }`}>
         {/* Header */}
-        <div className="glass px-5 pt-2 pb-4 flex items-center space-x-4">
+        <div className={`px-5 pt-2 pb-4 flex items-center space-x-4 transition-all duration-300 ${
+          isDarkMode ? 'bg-[#0f172a]/95 backdrop-blur-md border-b border-slate-800' : 'glass'
+        }`}>
           <button onClick={() => { setSelectedCategory(null); setSelectedSubCategory(null); }}
-            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 active:scale-90 transition-transform text-sm font-bold">←</button>
-          <h1 className="text-lg font-extrabold text-gray-900">{cat.name}</h1>
+            className={`w-8 h-8 rounded-full flex items-center justify-center active:scale-90 transition-transform text-sm font-bold ${
+              isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-gray-100 text-gray-600'
+            }`}>←</button>
+          <h1 className={`text-lg font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{cat.name}</h1>
           {cat.badge && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">{cat.badge}</span>}
           {cat.comingSoon && <span className="text-[9px] font-bold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Coming Soon</span>}
         </div>
@@ -156,15 +181,17 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
           <div className="px-5 mt-6 space-y-4 animate-fade-in">
             <div className="text-center mb-4">
               <span className="text-5xl block mb-2">🏃</span>
-              <h2 className="text-lg font-black text-gray-900">ItzRunner <span className="text-orange-500">(Chotu)</span></h2>
+              <h2 className={`text-lg font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>ItzRunner <span className="text-orange-500">(Chotu)</span></h2>
               <p className="text-xs text-gray-500">Your local delivery & task buddy</p>
             </div>
             {cat.services.map((service, i) => (
-              <div key={service.id} className="bg-white p-5 rounded-2xl shadow-premium border border-gray-100/50 flex items-center space-x-4 card-lift animate-fade-in"
+              <div key={service.id} className={`p-5 rounded-2xl shadow-premium border flex items-center space-x-4 card-lift animate-fade-in ${
+                isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100/50'
+              }`}
                 style={{ animationDelay: `${i * 0.08}s`, opacity: 0 }}>
                 <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-amber-50 rounded-2xl flex items-center justify-center text-3xl">{service.icon}</div>
                 <div className="flex-1">
-                  <h3 className="text-base font-bold text-gray-900">{service.name}</h3>
+                  <h3 className={`text-base font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{service.name}</h3>
                   <p className="text-xs text-gray-500 mt-0.5">{service.desc}</p>
                   <span className="text-xs font-bold text-orange-600 mt-1 inline-block">{service.price}</span>
                 </div>
@@ -181,7 +208,7 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
         ) : (
           /* Sub-Category Icon Grid — 3 columns like ItzQuk */
           <div className="px-5 mt-6 animate-fade-in">
-            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Choose a service type</h2>
+            <h2 className={`text-sm font-bold uppercase tracking-wider mb-4 ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>Choose a service type</h2>
             <div className="grid grid-cols-3 gap-4">
               {cat.subTabs && cat.subTabs.filter(tab => tab.name !== 'All').map((tab, i) => {
                 const providerCount = (cat.providers || []).filter(p => p.sub === tab.name).length;
@@ -193,7 +220,7 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
                     <div className={`w-[72px] h-[72px] ${tab.bg} rounded-2xl flex items-center justify-center text-3xl shadow-premium border border-white/80 group-hover:shadow-premium-lg transition-shadow`}>
                       {tab.icon}
                     </div>
-                    <span className="text-[11px] font-bold text-gray-700 mt-2 text-center leading-tight">{tab.name}</span>
+                    <span className={`text-[11px] font-bold mt-2 text-center leading-tight ${isDarkMode ? 'text-slate-200' : 'text-gray-700'}`}>{tab.name}</span>
                     {providerCount > 0 && (
                       <span className="text-[9px] font-medium text-gray-400 mt-0.5">{providerCount} {providerCount === 1 ? 'company' : 'companies'}</span>
                     )}
@@ -205,7 +232,9 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
             {/* "View All" button at the bottom */}
             <button
               onClick={() => setSelectedSubCategory(null) || setSelectedSubCategory('__ALL__')}
-              className="w-full mt-6 bg-white border border-gray-200 text-gray-700 py-3 rounded-2xl text-sm font-bold active:scale-[0.98] transition-transform flex items-center justify-center space-x-2 shadow-premium">
+              className={`w-full mt-6 py-3 rounded-2xl text-sm font-bold active:scale-[0.98] transition-transform flex items-center justify-center space-x-2 shadow-premium border ${
+                isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-gray-200 text-gray-700'
+              }`}>
               <span>📋</span>
               <span>View All {cat.name} Providers</span>
               <span className="text-gray-400">→</span>
@@ -220,102 +249,152 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
   const currentScopeId = getScopeId();
   const scopeProviders = getScopeProviders();
 
+  const [hasUnreadActivity, setHasUnreadActivity] = useState(true);
+
   return (
-    <div className={`h-full flex flex-col pt-8 pb-20 overflow-y-auto hide-scrollbar transition-colors duration-500 ${
-      isWestern ? 'bg-slate-50 text-slate-900' : 'bg-gradient-to-b from-white to-gray-50/80'
+    <div className={`h-full flex flex-col pt-8 pb-20 overflow-y-auto hide-scrollbar transition-all duration-500 ${
+      isDarkMode ? 'bg-[#0f172a] text-white' : 'bg-gradient-to-b from-white to-gray-50/80 text-gray-900'
     }`}>
-      {/* Header */}
-      <div className={`px-5 pt-2 pb-3 flex justify-between items-center border-b border-gray-100/50 transition-all ${
-        isWestern ? 'bg-white shadow-sm' : 'bg-white/80'
+      {/* Header — Elegant Scroll-away Style */}
+      <div className={`z-50 px-5 pt-8 pb-4 flex justify-between items-center transition-all duration-300 border-b ${
+        isDarkMode ? 'bg-[#0f172a]/95 backdrop-blur-md border-slate-800' : 'bg-white border-gray-100/50'
       }`}>
-        <div className="flex items-center space-x-3">
-          <div className="relative">
-            <button 
-              onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-              className="flex items-center space-x-1 bg-gray-100 px-2 py-1 rounded-lg text-lg active:scale-95 transition-transform"
-            >
-              <span>{COUNTRIES.find(c => c.id === selectedCountry)?.flag}</span>
-              <span className="text-[10px] font-bold text-gray-500">▼</span>
-            </button>
-            
-            {showCountryDropdown && (
-              <div className="absolute top-full left-0 mt-2 w-32 bg-white rounded-xl shadow-premium-lg border border-gray-100 z-50 animate-fade-in overflow-hidden">
-                {COUNTRIES.map(country => (
-                  <button
-                    key={country.id}
-                    onClick={() => {
-                      setSelectedCountry(country.id);
-                      setShowCountryDropdown(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 text-xs font-bold flex items-center space-x-2 hover:bg-indigo-50 transition-colors ${
-                      selectedCountry === country.id ? 'text-indigo-600 bg-indigo-50/50' : 'text-gray-600'
-                    }`}
-                  >
-                    <span>{country.flag}</span>
-                    <span>{country.name}</span>
-                  </button>
-                ))}
+        <div className="flex flex-col">
+          <div className="flex items-center space-x-2">
+            <div className="relative">
+              <button 
+                onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                className={`flex items-center space-x-1.5 px-2 py-1.5 rounded-xl text-lg active:scale-95 transition-all ${
+                  isDarkMode ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-gray-100/80 text-gray-900 hover:bg-gray-200/50'
+                }`}
+              >
+                <span>{COUNTRIES.find(c => c.id === selectedCountry)?.flag}</span>
+                <span className={`text-[8px] font-black ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>▼</span>
+              </button>
+              
+              {showCountryDropdown && (
+                <div className={`absolute top-full left-0 mt-3 w-40 rounded-2xl shadow-premium-xl border z-[60] animate-slide-down overflow-hidden ${
+                  isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100'
+                }`}>
+                  {COUNTRIES.map(country => (
+                    <button
+                      key={country.id}
+                      onClick={() => {
+                        setSelectedCountry(country.id);
+                        setShowCountryDropdown(false);
+                      }}
+                      className={`w-full text-left px-4 py-3 text-[11px] font-bold flex items-center space-x-3 transition-colors ${
+                        selectedCountry === country.id 
+                          ? (isDarkMode ? 'text-indigo-400 bg-indigo-500/10' : 'text-indigo-600 bg-indigo-50/50') 
+                          : (isDarkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-gray-600 hover:bg-indigo-50')
+                      }`}
+                    >
+                      <span className="text-base">{country.flag}</span>
+                      <span>{country.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center -ml-1">
+              <div className={`p-1.5 rounded-2xl shadow-premium border flex items-center justify-center overflow-hidden h-12 w-12 mr-3 ${
+                isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100'
+              }`}>
+                <img src="/logo.png" alt="Logo" className="h-full w-full object-cover scale-150" />
               </div>
-            )}
+              <span className="text-2xl font-black tracking-tighter">
+                <span className={isDarkMode ? 'text-white' : 'text-[#003B73]'}>earth</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00BF72] to-[#00E5FF]">gram</span>
+              </span>
+            </div>
           </div>
-            <h1 className={`text-xl font-black tracking-tight ${
-              isWestern ? 'text-slate-900' : 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600'
-            }`}>
-              {isWestern ? 'EarthGram Elite' : 'EarthGram'}
-            </h1>
-            {!isWestern && (
-              <div className="flex items-center mt-0.5 opacity-60">
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                  📍 {locationMode === 'default' ? 'Select Area' : locationMode === 'city' ? 'Ghaziabad (City)' : 'Pipar (Village)'}
-                </span>
-              </div>
-            )}
-            {isWestern && (
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Global Luxury Network</p>
-            )}
+          <div className="flex items-center mt-1 ml-0.5">
+            <span className="flex h-1.5 w-1.5 mr-1.5">
+              <span className="animate-ping absolute inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+            </span>
+            <span className={`text-[9px] font-bold uppercase tracking-[0.15em] ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>
+              {locationMode === 'default' ? 'Global Network' : locationMode === 'city' ? 'City Operations' : 'Village Marketplace'}
+            </span>
           </div>
+        </div>
+
         <div className="flex items-center space-x-2">
-          <button onClick={() => navigate('/search')} className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-sm active:scale-90 transition-transform">
-            🔍
+          {/* Theme Toggle */}
+          <button 
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg active:scale-90 transition-all shadow-sm ${
+              isDarkMode ? 'bg-slate-800 text-yellow-400 hover:bg-slate-700' : 'bg-gray-100/80 text-indigo-600 hover:bg-gray-200/50'
+            }`}
+          >
+            {isDarkMode ? '☀️' : '🌙'}
           </button>
-          <button className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-sm relative active:scale-90 transition-transform">
-            🔔
-            <div className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></div>
+          
+          {/* Instagram-style Heart Notification */}
+          <button onClick={() => { setHasUnreadActivity(false); navigate('/activity'); }}
+            className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg relative active:scale-90 transition-all shadow-sm ${
+            isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-gray-100/80 text-gray-900 hover:bg-gray-200/50'
+          }`}>
+            <span>❤️</span>
+            {/* Pulsing "Excitement" Dot */}
+            {hasUnreadActivity && (
+              <div className="absolute top-2.5 right-2.5 flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600 border-2 border-white shadow-sm"></span>
+              </div>
+            )}
+          </button>
+
+          <button onClick={() => navigate('/search')} className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg active:scale-90 transition-all shadow-sm ${
+            isDarkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-gray-100/80 text-gray-900 hover:bg-gray-200/50'
+          }`}>
+            🔍
           </button>
         </div>
       </div>
 
-      {/* ====== SCOPE TABS ====== */}
-      <div className="px-5 mt-4">
-        <div className={`flex rounded-2xl p-1 relative z-40 ${isWestern ? 'bg-slate-200/50' : 'bg-gray-100'}`}>
-          {/* LOCAL DROPDOWN TAB */}
+      {/* ====== PREMIUM SCOPE TABS WITH SLIDING INDICATOR ====== */}
+      <div className="px-5 mt-6 relative">
+        <div className={`flex rounded-2xl p-1.5 relative z-40 shadow-inner-lg ${isDarkMode ? 'bg-slate-800/50' : 'bg-gray-100/80'}`}>
+          {/* Animated Background Slider */}
+          <div 
+            className={`absolute top-1.5 bottom-1.5 rounded-xl transition-all duration-500 ease-out shadow-premium ${
+              isDarkMode ? 'bg-slate-700' : 'bg-gradient-to-r from-indigo-600 to-purple-600'
+            }`}
+            style={{ 
+              width: 'calc(33.33% - 8px)',
+              left: currentScopeId === 'local' ? '6px' : currentScopeId === 'national' ? 'calc(33.33% + 2px)' : 'calc(66.66% - 2px)'
+            }}
+          />
+
+          {/* LOCAL TAB */}
           <div className="flex-1 relative">
             <button 
               onClick={() => {
                 setActiveScope('local');
-                if (!isWestern) setShowLocationDropdown(!showLocationDropdown);
+                setShowLocationDropdown(!showLocationDropdown);
               }}
-              className={`w-full flex items-center justify-center space-x-1.5 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-300 ${
-                currentScopeId === 'local'
-                  ? (isWestern ? 'bg-slate-900 text-white shadow-lg' : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-glow-indigo')
-                  : 'text-gray-500 hover:text-gray-700'
+              className={`w-full relative z-10 flex items-center justify-center space-x-2 py-3 rounded-xl text-[11px] font-black transition-colors duration-300 ${
+                currentScopeId === 'local' ? 'text-white' : 'text-gray-500'
               }`}>
-              <span className="text-sm">
-                {isWestern ? '🏙️' : locationMode === 'default' ? '🌍' : locationMode === 'city' ? '🏙️' : '🌾'}
+              <span>
+                {locationMode === 'default' ? '🌍' : locationMode === 'city' ? '🏙️' : '🌾'}
               </span>
-              <span className="truncate">
-                {isWestern ? 'Local Studio' : locationMode === 'default' ? 'Local' : locationMode === 'city' ? 'City' : 'Village'}
+              <span className="uppercase tracking-wider">
+                {locationMode === 'default' ? 'Local' : locationMode === 'city' ? 'City' : 'Village'}
               </span>
-              {!isWestern && <span className="text-[8px] opacity-60">▼</span>}
+              {currentScopeId === 'local' && <span className="text-[8px] opacity-60">▼</span>}
             </button>
 
             {/* Dropdown Menu for Local Modes */}
             {showLocationDropdown && currentScopeId === 'local' && (
-              <div className="absolute top-full left-0 mt-2 w-40 bg-white rounded-2xl shadow-premium-lg border border-gray-100 overflow-hidden animate-fade-in z-50">
+              <div className={`absolute top-[120%] left-0 mt-2 w-48 rounded-3xl shadow-premium-2xl border overflow-hidden animate-slide-up z-50 ${
+                isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100'
+              }`}>
                 {[
-                  { id: 'default', label: 'Default (All)', icon: '🌍' },
-                  { id: 'city', label: 'City View', icon: '🏙️' },
-                  { id: 'village', label: 'Village View', icon: '🌾' },
+                  { id: 'default', label: 'Default View', icon: '🌍', desc: 'All nearby services' },
+                  { id: 'city', label: 'City Mode', icon: '🏙️', desc: 'Premium urban services' },
+                  { id: 'village', label: 'Village Mode', icon: '🌾', desc: 'Agri & local marketplace' },
                 ].map((mode) => (
                   <button
                     key={mode.id}
@@ -323,12 +402,25 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
                       setLocationMode(mode.id);
                       setShowLocationDropdown(false);
                     }}
-                    className={`w-full text-left px-4 py-3 text-[10px] font-bold flex items-center space-x-3 hover:bg-indigo-50 transition-colors border-b border-gray-50 last:border-0 ${
-                      locationMode === mode.id ? 'text-indigo-600 bg-indigo-50/50' : 'text-gray-600'
-                    }`}
+                    className={`w-full text-left px-5 py-4 transition-all border-b last:border-0 ${
+                      locationMode === mode.id 
+                        ? (isDarkMode ? 'bg-indigo-500/10' : 'bg-indigo-50/50') 
+                        : (isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-indigo-50')
+                    } ${isDarkMode ? 'border-slate-800' : 'border-gray-50'}`}
                   >
-                    <span className="text-sm">{mode.icon}</span>
-                    <span>{mode.label}</span>
+                    <div className="flex items-center space-x-4">
+                      <span className="text-xl">{mode.icon}</span>
+                      <div className="flex flex-col">
+                        <span className={`text-[11px] font-black ${
+                          locationMode === mode.id 
+                            ? (isDarkMode ? 'text-indigo-400' : 'text-indigo-600') 
+                            : (isDarkMode ? 'text-slate-200' : 'text-gray-800')
+                        }`}>{mode.label}</span>
+                        <span className={`text-[8px] font-bold uppercase tracking-widest ${
+                          isDarkMode ? 'text-slate-500' : 'text-gray-400'
+                        }`}>{mode.desc}</span>
+                      </div>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -342,22 +434,23 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
                 setActiveScope(scope.id);
                 setShowLocationDropdown(false);
               }}
-              className={`flex-1 flex items-center justify-center space-x-1.5 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-300 ${
-                currentScopeId === scope.id
-                  ? (isWestern ? 'bg-slate-900 text-white shadow-lg' : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-glow-indigo')
-                  : 'text-gray-500 hover:text-gray-700'
+              className={`flex-1 relative z-10 flex items-center justify-center space-x-2 py-3 rounded-xl text-[11px] font-black transition-colors duration-300 ${
+                currentScopeId === scope.id ? 'text-white' : 'text-gray-500'
               }`}>
-              <span className="text-sm">{scope.id === 'national' ? country?.flag : scope.icon}</span>
-              <span>{scope.label}</span>
+              <span>{scope.id === 'national' ? country?.flag : scope.icon}</span>
+              <span className="uppercase tracking-wider">{scope.label}</span>
             </button>
           ))}
         </div>
 
-        {/* Scope description */}
-        <div className="flex justify-center mt-3">
-          <span className="text-[9px] text-gray-400 font-medium opacity-70">
-            {SCOPES.find(s => s.id === currentScopeId)?.desc} — {SCOPES.find(s => s.id === currentScopeId)?.radius}
-          </span>
+        {/* Scope Radius Indicator */}
+        <div className="flex justify-center mt-4">
+          <div className="bg-gray-50 px-4 py-1.5 rounded-full border border-gray-100 shadow-sm flex items-center space-x-2">
+            <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></div>
+            <span className="text-[9px] text-gray-500 font-black uppercase tracking-[0.1em]">
+              {SCOPES.find(s => s.id === currentScopeId)?.desc} • {SCOPES.find(s => s.id === currentScopeId)?.radius}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -392,25 +485,28 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
 
       {/* Home & Personal Services - Premium Grid Style */}
       <div className="mt-8">
-        <h2 className={`px-5 text-lg font-extrabold mb-4 ${isWestern ? 'text-slate-900' : 'text-gray-900'}`}>
-          {isWestern ? 'Lifestyle & Professional Services' : 'Home & Personal Services'}
+        <h2 className={`px-5 text-lg font-extrabold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          {isDarkMode ? 'Lifestyle & Professional Services' : 'Home & Personal Services'}
         </h2>
-        <div className="px-5 grid grid-cols-3 gap-3">
+        <div className="px-5 grid grid-cols-4 gap-3">
           {CATEGORIES.filter(c => {
             if (selectedCountry !== 'in' && c.id === '1') return false;
-            return !['7', '10', '11', '12', '13', '14'].includes(c.id) && 
+            return !['7', '10', '11', '12', '13', '14', '15', '19', '20'].includes(c.id) && 
                    (!c.visibility || c.visibility.includes(locationMode)) && 
                    (!c.countries || c.countries.includes(selectedCountry));
           }).map((cat, i) => (
             <button key={cat.id} onClick={() => { setSelectedCategory(cat.id); setSelectedSubCategory(null); }}
-              className={`relative overflow-hidden aspect-square rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br ${cat.color}`}
-              style={{ animationDelay: `${i * 0.04}s`, opacity: 0 }}>
+              className={`relative overflow-hidden aspect-square rounded-[1.5rem] flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-premium-sm group animate-fade-in border border-white/20 bg-gradient-to-br ${cat.color}`}
+              style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}>
               
-              <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center mb-1.5 shadow-inner border border-white/20">
+              <div className="w-8 h-8 bg-white/25 backdrop-blur-md rounded-xl flex items-center justify-center mb-1.5 shadow-inner border border-white/30 group-hover:scale-110 transition-transform">
                 <span className="text-base">{cat.icon}</span>
               </div>
               
-              <span className="text-[9px] font-black text-white leading-tight uppercase tracking-wide">{cat.name}</span>
+              <span className="text-[8px] font-black text-white leading-tight uppercase tracking-widest px-1">{cat.name}</span>
+              
+              {/* Subtle Overlay Shine */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </button>
           ))}
         </div>
@@ -419,25 +515,27 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
       {/* Community Tool Rental - ONLY for India Village */}
       {selectedCountry === 'in' && locationMode === 'village' && (
         <div className="mt-8 animate-fade-in">
-          <div className="px-5 mb-4 flex justify-between items-end">
+          <div className="px-5 mb-5 flex justify-between items-center">
             <div>
-              <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-600 tracking-tight">Village Tool Rental</h2>
-              <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mt-0.5">Rent Private Tools from Neighbors</p>
+              <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Village Tool Rental</h2>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Neighbor-to-Neighbor</p>
             </div>
-            <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full uppercase tracking-widest">Village Exclusive</span>
+            <button className={`text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest transition-colors ${
+              isDarkMode ? 'text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20' : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'
+            }`}>See All</button>
           </div>
           
-          <div className="px-5 grid grid-cols-3 gap-3">
+          <div className="px-5 grid grid-cols-3 gap-4">
             {CATEGORIES.find(c => c.id === '15')?.subTabs?.filter(t => t.name !== 'All').map((tab, i) => (
               <button key={tab.name} onClick={() => { setSelectedCategory('15'); setSelectedSubCategory(tab.name); }}
-                className="relative overflow-hidden aspect-square rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group animate-fade-in bg-gradient-to-br from-slate-700 to-slate-900"
-                style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
+                className="relative overflow-hidden aspect-square rounded-3xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-premium border border-white/10 group animate-fade-in bg-gradient-to-br from-slate-800 to-black"
+                style={{ animationDelay: `${i * 0.08}s`, opacity: 0 }}>
                 
-                <div className="w-9 h-9 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-1.5 shadow-inner border border-white/20">
-                  <span className="text-lg">{tab.icon}</span>
+                <div className="w-11 h-11 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center mb-2 shadow-inner border border-white/10">
+                  <span className="text-xl">{tab.icon}</span>
                 </div>
                 
-                <span className="text-[9px] font-black text-white leading-tight uppercase tracking-wide">{tab.name}</span>
+                <span className="text-[10px] font-black text-white leading-tight uppercase tracking-widest">{tab.name}</span>
               </button>
             ))}
           </div>
@@ -472,7 +570,7 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
       {/* Scope-based Providers (Services Around You) */}
       <div className="mt-8 pb-4">
         <div className="px-5 flex justify-between items-center mb-4">
-          <h2 className="text-lg font-extrabold text-gray-900">
+          <h2 className={`text-lg font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
             {currentScopeId === 'local' ? 'Services Around You' : currentScopeId === 'national' ? 'Top National Services' : 'Global Services'}
           </h2>
           <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center space-x-1">
@@ -481,43 +579,77 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
           </span>
         </div>
 
-        {/* Provider Cards (Horizontal Scroll) */}
-        <div className="flex overflow-x-auto px-5 space-x-4 hide-scrollbar pb-4">
+        {/* Provider Cards (Horizontal Scroll) — Luxury Digital Style */}
+        <div className="flex overflow-x-auto px-5 space-x-5 hide-scrollbar pb-6">
           {scopeProviders.map((provider, i) => (
             <div key={provider.id} onClick={() => navigate('/provider', { state: { profile: provider } })}
-              className="flex-shrink-0 w-72 bg-white p-4 rounded-2xl shadow-premium border border-gray-100/50 cursor-pointer card-lift animate-fade-in gradient-border flex flex-col"
-              style={{ animationDelay: `${i * 0.07}s`, opacity: 0 }}>
-              <div className="flex justify-between items-start mb-2 pl-2">
-                <div className="flex items-center space-x-3">
-                  <div className="w-11 h-11 bg-gradient-to-br from-indigo-100 to-purple-50 rounded-xl flex items-center justify-center text-xl shadow-sm border border-indigo-100/50">{provider.avatar}</div>
-                  <div>
-                    <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full inline-block mb-0.5">{provider.tag}</span>
-                    <h3 className="text-sm font-bold text-gray-900 truncate w-32">{provider.name}</h3>
+              className="flex-shrink-0 w-80 bg-white p-5 rounded-[32px] shadow-premium-lg border border-gray-100/30 cursor-pointer card-lift animate-fade-in flex flex-col group relative overflow-hidden"
+              style={{ animationDelay: `${i * 0.1}s`, opacity: 0 }}>
+              
+              {/* Top Section: Avatar & Info */}
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center space-x-4">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-inner border transition-all duration-500 group-hover:rotate-6 ${
+                    isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-indigo-50 border-indigo-100'
+                  }`}>
+                    {provider.avatar}
+                  </div>
+                  <div className="flex flex-col">
+                    <div className="flex items-center space-x-1.5 mb-1">
+                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                      <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">{provider.tag}</span>
+                    </div>
+                    <h3 className="text-base font-black text-gray-900 leading-none">{provider.name}</h3>
+                    <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-tight">{provider.category}</p>
                   </div>
                 </div>
-                <span className="text-[9px] font-bold bg-gray-100 px-2 py-0.5 rounded-full text-gray-600 whitespace-nowrap">📍 {provider.distance}</span>
-              </div>
-              <div className="flex items-center justify-between mb-2 pl-2 flex-1">
-                <div className="flex items-center text-sm text-gray-500">
-                  <span className="text-yellow-500 mr-1">⭐</span>
-                  <span className="font-bold text-gray-700 mr-1">{provider.rating}</span>
-                  <span>({provider.reviews})</span>
+                <div className="bg-gray-50 px-2.5 py-1 rounded-xl border border-gray-100">
+                  <span className="text-[10px] font-black text-gray-600 whitespace-nowrap">📍 {provider.distance}</span>
                 </div>
-                {currentScopeId === 'local' && <p className="text-[10px] text-gray-400">Used by 12 neighbors</p>}
-                {currentScopeId === 'national' && <p className="text-[10px] text-indigo-400">{provider.city}</p>}
-                {currentScopeId === 'global' && <p className="text-[10px] text-purple-400">{provider.city}</p>}
               </div>
-              <div className="flex justify-between items-center border-t border-gray-50 pt-3 pl-2 mt-auto">
-                <span className="font-extrabold text-gray-900">{provider.price.replace('₹', currency).replace('₨', currency)}</span>
+
+              {/* Middle Section: Stats */}
+              <div className="flex items-center justify-between mb-5 bg-gray-50/50 p-3 rounded-2xl border border-gray-100/50">
+                <div className="flex items-center space-x-1">
+                  <span className="text-amber-500 text-xs">★</span>
+                  <span className="text-xs font-black text-gray-900">{provider.rating}</span>
+                  <span className="text-[10px] font-bold text-gray-400">({provider.reviews})</span>
+                </div>
+                <div className="h-4 w-[1px] bg-gray-200"></div>
+                <div className="flex items-center space-x-1">
+                  <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-tighter">
+                    {currentScopeId === 'local' ? 'Neighbor Rec.' : provider.city}
+                  </span>
+                </div>
+              </div>
+
+              {/* Bottom Section: Price & CTA */}
+              <div className="flex justify-between items-center mt-auto">
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Starting from</span>
+                  <span className="text-lg font-black text-gray-900">{provider.price.replace('₹', currency).replace('₨', currency)}</span>
+                </div>
                 <button onClick={(e) => { e.stopPropagation(); navigate('/provider', { state: { profile: provider } }); }}
-                  className={`px-5 py-2 rounded-xl font-bold text-xs active:scale-95 transition-transform shadow-sm ${
-                    isWestern ? 'bg-slate-900 text-white' : 'bg-gradient-to-r from-gray-900 to-gray-700 text-white'
+                  className={`px-8 py-3.5 rounded-2xl font-black text-xs active:scale-95 transition-all shadow-premium hover:shadow-indigo-500/20 flex items-center space-x-2 ${
+                    isDarkMode ? 'bg-slate-800 text-white border border-slate-700' : 'bg-black text-white'
                   }`}>
-                  {currentScopeId === 'local' ? 'Book' : 'View'}
+                  <span>{currentScopeId === 'local' ? 'Book Now' : 'Connect'}</span>
+                  <span className="opacity-50 text-[10px]">→</span>
                 </button>
               </div>
+
+              {/* Decorative accent */}
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-indigo-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
             </div>
           ))}
+          
+          {/* "View More" Card */}
+          <div className="flex-shrink-0 w-20 flex flex-col items-center justify-center space-y-3 cursor-pointer group">
+            <div className="w-14 h-14 bg-white rounded-full shadow-premium flex items-center justify-center border border-gray-100 group-hover:bg-black group-hover:text-white transition-all">
+              <span className="text-xl">→</span>
+            </div>
+            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">More</span>
+          </div>
         </div>
       </div>
 
@@ -529,16 +661,22 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
       {/* ====== VIRTUAL COMPANY SECTION - PREMIUM GRID ====== */}
       {selectedCountry === 'in' && (
         <div className="mt-10">
-          <div className="px-5 mb-4">
-            <h2 className="text-xl font-black text-gray-900 tracking-tight">Direct from Farmers & Pros</h2>
-            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mt-1">Certified Virtual Companies</p>
+          <div className="px-5 mb-5 flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-black text-gray-900 tracking-tight">Direct from Farmers & Pros</h2>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Certified Virtual Companies</p>
+            </div>
+            <button className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full uppercase tracking-widest hover:bg-emerald-100 transition-colors">See All</button>
           </div>
 
-        <div className="px-5 grid grid-cols-3 gap-3 mb-8">
-          {CATEGORIES.filter(c => ['11', '12', '13'].includes(c.id) && (!c.countries || c.countries.includes(selectedCountry))).map((cat, i) => {
-            let bgGradient = 'from-green-600 to-emerald-800';
-            if (cat.id === '12') bgGradient = 'from-amber-500 to-orange-700';
-            if (cat.id === '13') bgGradient = 'from-blue-600 to-indigo-800';
+          <div className="px-5 grid grid-cols-3 gap-4 mb-10">
+            {CATEGORIES.filter(c => ['11', '12', '13', '15', '19', '20'].includes(c.id) && (!c.countries || c.countries.includes(selectedCountry))).map((cat, i) => {
+              let bgGradient = 'from-green-600 to-emerald-900';
+              if (cat.id === '12') bgGradient = 'from-amber-500 to-orange-800';
+              if (cat.id === '13') bgGradient = 'from-blue-600 to-indigo-900';
+              if (cat.id === '15') bgGradient = 'from-slate-800 to-black';
+              if (cat.id === '19') bgGradient = 'from-amber-800 to-orange-950';
+              if (cat.id === '20') bgGradient = 'from-indigo-800 to-blue-950';
 
             return (
               <button key={cat.id} onClick={() => { setSelectedCategory(cat.id); setSelectedSubCategory(null); }}
@@ -662,14 +800,16 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
 
 
       {/* ====== TOURISM SECTION (ASIA ONLY) ====== */}
-      {!isWestern && (
+      {country?.region !== 'west' && (
         <div className="mt-10 mb-8">
           <div className="px-5 flex justify-between items-end mb-4">
             <div>
-              <h2 className="text-xl font-black text-gray-900 tracking-tight">Experience {country?.name}</h2>
+              <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Experience {country?.name}</h2>
               <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mt-1">Tourism & Local Adventures</p>
             </div>
-            <button className="text-indigo-600 text-xs font-black uppercase tracking-widest">See All</button>
+            <button className={`text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest transition-colors ${
+              isDarkMode ? 'text-indigo-400 bg-indigo-500/10' : 'text-indigo-600 bg-indigo-50'
+            }`}>See All</button>
           </div>
 
           {/* Tour Sub-categories - Premium Grid Style */}
@@ -699,7 +839,9 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
           {/* Featured Tours */}
           <div className="flex space-x-4 overflow-x-auto px-5 pb-4 no-scrollbar snap-x">
             {CATEGORIES.find(c => c.id === '14')?.providers?.filter(p => p.country === selectedCountry).map((tour) => (
-              <div key={tour.id} className="flex-shrink-0 w-64 bg-white rounded-3xl overflow-hidden shadow-premium-lg border border-gray-100 snap-center">
+              <div key={tour.id} className={`flex-shrink-0 w-64 rounded-3xl overflow-hidden shadow-premium-lg border snap-center ${
+                isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100'
+              }`}>
                 <div className="h-32 bg-gradient-to-br from-indigo-500 to-blue-700 relative flex items-center justify-center">
                    <span className="text-6xl animate-float">{tour.sub === 'Trek Guides' ? '🏔️' : tour.sub === 'Adventure' ? '🪂' : '🏯'}</span>
                    <div className="absolute top-3 left-3 bg-white/20 backdrop-blur-md px-2 py-1 rounded-full text-[9px] font-bold text-white uppercase tracking-widest">
@@ -708,15 +850,15 @@ const HomeScreen = ({ activeScope, setActiveScope, selectedCountry, setSelectedC
                 </div>
                 <div className="p-4">
                   <div className="flex justify-between items-start">
-                    <h4 className="font-black text-gray-900 text-sm leading-tight w-2/3">{tour.name}</h4>
+                    <h4 className={`font-black text-sm leading-tight w-2/3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{tour.name}</h4>
                     <div className="flex items-center space-x-0.5 bg-yellow-50 px-1.5 py-0.5 rounded-lg">
                       <span className="text-yellow-500 text-[10px]">★</span>
                       <span className="text-[10px] font-black text-yellow-700">{tour.rating}</span>
                     </div>
                   </div>
                   <p className="text-[10px] text-gray-500 font-bold mt-1 uppercase tracking-wider">{tour.distance}</p>
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="text-sm font-black text-indigo-600">{tour.price.replace('₨', currency).replace('₹', currency)}</span>
+                  <div className={`flex justify-between items-center mt-4 pt-3 border-t ${isDarkMode ? 'border-slate-800' : 'border-gray-50'}`}>
+                    <span className={`text-sm font-black ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{tour.price.replace('₨', currency).replace('₹', currency)}</span>
                     <button className="bg-indigo-600 text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-transform shadow-md shadow-indigo-100">
                       Book Trip
                     </button>

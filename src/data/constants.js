@@ -294,6 +294,66 @@ export const CATEGORIES = [
       { id: 'tr2', name: 'Kisan Tiller Hub', sub: 'Tillers', distance: '1.2 km', rating: '4.7', reviews: 15, price: '₹300/day', tag: 'New Machine', available: true },
       { id: 'tr3', name: 'Deepak Sprayers', sub: 'Sprayers', distance: '0.8 km', rating: '4.8', reviews: 42, price: '₹50/day', tag: 'Manual/Electric', available: true },
     ]
+  },
+  {
+    id: '16', name: 'Pet Care Elite', icon: '🐕', visibility: ['city', 'default'], countries: ['in', 'sg', 'us', 'uk'],
+    color: 'from-orange-400 to-amber-600',
+    subTabs: [{ name: 'Walking', icon: '🦮', bg: 'bg-orange-50' }, { name: 'Grooming', icon: '✂️', bg: 'bg-blue-50' }, { name: 'Vet', icon: '⚕️', bg: 'bg-red-50' }, { name: 'All', icon: '📋', bg: 'bg-gray-50' }],
+    providers: [{ id: 'p1', name: 'Happy Paws', sub: 'Walking', distance: '0.5 km', rating: '4.9', reviews: 85, price: '₹200/walk', tag: 'Animal Lover', available: true }]
+  },
+  {
+    id: '17', name: 'Wellness & Yoga', icon: '🧘', visibility: ['city', 'default'], countries: ['in', 'sg', 'us', 'uk'],
+    color: 'from-emerald-400 to-teal-600',
+    subTabs: [{ name: 'Yoga', icon: '🧘', bg: 'bg-emerald-50' }, { name: 'Meditation', icon: '✨', bg: 'bg-purple-50' }, { name: 'Diet', icon: '🥗', bg: 'bg-green-50' }, { name: 'All', icon: '📋', bg: 'bg-gray-50' }],
+    providers: [{ id: 'w1', name: 'Zen Yoga Studio', sub: 'Yoga', distance: '1.2 km', rating: '4.8', reviews: 120, price: '₹500/session', tag: 'Certified', available: true }]
+  },
+  {
+    id: '18', name: 'Gadget Repair', icon: '📱', visibility: ['city', 'default'], countries: ['in', 'bd', 'np', 'sl'],
+    color: 'from-blue-500 to-indigo-700',
+    subTabs: [{ name: 'Mobile', icon: '📱', bg: 'bg-blue-50' }, { name: 'Laptop', icon: '💻', bg: 'bg-gray-50' }, { name: 'Watch', icon: '⌚', bg: 'bg-indigo-50' }, { name: 'All', icon: '📋', bg: 'bg-gray-50' }],
+    providers: [{ id: 'g1', name: 'QuickFix Mobile', sub: 'Mobile', distance: '0.3 km', rating: '4.7', reviews: 250, price: '₹199 diag.', tag: 'On-site Fix', available: true }]
+  },
+  {
+    id: '19', name: 'Cattle & Vet Care', icon: '🐄', visibility: ['village'], countries: ['in', 'np', 'bd'],
+    color: 'from-amber-600 to-brown-700',
+    subTabs: [{ name: 'Checkup', icon: '⚕️', bg: 'bg-red-50' }, { name: 'Fodder', icon: '🌾', bg: 'bg-green-50' }, { name: 'Breeding', icon: '🧬', bg: 'bg-blue-50' }, { name: 'All', icon: '📋', bg: 'bg-gray-50' }],
+    providers: [{ id: 'v1', name: 'Pashu Seva Vet', sub: 'Checkup', distance: '2.5 km', rating: '4.9', reviews: 42, price: '₹300 visit', tag: 'Expert', available: true }]
+  },
+  {
+    id: '20', name: 'Agri-Drone Services', icon: '🛸', visibility: ['village'], countries: ['in', 'vn', 'th'],
+    color: 'from-indigo-600 to-blue-900',
+    subTabs: [{ name: 'Spraying', icon: '💨', bg: 'bg-blue-50' }, { name: 'Mapping', icon: '🗺️', bg: 'bg-green-50' }, { name: 'All', icon: '📋', bg: 'bg-gray-50' }],
+    providers: [{ id: 'd1', name: 'SkyFarm Drones', sub: 'Spraying', distance: '5.0 km', rating: '4.8', reviews: 18, price: '₹500/acre', tag: 'Fast', available: true }]
+  },
+  {
+    id: '22', name: 'Interiors & Decor', icon: '🖼️', visibility: ['city'], countries: ['in', 'sg', 'us', 'uk'],
+    color: 'from-purple-500 to-pink-700',
+    subTabs: [{ name: 'Curtains', icon: '🧺', bg: 'bg-pink-50' }, { name: 'Lighting', icon: '💡', bg: 'bg-yellow-50' }, { name: 'Walls', icon: '🎨', bg: 'bg-purple-50' }, { name: 'All', icon: '📋', bg: 'bg-gray-50' }],
+    providers: [{ id: 'id1', name: 'Modern Nest Decor', sub: 'Lighting', distance: '1.5 km', rating: '4.9', reviews: 60, price: '₹Var', tag: 'Elite Design', available: true }]
+  },
+  {
+    id: '24', name: 'Household Rentals', icon: '🏠', visibility: ['city', 'default'], countries: ['in'],
+    color: 'from-blue-500 to-indigo-700',
+    subTabs: [{ name: 'Drills', icon: '🔌', bg: 'bg-blue-50' }, { name: 'Ladders', icon: '🪜', bg: 'bg-gray-50' }, { name: 'Vacuum', icon: '🧹', bg: 'bg-indigo-50' }, { name: 'All', icon: '📋', bg: 'bg-gray-50' }],
+    providers: [{ id: 'hr1', name: 'Kapoor\'s Home Tools', sub: 'Drills', distance: '0.2 km', rating: '4.9', reviews: 20, price: '₹100/day', tag: 'Bosch Impact', available: true }]
+  },
+  {
+    id: '25', name: 'Private Parking', icon: '🅿️', visibility: ['city'], countries: ['in'],
+    color: 'from-slate-600 to-gray-800',
+    subTabs: [{ name: 'Car', icon: '🚗', bg: 'bg-blue-50' }, { name: 'Bike', icon: '🏍️', bg: 'bg-gray-50' }, { name: 'All', icon: '📋', bg: 'bg-gray-50' }],
+    providers: [{ id: 'pk1', name: 'Sec-4 Empty Slot', sub: 'Car', distance: '0.1 km', rating: '4.8', reviews: 12, price: '₹50/hr', tag: 'CCTV Covered', available: true }]
+  },
+  {
+    id: '27', name: 'Community Water', icon: '💧', visibility: ['village'], countries: ['in'],
+    color: 'from-cyan-500 to-blue-700',
+    subTabs: [{ name: 'Borewell', icon: '🚰', bg: 'bg-cyan-50' }, { name: 'Pump', icon: '🔌', bg: 'bg-blue-50' }, { name: 'All', icon: '📋', bg: 'bg-gray-50' }],
+    providers: [{ id: 'cw1', name: 'Raju\'s Agri Pump', sub: 'Borewell', distance: '0.3 km', rating: '4.8', reviews: 22, price: '₹80/hr', tag: 'High Pressure', available: true }]
+  },
+  {
+    id: '28', name: 'Shared Mandi Transport', icon: '🛺', visibility: ['village'], countries: ['in'],
+    color: 'from-orange-500 to-red-700',
+    subTabs: [{ name: 'Pool Load', icon: '📦', bg: 'bg-orange-50' }, { name: 'Ride', icon: '🚗', bg: 'bg-gray-50' }, { name: 'All', icon: '📋', bg: 'bg-gray-50' }],
+    providers: [{ id: 'smt1', name: 'Kisan Mini Truck', sub: 'Pool Load', distance: '0.5 km', rating: '4.9', reviews: 18, price: '₹50 share', tag: 'Daily @ 6 AM', available: true }]
   }
 ];
 
