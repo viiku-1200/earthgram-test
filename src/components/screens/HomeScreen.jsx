@@ -105,6 +105,26 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
 
         {/* Provider Cards */}
         <div className="px-5 space-y-3">
+          {/* NEW: Instant Match Banner for Sub-category */}
+          <div className={`mb-5 p-5 rounded-[2rem] border-2 relative overflow-hidden group active:scale-[0.98] transition-all ${
+            isDarkMode ? 'bg-slate-900 border-indigo-500/30 shadow-indigo-500/10 shadow-lg' : 'bg-white border-indigo-100 shadow-premium'
+          }`}
+          onClick={() => navigate('/book', { state: { category: cat, subCategory: selectedSubCategory, mode: 'instant' } })}>
+            <div className="absolute top-0 right-0 p-4 opacity-10 scale-150">⚡</div>
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center text-white text-xl shadow-glow-indigo">⚡</div>
+              <div>
+                <h3 className="font-black text-sm">Instant Match</h3>
+                <p className="text-[8px] font-black text-indigo-500 uppercase tracking-widest">Find best {selectedSubCategory} expert</p>
+              </div>
+            </div>
+            <p className={`text-[10px] leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+              Too many options? We'll match you with the highest-rated <span className="font-bold text-indigo-500">{selectedSubCategory}</span> company instantly.
+            </p>
+          </div>
+
+          <h2 className={`text-sm font-bold uppercase tracking-wider mb-2 px-1 ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>Browse {selectedSubCategory} companies</h2>
+
           {filteredProviders.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-gray-400 animate-fade-in">
               <span className="text-5xl mb-4">🔍</span>
@@ -504,6 +524,25 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
         <h2 className={`px-5 text-lg font-extrabold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           {isDarkMode ? 'Lifestyle & Professional Services' : 'Home & Personal Services'}
         </h2>
+        
+        {/* NEW: Premium Match Showcase Row */}
+        <div className="px-5 mb-6">
+          <div className={`p-4 rounded-[2rem] border-2 flex items-center justify-between relative overflow-hidden ${
+            isDarkMode ? 'bg-slate-900 border-indigo-500/20 shadow-indigo-500/10' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-white shadow-premium'
+          }`}>
+             <div className="relative z-10">
+               <h3 className="text-sm font-black tracking-tight">Elite Instant Match ⚡</h3>
+               <p className="text-[9px] font-bold text-indigo-500 uppercase tracking-widest mt-0.5">Premium Technology</p>
+               <p className={`text-[10px] mt-1 max-w-[180px] ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>Skip the browsing. Match with the top 1% experts in seconds.</p>
+             </div>
+             <div className="w-16 h-16 bg-white rounded-2xl shadow-premium flex flex-col items-center justify-center animate-bounce-slow">
+               <span className="text-2xl">🤝</span>
+               <span className="text-[8px] font-black text-indigo-600">MATCHED</span>
+             </div>
+             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl"></div>
+          </div>
+        </div>
+
         <div className="px-5 grid grid-cols-4 gap-3">
           {CATEGORIES.filter(c => {
             if (selectedCountry !== 'in' && c.id === '1') return false;
@@ -515,6 +554,9 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
               className={`relative overflow-hidden aspect-square rounded-[1.5rem] flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-premium-sm group animate-fade-in border border-white/20 bg-gradient-to-br ${cat.color}`}
               style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}>
               
+              {/* Instant Match Badge */}
+              <div className="absolute top-1 right-1 w-4 h-4 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-[8px] border border-white/40 shadow-sm">⚡</div>
+
               <div className="w-8 h-8 bg-white/25 backdrop-blur-md rounded-xl flex items-center justify-center mb-1.5 shadow-inner border border-white/30 group-hover:scale-110 transition-transform">
                 <span className="text-base">{cat.icon}</span>
               </div>

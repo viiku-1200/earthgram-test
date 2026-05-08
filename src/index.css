@@ -325,3 +325,7 @@ html, body {
   animation: spin-slow 8s linear infinite;
 }
 
+.bg-conic-gradient {
+  background: conic-gradient(from 0deg, currentColor, transparent);
+}
+
