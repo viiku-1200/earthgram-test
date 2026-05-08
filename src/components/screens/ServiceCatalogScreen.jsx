@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const ServiceCatalogScreen = ({ onClose }) => {
+const ServiceCatalogScreen = ({ isDarkMode, onClose }) => {
   const [services, setServices] = useState([
     { id: 1, name: 'Standard Service', desc: 'Basic service package', price: '₹200', duration: '30 min', active: true },
     { id: 2, name: 'Premium Service', desc: 'Comprehensive premium package', price: '₹500', duration: '60 min', active: true },

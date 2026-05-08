@@ -4,7 +4,7 @@ import { ALL_SEARCHABLE_PROVIDERS } from '../../data/constants';
 
 const AVATAR_GRADIENTS = ['from-indigo-500 to-purple-600', 'from-pink-500 to-rose-600', 'from-emerald-500 to-teal-600', 'from-amber-500 to-orange-600', 'from-blue-500 to-cyan-600'];
 
-const SearchScreen = ({ onClose }) => {
+const SearchScreen = ({ isDarkMode, onClose }) => {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState('relevance');

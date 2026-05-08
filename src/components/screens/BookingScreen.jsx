@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { TIME_SLOTS, BOOKING_DATES, MY_BOOKINGS } from '../../data/constants';
 
-const BookingScreen = ({ onClose }) => {
+const BookingScreen = ({ isDarkMode, onClose }) => {
   const location = useLocation();
   const provider = location.state?.provider;
   const service = location.state?.service;

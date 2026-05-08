@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { REGISTRATION_PLANS, SERVICE_CATEGORY_OPTIONS, LAUNCH_SCALE_OPTIONS, REVENUE_MODELS, SUBCATEGORIES_MAP } from '../../data/constants';
 
-const RegisterScreen = ({ onClose, onRegisterSuccess }) => {
+const RegisterScreen = ({ isDarkMode, onClose, onRegisterSuccess }) => {
   const [step, setStep] = useState(1); // 1=plans, 2=details, 3=addons, 4=verification, 5=success
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [formData, setFormData] = useState({

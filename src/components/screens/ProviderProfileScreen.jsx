@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PROVIDER_PROFILES, generateFallbackProfile } from '../../data/constants';
 
-const ProviderProfileScreen = ({ onBack }) => {
+const ProviderProfileScreen = ({ isDarkMode, onBack }) => {
   const [activeTab, setActiveTab] = useState('services');
   const location = useLocation();
   const navigate = useNavigate();

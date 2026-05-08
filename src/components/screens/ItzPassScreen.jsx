@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ITZPASS_PLANS } from '../../data/constants';
 
-const ItzPassScreen = ({ onClose }) => {
+const ItzPassScreen = ({ isDarkMode, onClose }) => {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [step, setStep] = useState('plans');
 

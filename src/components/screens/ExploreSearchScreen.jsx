@@ -12,7 +12,7 @@ const BUDDY_DATA = [
 const SPOT_IMAGES = { 'Dance Studio': '🎶', 'Empty Room': '🏡', 'Local Food': '🍱', 'Gym': '💪' };
 const SPOT_GRADIENTS = { 'Dance Studio': 'from-pink-500 to-purple-600', 'Empty Room': 'from-teal-500 to-cyan-600', 'Local Food': 'from-orange-500 to-red-500', 'Gym': 'from-gray-700 to-gray-900' };
 
-const ExploreSearchScreen = ({ onClose }) => {
+const ExploreSearchScreen = ({ isDarkMode, onClose }) => {
   const [query, setQuery] = useState('');
 
   const results = useMemo(() => {

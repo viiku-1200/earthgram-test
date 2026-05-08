@@ -3,7 +3,7 @@ import { CONVERSATIONS } from '../../data/constants';
 
 const AVATAR_GRADIENTS = { '⚡': 'from-amber-400 to-orange-500', '🧹': 'from-emerald-400 to-teal-500', '💄': 'from-pink-400 to-rose-500' };
 
-const MessagingScreen = ({ onClose }) => {
+const MessagingScreen = ({ isDarkMode, onClose }) => {
   const [activeConv, setActiveConv] = useState(null);
   const [newMsg, setNewMsg] = useState('');
   const [messages, setMessages] = useState([]);

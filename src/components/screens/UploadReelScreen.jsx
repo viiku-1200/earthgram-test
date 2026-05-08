@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const UploadReelScreen = ({ onClose }) => {
+const UploadReelScreen = ({ isDarkMode, onClose }) => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     videoFile: null,

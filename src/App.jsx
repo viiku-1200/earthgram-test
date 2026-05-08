@@ -60,11 +60,12 @@ const AppContent = () => {
       <div className="h-full w-full">
         <Routes>
           <Route path="/" element={<HomeScreen isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} />} />
-          <Route path="/explore" element={<ExploreScreen />} />
-          <Route path="/reels" element={<ReelsScreen />} />
-          <Route path="/community" element={<CommunityScreen />} />
+          <Route path="/explore" element={<ExploreScreen isDarkMode={isDarkMode} />} />
+          <Route path="/reels" element={<ReelsScreen isDarkMode={isDarkMode} />} />
+          <Route path="/community" element={<CommunityScreen isDarkMode={isDarkMode} />} />
           <Route path="/profile" element={
             <ProfileScreen
+              isDarkMode={isDarkMode}
               isBossMode={isBossMode}
               setIsBossMode={setIsBossMode}
               bizBio={bizBio}
@@ -77,27 +78,29 @@ const AppContent = () => {
           } />
 
           {/* Overlays / Full screens */}
-          <Route path="/chat" element={<ChatScreen onClose={() => navigate(-1)} />} />
-          <Route path="/register" element={<RegisterScreen onClose={() => navigate(-1)} onRegisterSuccess={(data) => { setCompanyData(data); setIsRegistered(true); setIsBossMode(true); navigate('/profile'); }} />} />
-          <Route path="/provider" element={<ProviderProfileScreen onBack={() => navigate(-1)} />} />
-          <Route path="/book" element={<BookingScreen onClose={() => navigate(-1)} />} />
+          <Route path="/chat" element={<ChatScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
+          <Route path="/register" element={<RegisterScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} onRegisterSuccess={(data) => { setCompanyData(data); setIsRegistered(true); setIsBossMode(true); navigate('/profile'); }} />} />
+          <Route path="/provider" element={<ProviderProfileScreen isDarkMode={isDarkMode} onBack={() => navigate(-1)} />} />
+          <Route path="/book" element={<BookingScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
           <Route path="/activity" element={<ActivityScreen isDarkMode={isDarkMode} />} />
-          <Route path="/search" element={<SearchScreen onClose={() => navigate(-1)} />} />
-          <Route path="/explore-search" element={<ExploreSearchScreen onClose={() => navigate(-1)} />} />
-          <Route path="/messages" element={<MessagingScreen onClose={() => navigate(-1)} />} />
-          <Route path="/wallet" element={<WalletScreen onClose={() => navigate(-1)} />} />
-          <Route path="/itzpass" element={<ItzPassScreen onClose={() => navigate(-1)} />} />
-          <Route path="/catalog" element={<ServiceCatalogScreen onClose={() => navigate(-1)} />} />
-          <Route path="/upload-reel" element={<UploadReelScreen onClose={() => navigate(-1)} />} />
+          <Route path="/search" element={<SearchScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
+          <Route path="/explore-search" element={<ExploreSearchScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
+          <Route path="/messages" element={<MessagingScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
+          <Route path="/wallet" element={<WalletScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
+          <Route path="/itzpass" element={<ItzPassScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
+          <Route path="/catalog" element={<ServiceCatalogScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
+          <Route path="/upload-reel" element={<UploadReelScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
         </Routes>
       </div>
 
-      {!hideOverlays && <BottomNav />}
+      {!hideOverlays && <BottomNav isDarkMode={isDarkMode} />}
 
       {!hideOverlays && (
         <button
           onClick={() => navigate('/chat')}
-          className={`absolute bottom-20 right-5 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-[0_8px_15px_rgba(0,0,0,0.12)] border border-gray-100 z-40 active:scale-90 transition-all duration-300 ${botMood === 'idle' ? 'animate-bounce' : ''} hover:animate-none`}
+          className={`absolute bottom-20 right-5 w-16 h-16 rounded-full flex items-center justify-center shadow-[0_8px_15px_rgba(0,0,0,0.12)] border z-40 active:scale-90 transition-all duration-300 ${botMood === 'idle' ? 'animate-bounce' : ''} hover:animate-none ${
+            isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-100'
+          }`}
           style={{ animationDuration: '2.5s' }}
         >
           <span className="transition-transform duration-300">

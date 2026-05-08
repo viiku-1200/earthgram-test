@@ -4,7 +4,7 @@ import { REELS_DATA } from '../../data/constants';
 const LANGUAGES = ['All', 'English', 'Hindi', 'Tamil', 'Italian'];
 const SCOPES = ['local', 'national', 'global'];
 
-const ReelsScreen = () => {
+const ReelsScreen = ({ isDarkMode }) => {
   const [activeScope, setActiveScope] = useState('national');
   const [activeLanguage, setActiveLanguage] = useState('All');
   const [activeReelIndex, setActiveReelIndex] = useState(0);

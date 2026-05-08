@@ -32,7 +32,7 @@ const MENU_ITEMS = [
   ), label: 'Settings', desc: 'Account, notifications', bg: 'bg-gray-100', color: 'text-gray-600', key: 'settings' },
 ];
 
-const ProfileScreen = ({ isBossMode, setIsBossMode, bizBio, setBizBio, isGeneratingBio, setIsGeneratingBio, isRegistered, companyData }) => {
+const ProfileScreen = ({ isDarkMode, isBossMode, setIsBossMode, bizBio, setBizBio, isGeneratingBio, setIsGeneratingBio, isRegistered, companyData }) => {
   const navigate = useNavigate();
   
   const handleGenerateBio = async () => {
@@ -50,7 +50,9 @@ const ProfileScreen = ({ isBossMode, setIsBossMode, bizBio, setBizBio, isGenerat
   };
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-b from-white to-gray-50/80 pt-8 pb-20 overflow-y-auto hide-scrollbar">
+    <div className={`h-full flex flex-col pt-8 pb-20 overflow-y-auto hide-scrollbar transition-all duration-500 ${
+      isDarkMode ? 'bg-[#0f172a] text-white' : 'bg-gradient-to-b from-white to-gray-50/80 text-gray-900'
+    }`}>
       {/* Profile Header */}
       <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 px-5 pt-4 pb-8 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">

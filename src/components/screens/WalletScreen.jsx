@@ -25,7 +25,7 @@ const TXN_ICONS = {
   '👑': (<svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 3l3.057 7.528L12 7l3.943 3.528L19 3M5 3v18h14V3" /></svg>),
 };
 
-const WalletScreen = ({ onClose }) => {
+const WalletScreen = ({ isDarkMode, onClose }) => {
   const [showTopup, setShowTopup] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(null);
   const [customAmount, setCustomAmount] = useState('');
@@ -110,7 +110,9 @@ const WalletScreen = ({ onClose }) => {
   }
 
   return (
-    <div className="absolute inset-0 bg-gradient-to-b from-white to-gray-50 z-50 flex flex-col animate-slide-up">
+    <div className={`absolute inset-0 z-50 flex flex-col animate-slide-up transition-all duration-500 ${
+      isDarkMode ? 'bg-[#0f172a]' : 'bg-gradient-to-b from-white to-gray-50'
+    }`}>
       <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 px-5 pt-12 pb-8 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full -translate-y-1/2 translate-x-1/4"></div>

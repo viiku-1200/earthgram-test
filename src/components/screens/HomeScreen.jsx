@@ -25,6 +25,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
   const [locationMode, setLocationMode] = useState('default'); 
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [hasUnreadActivity, setHasUnreadActivity] = useState(true);
 
   const country = COUNTRIES.find(c => c.id === selectedCountry);
   const currency = selectedCountry === 'us' ? '$' : selectedCountry === 'uk' ? '£' : selectedCountry === 'np' ? '₨' : '₹';
@@ -36,7 +37,18 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
     return () => clearInterval(timer);
   }, [filteredBanners.length]);
 
-  const currentCategory = CATEGORIES.find(c => c.id === selectedCategory);
+  const currentCategory = CATEGORIES.find(c => String(c.id) === String(selectedCategory));
+
+  // Safety check to prevent blank screen if category is not found
+  if (selectedCategory && !currentCategory) {
+    return (
+      <div className={`h-full flex flex-col items-center justify-center p-10 ${isDarkMode ? 'bg-[#0f172a] text-white' : 'bg-gray-50'}`}>
+        <span className="text-5xl mb-4">⚠️</span>
+        <h2 className="text-xl font-bold">Category Not Found</h2>
+        <button onClick={() => setSelectedCategory(null)} className="mt-4 bg-indigo-600 text-white px-6 py-2 rounded-xl">Go Back</button>
+      </div>
+    );
+  }
 
   const getFilteredProviders = () => {
     if (!currentCategory) return [];
@@ -210,23 +222,29 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
           <div className="px-5 mt-6 animate-fade-in">
             <h2 className={`text-sm font-bold uppercase tracking-wider mb-4 ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>Choose a service type</h2>
             <div className="grid grid-cols-3 gap-4">
-              {cat.subTabs && cat.subTabs.filter(tab => tab.name !== 'All').map((tab, i) => {
-                const providerCount = (cat.providers || []).filter(p => p.sub === tab.name).length;
-                return (
-                  <button key={tab.name}
-                    onClick={() => setSelectedSubCategory(tab.name)}
-                    className="flex flex-col items-center active:scale-90 transition-all duration-200 group animate-fade-in"
-                    style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
-                    <div className={`w-[72px] h-[72px] ${tab.bg} rounded-2xl flex items-center justify-center text-3xl shadow-premium border border-white/80 group-hover:shadow-premium-lg transition-shadow`}>
-                      {tab.icon}
-                    </div>
-                    <span className={`text-[11px] font-bold mt-2 text-center leading-tight ${isDarkMode ? 'text-slate-200' : 'text-gray-700'}`}>{tab.name}</span>
-                    {providerCount > 0 && (
-                      <span className="text-[9px] font-medium text-gray-400 mt-0.5">{providerCount} {providerCount === 1 ? 'company' : 'companies'}</span>
-                    )}
-                  </button>
-                );
-              })}
+              {cat.subTabs && cat.subTabs.length > 0 ? (
+                cat.subTabs.filter(tab => tab.name !== 'All').map((tab, i) => {
+                  const providerCount = (cat.providers || []).filter(p => p.sub === tab.name).length;
+                  return (
+                    <button key={tab.name}
+                      onClick={() => setSelectedSubCategory(tab.name)}
+                      className="flex flex-col items-center active:scale-90 transition-all duration-200 group animate-fade-in"
+                      style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
+                      <div className={`w-[72px] h-[72px] ${tab.bg || 'bg-indigo-50'} rounded-2xl flex items-center justify-center text-3xl shadow-premium border border-white/80 group-hover:shadow-premium-lg transition-shadow`}>
+                        {tab.icon}
+                      </div>
+                      <span className={`text-[11px] font-bold mt-2 text-center leading-tight ${isDarkMode ? 'text-slate-200' : 'text-gray-700'}`}>{tab.name}</span>
+                      {providerCount > 0 && (
+                        <span className="text-[9px] font-medium text-gray-400 mt-0.5">{providerCount} {providerCount === 1 ? 'company' : 'companies'}</span>
+                      )}
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="col-span-3 py-10 text-center text-gray-400">
+                  <p className="text-xs font-bold">No sub-categories available</p>
+                </div>
+              )}
             </div>
 
             {/* "View All" button at the bottom */}
@@ -248,8 +266,6 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
   // ============== MAIN HOMEPAGE ==============
   const currentScopeId = getScopeId();
   const scopeProviders = getScopeProviders();
-
-  const [hasUnreadActivity, setHasUnreadActivity] = useState(true);
 
   return (
     <div className={`h-full flex flex-col pt-8 pb-20 overflow-y-auto hide-scrollbar transition-all duration-500 ${

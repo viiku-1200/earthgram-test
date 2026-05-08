@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getMockResponse } from '../../utils/gemini';
 // botAvatar accessed via public path
 
-const ChatScreen = ({ onClose }) => {
+const ChatScreen = ({ isDarkMode, onClose }) => {
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [botMood, setBotMood] = useState('idle');
