@@ -20,6 +20,7 @@ import ServiceCatalogScreen from './components/screens/ServiceCatalogScreen';
 import UploadReelScreen from './components/screens/UploadReelScreen';
 import SplashScreen from './components/screens/SplashScreen';
 import ActivityScreen from './components/screens/ActivityScreen';
+import CompanyBuilderScreen from './components/screens/CompanyBuilderScreen';
 // botAvatar moved to public folder for direct access
 
 // Layout Components

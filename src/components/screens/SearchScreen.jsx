@@ -1,8 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ALL_SEARCHABLE_PROVIDERS } from '../../data/constants';
+import { SearchTrie, MinHeap } from '../../utils/dsa';
 
 const AVATAR_GRADIENTS = ['from-indigo-500 to-purple-600', 'from-pink-500 to-rose-600', 'from-emerald-500 to-teal-600', 'from-amber-500 to-orange-600', 'from-blue-500 to-cyan-600'];
+
+// Initialize Global Search Trie (DSA Integration)
+const searchTrie = new SearchTrie();
+ALL_SEARCHABLE_PROVIDERS.forEach(p => {
+  // Index by name, category, and subcategory
+  searchTrie.insert(p.name, p);
+  searchTrie.insert(p.category, p);
+  searchTrie.insert(p.sub, p);
+});
 
 const SearchScreen = ({ isDarkMode, onClose }) => {
   const navigate = useNavigate();
@@ -12,14 +22,25 @@ const SearchScreen = ({ isDarkMode, onClose }) => {
 
   const results = useMemo(() => {
     if (!query.trim()) return [];
-    const q = query.toLowerCase();
-    let filtered = ALL_SEARCHABLE_PROVIDERS.filter(p =>
-      p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || p.sub.toLowerCase().includes(q)
-    );
+    
+    // 1. Use Trie for high-performance prefix matching (DSA)
+    let filtered = searchTrie.search(query);
+    
     if (filterAvailable) filtered = filtered.filter(p => p.available);
-    if (sortBy === 'rating') filtered.sort((a, b) => b.rating - a.rating);
-    else if (sortBy === 'distance') filtered.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
-    else if (sortBy === 'reviews') filtered.sort((a, b) => b.reviews - a.reviews);
+    
+    // 2. Use MinHeap for efficient sorting (DSA)
+    if (sortBy !== 'relevance') {
+      const heap = new MinHeap((a, b) => {
+        if (sortBy === 'rating') return b.rating - a.rating; // Max-heap behavior for ratings
+        if (sortBy === 'distance') return parseFloat(a.distance) - parseFloat(b.distance); // Min-heap for distance
+        if (sortBy === 'reviews') return b.reviews - a.reviews;
+        return 0;
+      });
+      
+      filtered.forEach(p => heap.push(p));
+      return heap.getSorted();
+    }
+    
     return filtered;
   }, [query, sortBy, filterAvailable]);
 

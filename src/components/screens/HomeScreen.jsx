@@ -27,6 +27,8 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
   const [hasUnreadActivity, setHasUnreadActivity] = useState(true);
+  const [activeEmpowerBanner, setActiveEmpowerBanner] = useState(0);
+  const empowerScrollRef = React.useRef(null);
 
   const country = COUNTRIES.find(c => c.id === selectedCountry);
   const CURRENCY_MAP = {
@@ -47,6 +49,24 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
     const timer = setInterval(() => setActiveBanner(b => (b + 1) % filteredBanners.length), 4000);
     return () => clearInterval(timer);
   }, [filteredBanners.length]);
+
+  // Auto-scroll for Empower Banners (DSA Logic for smooth UI)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveEmpowerBanner(prev => {
+        const next = (prev + 1) % 2;
+        if (empowerScrollRef.current) {
+          const cardWidth = empowerScrollRef.current.offsetWidth * 0.85 + 20; // 85vw + gap
+          empowerScrollRef.current.scrollTo({
+            left: next === 0 ? 0 : cardWidth,
+            behavior: 'smooth'
+          });
+        }
+        return next;
+      });
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   const currentCategory = CATEGORIES.find(c => String(c.id) === String(selectedCategory));
 
@@ -435,7 +455,40 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
           </button>
         </div>
       </div>
+      
+      {/* ====== LIVE PULSE TICKER (Proper Premium Integration) ====== */}
+      <div className={`flex items-center border-b overflow-hidden h-10 z-40 flex-shrink-0 ${
+        isDarkMode ? 'bg-slate-900 border-slate-800 shadow-inner' : 'bg-gray-50 border-gray-100 shadow-sm'
+      }`}>
+        {/* Fixed LIVE Badge */}
+        <div className={`flex-shrink-0 z-20 px-3 h-full flex items-center space-x-1.5 border-r ${
+          isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100'
+        }`}>
+          <div className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.4)]"></div>
+          <span className={`text-[10px] font-black tracking-widest uppercase ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Live</span>
+        </div>
 
+        {/* Scrolling News Container */}
+        <div className="flex-1 relative overflow-hidden h-full flex items-center">
+          <div className="flex animate-marquee items-center">
+            {[
+              { icon: '🌾', label: 'Mandi', text: 'Wheat ₹2,125 (+1.2%)', color: isDarkMode ? 'text-emerald-400' : 'text-emerald-700' },
+              { icon: '🚜', label: 'Alert', text: 'Tractor Rental live in Sector 4', color: isDarkMode ? 'text-indigo-400' : 'text-indigo-800' },
+              { icon: '🌩️', label: 'Weather', text: 'Rain expected at 4 PM', color: isDarkMode ? 'text-amber-400' : 'text-amber-700' },
+              { icon: '🌎', label: 'Global', text: 'New Agency in Dubai', color: isDarkMode ? 'text-purple-400' : 'text-purple-800' },
+              { icon: '🌾', label: 'Mandi', text: 'Wheat ₹2,125 (+1.2%)', color: isDarkMode ? 'text-emerald-400' : 'text-emerald-700' },
+              { icon: '🚜', label: 'Alert', text: 'Tractor Rental live in Sector 4', color: isDarkMode ? 'text-indigo-400' : 'text-indigo-800' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center space-x-2 px-8 whitespace-nowrap">
+                <span className="text-xs">{item.icon}</span>
+                <span className={`text-[9px] font-black uppercase tracking-tighter opacity-50 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.label}:</span>
+                <span className={`text-[10px] font-extrabold ${item.color}`}>{item.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      
       {/* ====== PREMIUM SCOPE TABS WITH COUNTRY SELECTOR INTEGRATED ====== */}
       <div className="px-5 mt-6 relative">
         <div className={`flex rounded-2xl p-1.5 relative z-40 shadow-inner-lg ${isDarkMode ? 'bg-slate-800/50' : 'bg-gray-100/80'}`}>
@@ -649,30 +702,73 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
         </div>
       )}
 
-      {/* Empower Banner (Start Virtual Company) */}
+      {/* Empower Banners Automatic Motion Slider (No Manual Scrolling) */}
       {selectedCountry === 'in' && (
-        <div className="px-5 mt-8 animate-fade-in">
-          <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-black p-5 rounded-3xl relative overflow-hidden shadow-premium-lg border border-indigo-500/20">
-            {/* Decorative background shapes */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl transform translate-x-10 -translate-y-10"></div>
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-pink-500/20 rounded-full blur-xl transform -translate-x-5 translate-y-5"></div>
-            
-            <div className="relative z-10 flex flex-col items-start text-left">
-              <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1 shadow-sm">Empower Your Skill</span>
-              <h2 className="text-xl font-black text-white leading-tight">Start Your Own<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500 drop-shadow-sm">Virtual Company</span></h2>
-              <p className="text-[11px] text-gray-300 mt-2 max-w-[200px] leading-relaxed opacity-90">Turn your skills into a global startup. Zero setup cost. 100% your brand.</p>
-              
-              <button onClick={() => navigate('/register')} className="mt-4 bg-white text-indigo-900 px-6 py-2.5 rounded-xl text-xs font-black active:scale-95 transition-transform shadow-lg hover:shadow-xl flex items-center space-x-2">
-                <span>Start Now</span>
-                <span>→</span>
-              </button>
+        <div className="mt-8 px-5 relative">
+          <div className="relative h-44 w-full overflow-hidden rounded-[2.5rem] shadow-premium-lg border border-white/5">
+            {/* Card 1: Start (Active when index is 0) */}
+            <div className={`absolute inset-0 transition-all duration-700 ease-in-out transform ${
+              activeEmpowerBanner === 0 ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
+            }`}>
+              <div className="h-full w-full bg-gradient-to-br from-indigo-900 via-purple-900 to-black p-6 flex items-center justify-between">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl transform translate-x-10 -translate-y-10"></div>
+                
+                {/* Left Side: Content */}
+                <div className="flex-1 pr-4 relative z-10">
+                  <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1 block">Empower Your Skill</span>
+                  <h2 className="text-xl font-black text-white leading-tight">Start Your Own<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500">Virtual Company</span></h2>
+                  <p className="text-[10px] text-gray-300 mt-2 leading-relaxed opacity-90">Turn your skills into a global startup. Zero setup cost.</p>
+                  <button onClick={() => navigate('/register')} className="mt-4 bg-white text-indigo-900 px-5 py-2.5 rounded-xl text-[10px] font-black active:scale-95 transition-transform shadow-lg flex items-center space-x-2">
+                    <span>Start Now</span>
+                    <span>→</span>
+                  </button>
+                </div>
+                
+                {/* Right Side: Icon */}
+                <div className="flex-shrink-0 w-24 h-24 flex items-center justify-center relative z-10">
+                  <div className="absolute inset-0 bg-white/5 rounded-full blur-xl"></div>
+                  <span className="text-7xl drop-shadow-2xl animate-float">🚀</span>
+                </div>
+              </div>
             </div>
-            
-            <div className="absolute bottom-2 right-2 text-7xl opacity-50 drop-shadow-2xl animate-float" style={{ animationDuration: '4s' }}>🚀</div>
+
+            {/* Card 2: Grow (Active when index is 1) */}
+            <div className={`absolute inset-0 transition-all duration-700 ease-in-out transform ${
+              activeEmpowerBanner === 1 ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+            }`}>
+              <div className="h-full w-full bg-gradient-to-br from-emerald-900 via-teal-900 to-black p-6 flex items-center justify-between">
+                <div className="absolute -top-10 -left-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
+                
+                {/* Left Side: Content */}
+                <div className="flex-1 pr-4 relative z-10">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                    <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">Growth & Scale</span>
+                  </div>
+                  <h2 className="text-xl font-black text-white leading-tight">Go Global.<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-cyan-400">Scale High.</span></h2>
+                  <p className="text-[10px] text-gray-300 mt-2 leading-relaxed opacity-90">We help grow and internationalize your virtual company.</p>
+                  <button onClick={() => navigate('/register')} className="mt-4 bg-emerald-500 text-white px-5 py-2.5 rounded-xl text-[10px] font-black active:scale-95 transition-transform shadow-lg flex items-center space-x-2">
+                    <span>Growth Hub</span>
+                    <span>✨</span>
+                  </button>
+                </div>
+                
+                {/* Right Side: Icon */}
+                <div className="flex-shrink-0 w-24 h-24 flex items-center justify-center relative z-10">
+                  <div className="absolute inset-0 bg-emerald-500/10 rounded-full blur-xl"></div>
+                  <span className="text-7xl drop-shadow-2xl animate-pulse" style={{ animationDuration: '5s' }}>🌎</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Progress Indicators (Dots) */}
+          <div className="flex justify-center space-x-1.5 mt-3">
+            <div className={`transition-all duration-500 rounded-full h-1 ${activeEmpowerBanner === 0 ? 'w-6 bg-indigo-500' : 'w-2 bg-gray-300'}`}></div>
+            <div className={`transition-all duration-500 rounded-full h-1 ${activeEmpowerBanner === 1 ? 'w-6 bg-emerald-500' : 'w-2 bg-gray-300'}`}></div>
           </div>
         </div>
       )}
-
 
       {/* Scope-based Providers (Services Around You) */}
       <div className="mt-8 pb-4">
