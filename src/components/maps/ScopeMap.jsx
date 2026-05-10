@@ -1,5 +1,50 @@
-import React from 'react';
-import { SCOPE_MAP_DATA } from '../../data/constants';
+import React, { useState, useEffect, useMemo } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import { useNavigate } from 'react-router-dom';
+import { SCOPE_MAP_DATA, PROVIDERS } from '../../data/constants';
+
+// Fix Leaflet marker icon issue in React
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+let DefaultIcon = L.icon({
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+
+// Helper component to handle map flying
+const MapAutoCenter = ({ center }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (center) map.flyTo(center, 15, { animate: true, duration: 1.5 });
+  }, [center, map]);
+  return null;
+};
+
+// Custom DivIcon for labeled markers
+const createLabeledIcon = (emoji, label, color = 'indigo') => {
+  return L.divIcon({
+    html: `
+      <div class="flex flex-col items-center group animate-fade-in">
+        <div class="relative">
+          <div class="absolute inset-0 bg-${color}-500 rounded-full animate-ping opacity-20 scale-150"></div>
+          <div class="w-10 h-10 bg-white rounded-2xl shadow-premium border-2 border-white flex items-center justify-center text-xl relative z-10 transition-transform group-hover:scale-110">
+            ${emoji}
+          </div>
+        </div>
+        <div class="mt-1 bg-slate-900/90 backdrop-blur-md px-2 py-0.5 rounded-lg shadow-xl border border-white/20 whitespace-nowrap">
+          <p class="text-[8px] font-black text-white uppercase tracking-tighter">${label}</p>
+        </div>
+      </div>
+    `,
+    className: 'custom-div-icon',
+    iconSize: [40, 56],
+    iconAnchor: [20, 40]
+  });
+};
 
 const GLOW_COLORS = {
   indigo: 'rgba(99,102,241,0.6)', pink: 'rgba(236,72,153,0.6)', green: 'rgba(16,185,129,0.6)',
@@ -13,65 +58,218 @@ const SOLID_COLORS = {
 };
 const SIZE_MAP = { lg: 14, md: 10, sm: 7 };
 
-// ==================== LOCAL MAP ====================
-const LocalMap = () => {
-  const data = SCOPE_MAP_DATA.local;
+const DEFAULT_CENTER = [28.6692, 77.4538]; // Sector 4, Ghaziabad
+
+// ==================== LOCAL MAP (REAL-TIME) ====================
+const LocalMap = ({ isDarkMode }) => {
+  const navigate = useNavigate();
+  const [driverPos, setDriverPos] = useState([28.6710, 77.4550]);
+  const [userPos, setUserPos] = useState(null);
+  const [mapCenter, setMapCenter] = useState(DEFAULT_CENTER);
+  const [isLocating, setIsLocating] = useState(false);
+  
+  // Real-Time Movement Simulation for Ravi (Tractor)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDriverPos(prev => [
+        prev[0] + (Math.random() - 0.5) * 0.0004,
+        prev[1] + (Math.random() - 0.5) * 0.0004
+      ]);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // GPS Location Request + Reverse Geocoding
+  const handleLocateMe = async () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        const newPos = [latitude, longitude];
+        setUserPos(newPos);
+        setMapCenter(newPos);
+        
+        // 1. Save Raw GPS to LocalStorage
+        localStorage.setItem('earthgram_user_gps', JSON.stringify({
+          lat: latitude,
+          lng: longitude,
+          timestamp: new Date().toISOString()
+        }));
+
+        // 2. Reverse Geocoding (Convert Lat/Lng to Address)
+        try {
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
+          const data = await response.json();
+          
+          if (data && data.address) {
+            const addr = data.address;
+            const shortAddress = `${addr.suburb || addr.neighbourhood || addr.road || ''}, ${addr.city || addr.town || addr.state || ''}`.trim().replace(/^, |, $/, '');
+            localStorage.setItem('earthgram_user_address', shortAddress || data.display_name);
+          }
+        } catch (err) {
+          console.error("Geocoding failed:", err);
+          localStorage.setItem('earthgram_user_address', "Location found (Address pending)");
+        }
+
+        setIsLocating(false);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        setIsLocating(false);
+        alert("Unable to retrieve your location. Using default center.");
+      },
+      { enableHighAccuracy: true }
+    );
+  };
+
+  // Map providers to simulated coordinates around the current center
+  const serviceMarkers = useMemo(() => {
+    const center = userPos || DEFAULT_CENTER;
+    return PROVIDERS.slice(0, 10).map((p, i) => ({
+      ...p,
+      pos: [
+        center[0] + (Math.sin(i * 2.1) * 0.007),
+        center[1] + (Math.cos(i * 2.1) * 0.007)
+      ]
+    }));
+  }, [userPos]);
+
   return (
-    <div className="map-local relative w-full h-72 rounded-2xl overflow-hidden shadow-premium-lg">
-      {/* Center pin (YOU) */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center">
-        <div className="relative">
-          <div className="absolute inset-0 bg-indigo-500 rounded-full pin-ring opacity-40"></div>
-          <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full border-[3px] border-white shadow-glow-indigo flex items-center justify-center text-white text-sm font-black z-10 relative">
-            📍
-          </div>
-        </div>
-        <span className="mt-1.5 text-[9px] font-black text-indigo-700 bg-white/90 backdrop-blur-sm px-2.5 py-0.5 rounded-full shadow-sm">YOU</span>
+    <div className="map-local relative w-full h-[520px] rounded-[3.5rem] overflow-hidden shadow-premium-2xl border-4 border-white animate-fade-in group">
+      <MapContainer center={mapCenter} zoom={15} className="h-full w-full z-0" scrollWheelZoom={false}>
+        <TileLayer
+          url={isDarkMode 
+            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          }
+          attribution='&copy; OpenStreetMap'
+        />
+        <MapAutoCenter center={mapCenter} />
+        
+        {/* User Location */}
+        <Marker position={userPos || DEFAULT_CENTER} icon={createLabeledIcon('📍', 'YOU', 'indigo')}>
+          <Popup>
+             <div className="text-center p-1">
+                <p className="font-black text-xs">Your Live Location</p>
+                <p className="text-[8px] text-slate-500 uppercase font-bold mt-1">Saved to Profile</p>
+             </div>
+          </Popup>
+        </Marker>
+
+        {/* Live Moving Service (Ravi) */}
+        <Marker 
+          position={driverPos} 
+          icon={createLabeledIcon('🚜', 'RAVI', 'emerald')}
+          eventHandlers={{ click: () => navigate('/book') }}
+        >
+          <Popup>
+            <div className="p-2 min-w-[140px]">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center text-white text-xl shadow-glow-indigo">🚜</div>
+                <div>
+                  <p className="font-black text-xs">Ravi (Tractor)</p>
+                  <p className="text-[8px] text-emerald-500 font-bold uppercase tracking-widest animate-pulse">Live • Moving</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => navigate('/book')}
+                className="w-full bg-slate-900 text-white text-[9px] font-black py-2 rounded-xl uppercase tracking-widest">
+                Book Now
+              </button>
+            </div>
+          </Popup>
+        </Marker>
+
+        {/* All Other Neighborhood Services */}
+        {serviceMarkers.map((p) => (
+          <Marker 
+            key={p.id} 
+            position={p.pos} 
+            icon={createLabeledIcon(p.avatar, p.name.split(' ')[0], 'indigo')}
+            eventHandlers={{ click: () => navigate('/provider', { state: { profile: p } }) }}
+          >
+            <Popup>
+              <div className="p-2 min-w-[150px]">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-xl border border-slate-200">
+                    {p.avatar}
+                  </div>
+                  <div>
+                    <p className="font-black text-xs leading-tight">{p.name}</p>
+                    <p className="text-[8px] text-slate-400 font-bold uppercase">{p.category}</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mb-3 bg-slate-50 p-2 rounded-lg">
+                   <div className="flex items-center space-x-1">
+                      <span className="text-amber-500 text-[10px]">★</span>
+                      <span className="text-[10px] font-black">{p.rating}</span>
+                   </div>
+                   <span className="text-[9px] font-bold text-slate-500">📍 {p.distance}</span>
+                </div>
+                <button 
+                  onClick={() => navigate('/provider', { state: { profile: p } })}
+                  className="w-full bg-indigo-600 text-white text-[9px] font-black py-2 rounded-xl uppercase tracking-widest active:scale-95 transition-transform">
+                  View Profile
+                </button>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
+        {/* Mandi Service Point */}
+        <Marker position={[28.6650, 77.4500]} icon={createLabeledIcon('🏢', 'MANDI', 'amber')}>
+          <Popup>
+            <div className="p-2">
+              <p className="font-black text-xs mb-1">🏢 Sector 4 Mandi</p>
+              <p className="text-[9px] text-slate-500 mb-2">Wheat: ₹2,100 | Rice: ₹3,450</p>
+              <button className="w-full bg-emerald-600 text-white text-[9px] font-black py-1.5 rounded-xl uppercase">Check Live Rates</button>
+            </div>
+          </Popup>
+        </Marker>
+      </MapContainer>
+
+      {/* Floating GPS Button */}
+      <div className="absolute top-6 right-6 z-10">
+        <button 
+          onClick={handleLocateMe}
+          disabled={isLocating}
+          className={`px-4 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center space-x-2 shadow-2xl transition-all active:scale-95 ${
+            isLocating ? 'bg-slate-400 text-white cursor-not-allowed' : 'bg-white text-indigo-600 border-2 border-indigo-500'
+          }`}>
+          <span className={isLocating ? 'animate-spin' : ''}>📡</span>
+          <span>{isLocating ? 'Locating...' : 'Real GPS Radar'}</span>
+        </button>
       </div>
 
-      {/* Provider pins */}
-      {data.pins.map((pin, i) => (
-        <div key={pin.id} className="absolute z-10 animate-fade-in flex flex-col items-center group cursor-pointer"
-          style={{ left: `${pin.x}%`, top: `${pin.y}%`, animationDelay: `${i * 0.1}s`, opacity: 0 }}>
-          <div className="relative">
-            <div className="absolute inset-0 rounded-full pin-ring" style={{ background: GLOW_COLORS[pin.color], animationDelay: `${i * 0.3}s` }}></div>
-            <div className="w-10 h-10 bg-white rounded-full shadow-premium flex items-center justify-center text-lg relative z-10 border border-gray-100 group-hover:scale-110 transition-transform">
-              {pin.emoji}
+      {/* Floating Radar Tag */}
+      <div className="absolute top-6 left-6 z-10">
+        <div className="bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-2xl flex items-center space-x-2 border border-white/20 shadow-xl">
+           <span className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
+           <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Live Radar</span>
+        </div>
+      </div>
+
+      {/* Stats overlay */}
+      <div className="absolute bottom-6 left-6 right-6 z-10">
+        <div className="glass rounded-[2rem] px-5 py-4 flex justify-between items-center shadow-2xl border border-white/50">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-indigo-500 rounded-2xl flex items-center justify-center text-white shadow-glow-indigo">🛰️</div>
+            <div>
+              <p className="text-[11px] font-black text-gray-900 uppercase leading-none">Scanning Neighborhood</p>
+              <p className="text-[9px] font-bold text-gray-500 mt-1">Found 4 providers within 2km</p>
             </div>
           </div>
-          <div className="glass mt-1 px-2 py-0.5 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-            <p className="text-[8px] font-bold text-gray-800">{pin.label}</p>
-            <p className="text-[7px] text-gray-500">{pin.dist}</p>
-          </div>
+          <button 
+            onClick={() => navigate('/explore')}
+            className="bg-black text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg">
+            Full View
+          </button>
         </div>
-      ))}
-
-      {/* Radius circles */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border border-dashed border-indigo-200 opacity-40"></div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 rounded-full border border-dashed border-indigo-200 opacity-25"></div>
-
-      {/* Stats bar */}
-      <div className="absolute bottom-3 left-3 right-3 z-20">
-        <div className="glass rounded-xl px-3 py-2 flex justify-between items-center">
-          <div className="flex items-center space-x-1.5">
-            <span className="w-2 h-2 bg-green-500 rounded-full online-dot"></span>
-            <span className="text-[10px] font-bold text-gray-700">{data.stats.available} available now</span>
-          </div>
-          <span className="text-[9px] font-medium text-gray-500">Avg. {data.stats.avgResponse}</span>
-        </div>
-      </div>
-
-      {/* Filter pills */}
-      <div className="absolute top-3 left-3 z-20 flex space-x-1.5">
-        <span className="glass px-2.5 py-1 rounded-full text-[9px] font-bold text-gray-700 flex items-center space-x-1">
-          <span>⚙️</span><span>Filter</span>
-        </span>
-        <span className="glass px-2.5 py-1 rounded-full text-[9px] font-bold text-gray-700 flex items-center space-x-1">
-          <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full"></span><span>Electric</span>
-        </span>
-        <span className="glass px-2.5 py-1 rounded-full text-[9px] font-bold text-gray-700 flex items-center space-x-1">
-          <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span><span>Plumber</span>
-        </span>
       </div>
     </div>
   );

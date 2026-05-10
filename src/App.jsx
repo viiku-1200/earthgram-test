@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 
 // Screen Components
@@ -28,17 +28,79 @@ import BottomNav from './components/layout/BottomNav';
 
 const AppContent = () => {
   const [activeScope, setActiveScope] = useState('local');
-  const [selectedCountry, setSelectedCountry] = useState('in');
-  const [isBossMode, setIsBossMode] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState(() => localStorage.getItem('earthgram_country') || 'in');
+  const [isBossMode, setIsBossMode] = useState(() => localStorage.getItem('earthgram_boss_mode') === 'true');
   const [botMood, setBotMood] = useState('idle');
-  const [isRegistered, setIsRegistered] = useState(false);
-  const [companyData, setCompanyData] = useState(null);
+  const [isRegistered, setIsRegistered] = useState(() => localStorage.getItem('earthgram_registered') === 'true');
+  const [companyData, setCompanyData] = useState(() => {
+    const saved = localStorage.getItem('earthgram_company_data');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [showSplash, setShowSplash] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Shared Booking State — persists across all sessions
+  const [userBookings, setUserBookings] = useState(() => {
+    const saved = localStorage.getItem('earthgram_bookings');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const addBooking = useCallback((newBooking) => {
+    setUserBookings(prev => {
+      const updated = [newBooking, ...prev];
+      localStorage.setItem('earthgram_bookings', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const cancelBooking = useCallback((bookingId) => {
+    setUserBookings(prev => {
+      const updated = prev.map(b =>
+        b.id === bookingId ? { ...b, status: 'cancelled', date: b.date + ' (Cancelled)' } : b
+      );
+      localStorage.setItem('earthgram_bookings', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('earthgram_dark_mode');
+    if (saved !== null) return saved === 'true';
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+
+  // Persist settings changes
+  useEffect(() => {
+    localStorage.setItem('earthgram_dark_mode', isDarkMode);
+  }, [isDarkMode]);
+
+  useEffect(() => {
+    localStorage.setItem('earthgram_boss_mode', isBossMode);
+  }, [isBossMode]);
+
+  useEffect(() => {
+    localStorage.setItem('earthgram_registered', isRegistered);
+  }, [isRegistered]);
+
+  useEffect(() => {
+    if (companyData) {
+      localStorage.setItem('earthgram_company_data', JSON.stringify(companyData));
+    }
+  }, [companyData]);
+
+  useEffect(() => {
+    localStorage.setItem('earthgram_country', selectedCountry);
+  }, [selectedCountry]);
 
   // Boss Mode AI State
-  const [bizBio, setBizBio] = useState('');
+  const [bizBio, setBizBio] = useState(() => localStorage.getItem('earthgram_biz_bio') || '');
   const [isGeneratingBio, setIsGeneratingBio] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('earthgram_biz_bio', bizBio);
+  }, [bizBio]);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -66,6 +128,7 @@ const AppContent = () => {
           <Route path="/profile" element={
             <ProfileScreen
               isDarkMode={isDarkMode}
+              setIsDarkMode={setIsDarkMode}
               isBossMode={isBossMode}
               setIsBossMode={setIsBossMode}
               bizBio={bizBio}
@@ -74,6 +137,7 @@ const AppContent = () => {
               setIsGeneratingBio={setIsGeneratingBio}
               isRegistered={isRegistered}
               companyData={companyData}
+              userBookings={userBookings}
             />
           } />
 
@@ -81,7 +145,7 @@ const AppContent = () => {
           <Route path="/chat" element={<ChatScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
           <Route path="/register" element={<RegisterScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} onRegisterSuccess={(data) => { setCompanyData(data); setIsRegistered(true); setIsBossMode(true); navigate('/profile'); }} />} />
           <Route path="/provider" element={<ProviderProfileScreen isDarkMode={isDarkMode} onBack={() => navigate(-1)} />} />
-          <Route path="/book" element={<BookingScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
+          <Route path="/book" element={<BookingScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} userBookings={userBookings} addBooking={addBooking} cancelBooking={cancelBooking} />} />
           <Route path="/activity" element={<ActivityScreen isDarkMode={isDarkMode} />} />
           <Route path="/search" element={<SearchScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
           <Route path="/explore-search" element={<ExploreSearchScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />

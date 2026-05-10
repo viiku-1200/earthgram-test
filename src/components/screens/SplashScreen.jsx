@@ -39,7 +39,7 @@ const SplashScreen = ({ onComplete, isDarkMode }) => {
       {/* Brand Text */}
       <div className="mt-8 text-center animate-fade-in-up">
         <h1 className="text-3xl font-black tracking-tighter mb-1">
-          <span className={`transition-colors duration-700 ${isDarkMode ? 'text-white' : 'text-[#003B73]'}`}>earth</span>
+          <span className={`transition-colors duration-700 ${isDarkMode ? 'text-white' : 'text-[#1E59B3]'}`}>earth</span>
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00BF72] to-[#00E5FF]">gram</span>
         </h1>
         <p className={`text-[10px] font-bold uppercase tracking-[0.25em] mt-2 transition-colors duration-700 ${

@@ -1,14 +1,68 @@
 // --- PROTOTYPE DATA ---
 
 export const COUNTRIES = [
-  { id: 'in', name: 'India', icon: '🇮🇳', flag: '🇮🇳', region: 'asia' },
-  { id: 'np', name: 'Nepal', icon: '🇳🇵', flag: '🇳🇵', region: 'asia' },
-  { id: 'bd', name: 'Bangladesh', icon: '🇧🇩', flag: '🇧🇩', region: 'asia' },
-  { id: 'sl', name: 'Sri Lanka', icon: '🇱🇰', flag: '🇱🇰', region: 'asia' },
-  { id: 'sg', name: 'Singapore', icon: '🇸🇬', flag: '🇸🇬', region: 'asia' },
-  { id: 'th', name: 'Thailand', icon: '🇹🇭', flag: '🇹🇭', region: 'asia' },
-  { id: 'jp', name: 'Japan', icon: '🇯🇵', flag: '🇯🇵', region: 'asia' },
-  { id: 'vn', name: 'Vietnam', icon: '🇻🇳', flag: '🇻🇳', region: 'asia' },
+  // --- South Asia ---
+  { id: 'in', name: 'India', flag: '🇮🇳', region: 'south asia' },
+  { id: 'np', name: 'Nepal', flag: '🇳🇵', region: 'south asia' },
+  { id: 'bd', name: 'Bangladesh', flag: '🇧🇩', region: 'south asia' },
+  { id: 'lk', name: 'Sri Lanka', flag: '🇱🇰', region: 'south asia' },
+  { id: 'pk', name: 'Pakistan', flag: '🇵🇰', region: 'south asia' },
+  { id: 'bt', name: 'Bhutan', flag: '🇧🇹', region: 'south asia' },
+  { id: 'mv', name: 'Maldives', flag: '🇲🇻', region: 'south asia' },
+  // --- Southeast Asia ---
+  { id: 'sg', name: 'Singapore', flag: '🇸🇬', region: 'southeast asia' },
+  { id: 'th', name: 'Thailand', flag: '🇹🇭', region: 'southeast asia' },
+  { id: 'vn', name: 'Vietnam', flag: '🇻🇳', region: 'southeast asia' },
+  { id: 'my', name: 'Malaysia', flag: '🇲🇾', region: 'southeast asia' },
+  { id: 'id', name: 'Indonesia', flag: '🇮🇩', region: 'southeast asia' },
+  { id: 'ph', name: 'Philippines', flag: '🇵🇭', region: 'southeast asia' },
+  { id: 'mm', name: 'Myanmar', flag: '🇲🇲', region: 'southeast asia' },
+  { id: 'kh', name: 'Cambodia', flag: '🇰🇭', region: 'southeast asia' },
+  // --- East Asia ---
+  { id: 'jp', name: 'Japan', flag: '🇯🇵', region: 'east asia' },
+  { id: 'kr', name: 'South Korea', flag: '🇰🇷', region: 'east asia' },
+  { id: 'cn', name: 'China', flag: '🇨🇳', region: 'east asia' },
+  { id: 'tw', name: 'Taiwan', flag: '🇹🇼', region: 'east asia' },
+  { id: 'hk', name: 'Hong Kong', flag: '🇭🇰', region: 'east asia' },
+  // --- Middle East ---
+  { id: 'ae', name: 'UAE', flag: '🇦🇪', region: 'middle east' },
+  { id: 'sa', name: 'Saudi Arabia', flag: '🇸🇦', region: 'middle east' },
+  { id: 'qa', name: 'Qatar', flag: '🇶🇦', region: 'middle east' },
+  { id: 'kw', name: 'Kuwait', flag: '🇰🇼', region: 'middle east' },
+  { id: 'om', name: 'Oman', flag: '🇴🇲', region: 'middle east' },
+  { id: 'bh', name: 'Bahrain', flag: '🇧🇭', region: 'middle east' },
+  { id: 'il', name: 'Israel', flag: '🇮🇱', region: 'middle east' },
+  { id: 'tr', name: 'Turkey', flag: '🇹🇷', region: 'middle east' },
+  // --- Europe ---
+  { id: 'uk', name: 'UK', flag: '🇬🇧', region: 'europe' },
+  { id: 'de', name: 'Germany', flag: '🇩🇪', region: 'europe' },
+  { id: 'fr', name: 'France', flag: '🇫🇷', region: 'europe' },
+  { id: 'it', name: 'Italy', flag: '🇮🇹', region: 'europe' },
+  { id: 'es', name: 'Spain', flag: '🇪🇸', region: 'europe' },
+  { id: 'nl', name: 'Netherlands', flag: '🇳🇱', region: 'europe' },
+  { id: 'ch', name: 'Switzerland', flag: '🇨🇭', region: 'europe' },
+  { id: 'se', name: 'Sweden', flag: '🇸🇪', region: 'europe' },
+  { id: 'pt', name: 'Portugal', flag: '🇵🇹', region: 'europe' },
+  { id: 'ie', name: 'Ireland', flag: '🇮🇪', region: 'europe' },
+  { id: 'pl', name: 'Poland', flag: '🇵🇱', region: 'europe' },
+  // --- Americas ---
+  { id: 'us', name: 'USA', flag: '🇺🇸', region: 'americas' },
+  { id: 'ca', name: 'Canada', flag: '🇨🇦', region: 'americas' },
+  { id: 'mx', name: 'Mexico', flag: '🇲🇽', region: 'americas' },
+  { id: 'br', name: 'Brazil', flag: '🇧🇷', region: 'americas' },
+  { id: 'ar', name: 'Argentina', flag: '🇦🇷', region: 'americas' },
+  { id: 'co', name: 'Colombia', flag: '🇨🇴', region: 'americas' },
+  // --- Africa ---
+  { id: 'ng', name: 'Nigeria', flag: '🇳🇬', region: 'africa' },
+  { id: 'za', name: 'South Africa', flag: '🇿🇦', region: 'africa' },
+  { id: 'ke', name: 'Kenya', flag: '🇰🇪', region: 'africa' },
+  { id: 'eg', name: 'Egypt', flag: '🇪🇬', region: 'africa' },
+  { id: 'gh', name: 'Ghana', flag: '🇬🇭', region: 'africa' },
+  { id: 'et', name: 'Ethiopia', flag: '🇪🇹', region: 'africa' },
+  // --- Oceania ---
+  { id: 'au', name: 'Australia', flag: '🇦🇺', region: 'oceania' },
+  { id: 'nz', name: 'New Zealand', flag: '🇳🇿', region: 'oceania' },
+  { id: 'fj', name: 'Fiji', flag: '🇫🇯', region: 'oceania' },
 ];
 
 export const SCOPES = [
@@ -70,7 +124,7 @@ export const SCOPE_MAP_DATA = {
 
 export const CATEGORIES = [
   {
-    id: '1', name: 'Emergency', icon: '⚡', lucide: 'Zap', realImage: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=400&fit=crop', color: 'from-red-500 to-red-700', badge: '20m', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    id: '1', name: 'Emergency', icon: '⚡', lucide: 'Zap', realImage: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400&h=400&fit=crop', color: 'from-red-500 to-red-700', badge: '20m', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'lk', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Electric', icon: '⚡', bg: 'bg-yellow-100' },
       { name: 'Plumber', icon: '🔧', bg: 'bg-blue-100' },
@@ -84,7 +138,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '2', name: 'Repair', icon: '🔧', lucide: 'Wrench', realImage: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=400&fit=crop', color: 'from-blue-500 to-blue-700', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    id: '2', name: 'Repair', icon: '🔧', lucide: 'Wrench', realImage: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=400&fit=crop', color: 'from-blue-500 to-blue-700', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'lk', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Fan', icon: '🌀', bg: 'bg-blue-100' },
       { name: 'AC', icon: '❄️', bg: 'bg-cyan-100' },
@@ -103,7 +157,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '3', name: 'Beauty', icon: '💅', lucide: 'Sparkles', realImage: 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400&h=400&fit=crop', color: 'from-pink-500 to-pink-700', visibility: ['default', 'city', 'town'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    id: '3', name: 'Beauty', icon: '💅', lucide: 'Sparkles', realImage: 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=400&h=400&fit=crop', color: 'from-pink-500 to-pink-700', visibility: ['default', 'city', 'town'], countries: ['in', 'np', 'bd', 'lk', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Makeup', icon: '💄', bg: 'bg-pink-100' },
       { name: 'Massage', icon: '💆', bg: 'bg-purple-100' },
@@ -119,7 +173,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '4', name: 'Staff', icon: '👨‍🍳', lucide: 'Users', realImage: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=400&h=400&fit=crop', color: 'from-orange-500 to-orange-700', visibility: ['default', 'city', 'town'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    id: '4', name: 'Staff', icon: '👨‍🍳', lucide: 'Users', realImage: 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=400&h=400&fit=crop', color: 'from-orange-500 to-orange-700', visibility: ['default', 'city', 'town'], countries: ['in', 'np', 'bd', 'lk', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Maid', icon: '🧹', bg: 'bg-green-100' },
       { name: 'Driver', icon: '🚗', bg: 'bg-blue-100' },
@@ -133,7 +187,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '5', name: 'Tutors', icon: '📚', lucide: 'GraduationCap', realImage: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=400&fit=crop', color: 'from-purple-500 to-purple-700', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    id: '5', name: 'Tutors', icon: '📚', lucide: 'GraduationCap', realImage: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=400&fit=crop', color: 'from-purple-500 to-purple-700', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'lk', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Math', icon: '🔢', bg: 'bg-blue-100' },
       { name: 'Science', icon: '🔬', bg: 'bg-green-100' },
@@ -147,7 +201,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '6', name: 'Events', icon: '🎉', lucide: 'PartyPopper', realImage: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop', color: 'from-yellow-500 to-yellow-700', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    id: '6', name: 'Events', icon: '🎉', lucide: 'PartyPopper', realImage: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop', color: 'from-yellow-500 to-yellow-700', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'lk', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Birthday', icon: '🎂', bg: 'bg-pink-100' },
       { name: 'Wedding', icon: '💒', bg: 'bg-red-100' },
@@ -162,7 +216,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '7', name: 'Consultancy', icon: '💼', lucide: 'Briefcase', realImage: 'https://images.unsplash.com/photo-1454165833767-0266b196773f?w=400&h=400&fit=crop', color: 'from-gray-600 to-gray-800', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    id: '7', name: 'Consultancy', icon: '💼', lucide: 'Briefcase', realImage: 'https://images.unsplash.com/photo-1454165833767-0266b196773f?w=400&h=400&fit=crop', color: 'from-gray-600 to-gray-800', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'lk', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Software', icon: '💻', realImage: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=400&fit=crop', bg: 'bg-blue-100' },
       { name: 'Doctor', icon: '⚕️', realImage: 'https://images.unsplash.com/photo-1505751172107-597d5a4d4b9c?w=400&h=400&fit=crop', bg: 'bg-green-100' },
@@ -178,7 +232,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '8', name: 'ItzRunner', icon: '🏃', lucide: 'Truck', realImage: 'https://images.unsplash.com/photo-1595246140625-573b715d11dc?w=400&h=400&fit=crop', color: 'from-red-600 to-orange-600', label: 'Chotu', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    id: '8', name: 'ItzRunner', icon: '🏃', lucide: 'Truck', realImage: 'https://images.unsplash.com/photo-1595246140625-573b715d11dc?w=400&h=400&fit=crop', color: 'from-red-600 to-orange-600', label: 'Chotu', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'lk', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Pick & Drop', icon: '📦', bg: 'bg-orange-100' },
       { name: 'Buy from Store', icon: '🛒', bg: 'bg-green-100' },
@@ -190,7 +244,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '9', name: 'Lifestyle', icon: '🌿', lucide: 'Leaf', realImage: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=400&fit=crop', color: 'from-emerald-400 to-teal-500', visibility: ['default', 'city', 'town'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn', 'us', 'uk'],
+    id: '9', name: 'Lifestyle', icon: '🌿', lucide: 'Leaf', realImage: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=400&fit=crop', color: 'from-emerald-400 to-teal-500', visibility: ['default', 'city', 'town'], countries: ['in', 'np', 'bd', 'lk', 'sg', 'th', 'jp', 'vn', 'us', 'uk'],
     subTabs: [
       { name: 'Fitness', icon: '🏋️', bg: 'bg-blue-100' },
       { name: 'Pets', icon: '🐕', bg: 'bg-orange-100' },
@@ -203,7 +257,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '10', name: 'Local Produce & Crafts', icon: '🧺', lucide: 'ShoppingBag', realImage: 'https://images.unsplash.com/photo-1488459711615-228239797f86?w=400&h=400&fit=crop', color: 'from-green-600 to-emerald-800', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    id: '10', name: 'Local Produce & Crafts', icon: '🧺', lucide: 'ShoppingBag', realImage: 'https://images.unsplash.com/photo-1488459711615-228239797f86?w=400&h=400&fit=crop', color: 'from-green-600 to-emerald-800', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'lk', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Farmers', icon: '🌾', realImage: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=400&h=400&fit=crop', bg: 'bg-green-100' },
       { name: 'Artisans', icon: '🏺', realImage: 'https://images.unsplash.com/photo-1565191999001-551c187427bb?w=400&h=400&fit=crop', bg: 'bg-orange-100' },
@@ -217,7 +271,7 @@ export const CATEGORIES = [
     ],
   },
   {
-    id: '11', name: 'Agri & Farm', icon: '🚜', lucide: 'Tractor', realImage: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=400&fit=crop', color: 'from-yellow-600 to-green-700', visibility: ['village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    id: '11', name: 'Agri & Farm', icon: '🚜', lucide: 'Tractor', realImage: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=400&fit=crop', color: 'from-yellow-600 to-green-700', visibility: ['village'], countries: ['in', 'np', 'bd', 'lk', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Tractors', icon: '🚜', bg: 'bg-yellow-100' },
       { name: 'Seeds', icon: '🌱', bg: 'bg-green-100' },
@@ -231,7 +285,7 @@ export const CATEGORIES = [
     ]
   },
   {
-    id: '12', name: 'Mandi Connect', icon: '🌽', lucide: 'ShoppingBag', realImage: 'https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=400&h=400&fit=crop', color: 'from-amber-500 to-orange-700', visibility: ['village', 'default'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    id: '12', name: 'Mandi Connect', icon: '🌽', lucide: 'ShoppingBag', realImage: 'https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=400&h=400&fit=crop', color: 'from-amber-500 to-orange-700', visibility: ['village', 'default'], countries: ['in', 'np', 'bd', 'lk', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Wheat', icon: '🌾', bg: 'bg-yellow-50' },
       { name: 'Rice', icon: '🍚', bg: 'bg-gray-50' },
@@ -249,7 +303,7 @@ export const CATEGORIES = [
     ]
   },
   {
-    id: '13', name: 'Transport', icon: '🚛', lucide: 'Truck', realImage: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&h=400&fit=crop', color: 'from-blue-600 to-indigo-800', visibility: ['village', 'city', 'default'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    id: '13', name: 'Transport', icon: '🚛', lucide: 'Truck', realImage: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&h=400&fit=crop', color: 'from-blue-600 to-indigo-800', visibility: ['village', 'city', 'default'], countries: ['in', 'np', 'bd', 'lk', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Tractor', icon: '🚜', bg: 'bg-yellow-50' },
       { name: 'Mini Truck', icon: '🚚', bg: 'bg-blue-50' },
@@ -265,7 +319,7 @@ export const CATEGORIES = [
     ]
   },
   {
-    id: '14', name: 'Tour & Travel', icon: '🏔️', lucide: 'Mountain', realImage: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=400&fit=crop', color: 'from-cyan-600 to-blue-800', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'sl', 'sg', 'th', 'jp', 'vn'],
+    id: '14', name: 'Tour & Travel', icon: '🏔️', lucide: 'Mountain', realImage: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=400&fit=crop', color: 'from-cyan-600 to-blue-800', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'lk', 'sg', 'th', 'jp', 'vn'],
     subTabs: [
       { name: 'Trek Guides', icon: '🥾', realImage: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=400&fit=crop', bg: 'bg-green-100' },
       { name: 'Cultural', icon: '🏯', realImage: 'https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=400&h=400&fit=crop', bg: 'bg-orange-100' },
@@ -308,7 +362,7 @@ export const CATEGORIES = [
     providers: [{ id: 'w1', name: 'Zen Yoga Studio', sub: 'Yoga', distance: '1.2 km', rating: '4.8', reviews: 120, price: '₹500/session', tag: 'Certified', available: true }]
   },
   {
-    id: '18', name: 'Gadget Repair', icon: '📱', visibility: ['city', 'default'], countries: ['in', 'bd', 'np', 'sl'],
+    id: '18', name: 'Gadget Repair', icon: '📱', visibility: ['city', 'default'], countries: ['in', 'bd', 'np', 'lk'],
     color: 'from-blue-500 to-indigo-700',
     subTabs: [{ name: 'Mobile', icon: '📱', bg: 'bg-blue-50' }, { name: 'Laptop', icon: '💻', bg: 'bg-gray-50' }, { name: 'Watch', icon: '⌚', bg: 'bg-indigo-50' }, { name: 'All', icon: '📋', bg: 'bg-gray-50' }],
     providers: [{ id: 'g1', name: 'QuickFix Mobile', sub: 'Mobile', distance: '0.3 km', rating: '4.7', reviews: 250, price: '₹199 diag.', tag: 'On-site Fix', available: true }]
@@ -457,12 +511,12 @@ export const HERO_BANNERS = [
 
 // --- EXPLORE DATA ---
 export const EXPLORE_CATEGORIES = [
-  { id: '1', name: 'Dance Studio', icon: '💃', color: 'bg-pink-100 text-pink-600' },
-  { id: '2', name: 'Gyms', icon: '🏋️', color: 'bg-gray-800 text-white' },
-  { id: '3', name: 'Music', icon: '🎸', color: 'bg-purple-100 text-purple-600' },
-  { id: '4', name: 'Local Food', icon: '🍔', color: 'bg-orange-100 text-orange-600' },
-  { id: '5', name: 'Empty Rooms', icon: '🏠', color: 'bg-teal-100 text-teal-600' },
-  { id: '6', name: 'Barber', icon: '💈', color: 'bg-blue-100 text-blue-600' },
+  { id: '1', name: 'Dance Studio', icon: '💃', gradient: 'from-pink-400 to-rose-600', color: 'bg-pink-100 text-pink-600' },
+  { id: '2', name: 'Gyms', icon: '🏋️', gradient: 'from-slate-700 to-slate-900', color: 'bg-gray-800 text-white' },
+  { id: '3', name: 'Music', icon: '🎸', gradient: 'from-purple-400 to-indigo-600', color: 'bg-purple-100 text-purple-600' },
+  { id: '4', name: 'Local Food', icon: '🍔', gradient: 'from-orange-400 to-amber-600', color: 'bg-orange-100 text-orange-600' },
+  { id: '5', name: 'Empty Rooms', icon: '🏠', gradient: 'from-teal-400 to-cyan-600', color: 'bg-teal-100 text-teal-600' },
+  { id: '6', name: 'Barber', icon: '💈', gradient: 'from-blue-400 to-indigo-500', color: 'bg-blue-100 text-blue-600' },
 ];
 
 export const LOCAL_SPOTS = [
@@ -675,18 +729,23 @@ export const BOOKING_DATES = [
 
 export const MY_BOOKINGS = [
   {
+    id: 'bk_active', provider: 'Speedy Plumber', service: 'Emergency Leak Fix', price: '₹350',
+    date: 'Active Now', status: 'present', icon: '🔧',
+    address: 'Flat 302, Tower B, Gaur City 2',
+  },
+  {
     id: 'bk1', provider: 'Ravi Electric', service: 'Fan Installation', price: '₹200',
-    date: 'Today, 2:00 PM', status: 'upcoming', icon: '⚡',
+    date: 'Today, 4:00 PM', status: 'upcoming', icon: '⚡',
     address: 'Flat 302, Tower B, Gaur City 2',
   },
   {
     id: 'bk2', provider: 'ShineX Clean', service: 'Full Home Deep Clean', price: '₹1,200',
-    date: 'Yesterday, 10:00 AM', status: 'completed', icon: '🧹', rating: 5,
+    date: 'Yesterday, 10:00 AM', status: 'past', icon: '🧹', rating: 5,
     address: 'Flat 302, Tower B, Gaur City 2',
   },
   {
     id: 'bk3', provider: 'Amit Plumber', service: 'Tap Fitting', price: '₹150',
-    date: '25 Apr, 3:00 PM', status: 'completed', icon: '🔧', rating: 4,
+    date: '25 Apr, 3:00 PM', status: 'past', icon: '🔧', rating: 4,
     address: 'Flat 302, Tower B, Gaur City 2',
   },
   {
