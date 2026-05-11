@@ -163,6 +163,47 @@ const ExploreScreen = ({ isDarkMode }) => {
       </div>
     </div>
 
+    {/* ====== DYNAMIC LIVE TICKER FOR EXPLORE ====== */}
+    {(() => {
+      const savedAddr = localStorage.getItem('earthgram_user_address') || '';
+      const areaName = savedAddr ? savedAddr.split(',')[0].trim() : 'Live';
+      const isGC = areaName.toLowerCase().includes('gaur city') || areaName.toLowerCase().includes('gc');
+      const pulseTitle = areaName !== 'Live' ? `${areaName} Live` : 'Live Pulse';
+      
+      return (
+        <div className={`flex items-center border-b overflow-hidden h-10 z-10 flex-shrink-0 ${
+          isDarkMode ? 'bg-slate-900 border-slate-800 shadow-inner' : 'bg-gray-50 border-gray-100 shadow-sm'
+        }`}>
+          {/* Fixed Area Badge */}
+          <div className={`flex-shrink-0 z-20 px-3 h-full flex items-center space-x-1.5 border-r ${
+            isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100'
+          }`}>
+            <div className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.4)]"></div>
+            <span className={`text-[10px] font-black tracking-widest uppercase ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{pulseTitle}</span>
+          </div>
+
+          {/* Scrolling News Container */}
+          <div className="flex-1 relative overflow-hidden h-full flex items-center">
+            <div className="flex animate-marquee items-center">
+              {[
+                { icon: isGC ? '🏥' : '🌾', label: isGC ? 'Health' : 'Mandi', text: isGC ? 'Dr. Rajesh: Same-day KFT/CBC tests available in GC-2' : 'Wheat ₹2,125 (+1.2%)', color: isDarkMode ? 'text-emerald-400' : 'text-emerald-700' },
+                { icon: '🚜', label: 'Service', text: isGC ? `AC Servicing slots open in ${areaName} for tomorrow` : 'Tractor Rental live in Sector 4', color: isDarkMode ? 'text-indigo-400' : 'text-indigo-800' },
+                { icon: '🌩️', label: 'Weather', text: `Clear skies over ${areaName} today`, color: isDarkMode ? 'text-amber-400' : 'text-amber-700' },
+                { icon: '🌎', label: isGC ? 'Society' : 'Global', text: isGC ? 'Community Meeting at 7 PM in Club House' : 'New Agency in Dubai', color: isDarkMode ? 'text-purple-400' : 'text-purple-800' },
+                { icon: isGC ? '🏥' : '🌾', label: isGC ? 'Health' : 'Mandi', text: isGC ? 'Dr. Rajesh: Same-day KFT/CBC tests available in GC-2' : 'Wheat ₹2,125 (+1.2%)', color: isDarkMode ? 'text-emerald-400' : 'text-emerald-700' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center space-x-2 px-8 whitespace-nowrap">
+                  <span className="text-xs">{item.icon}</span>
+                  <span className={`text-[9px] font-black uppercase tracking-tighter opacity-50 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.label}:</span>
+                  <span className={`text-[10px] font-extrabold ${item.color}`}>{item.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    })()}
+
     {activeTab === 'map' ? (
       <MapTabView isDarkMode={isDarkMode} />
     ) : activeTab === 'deals' ? (

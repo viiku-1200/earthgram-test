@@ -457,37 +457,46 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
       </div>
       
       {/* ====== LIVE PULSE TICKER (Proper Premium Integration) ====== */}
-      <div className={`flex items-center border-b overflow-hidden h-10 z-40 flex-shrink-0 ${
-        isDarkMode ? 'bg-slate-900 border-slate-800 shadow-inner' : 'bg-gray-50 border-gray-100 shadow-sm'
-      }`}>
-        {/* Fixed LIVE Badge */}
-        <div className={`flex-shrink-0 z-20 px-3 h-full flex items-center space-x-1.5 border-r ${
-          isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100'
-        }`}>
-          <div className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.4)]"></div>
-          <span className={`text-[10px] font-black tracking-widest uppercase ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Live</span>
-        </div>
+      {(() => {
+        const savedAddr = localStorage.getItem('earthgram_user_address') || '';
+        // Extract the first part of the address (e.g., "Gaur City" from "Gaur City, Noida")
+        const areaName = savedAddr ? savedAddr.split(',')[0].trim() : 'Live';
+        const isGC = areaName.toLowerCase().includes('gaur city') || areaName.toLowerCase().includes('gc');
+        const pulseTitle = areaName !== 'Live' ? `${areaName} Live` : 'Live Pulse';
+        
+        return (
+          <div className={`flex items-center border-b overflow-hidden h-10 z-40 flex-shrink-0 ${
+            isDarkMode ? 'bg-slate-900 border-slate-800 shadow-inner' : 'bg-gray-50 border-gray-100 shadow-sm'
+          }`}>
+            {/* Fixed Area Badge */}
+            <div className={`flex-shrink-0 z-20 px-3 h-full flex items-center space-x-1.5 border-r ${
+              isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100'
+            }`}>
+              <div className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.4)]"></div>
+              <span className={`text-[10px] font-black tracking-widest uppercase ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{pulseTitle}</span>
+            </div>
 
-        {/* Scrolling News Container */}
-        <div className="flex-1 relative overflow-hidden h-full flex items-center">
-          <div className="flex animate-marquee items-center">
-            {[
-              { icon: '🌾', label: 'Mandi', text: 'Wheat ₹2,125 (+1.2%)', color: isDarkMode ? 'text-emerald-400' : 'text-emerald-700' },
-              { icon: '🚜', label: 'Alert', text: 'Tractor Rental live in Sector 4', color: isDarkMode ? 'text-indigo-400' : 'text-indigo-800' },
-              { icon: '🌩️', label: 'Weather', text: 'Rain expected at 4 PM', color: isDarkMode ? 'text-amber-400' : 'text-amber-700' },
-              { icon: '🌎', label: 'Global', text: 'New Agency in Dubai', color: isDarkMode ? 'text-purple-400' : 'text-purple-800' },
-              { icon: '🌾', label: 'Mandi', text: 'Wheat ₹2,125 (+1.2%)', color: isDarkMode ? 'text-emerald-400' : 'text-emerald-700' },
-              { icon: '🚜', label: 'Alert', text: 'Tractor Rental live in Sector 4', color: isDarkMode ? 'text-indigo-400' : 'text-indigo-800' },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center space-x-2 px-8 whitespace-nowrap">
-                <span className="text-xs">{item.icon}</span>
-                <span className={`text-[9px] font-black uppercase tracking-tighter opacity-50 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.label}:</span>
-                <span className={`text-[10px] font-extrabold ${item.color}`}>{item.text}</span>
+            {/* Scrolling News Container */}
+            <div className="flex-1 relative overflow-hidden h-full flex items-center">
+              <div className="flex animate-marquee items-center">
+                {[
+                  { icon: isGC ? '🏥' : '🌾', label: isGC ? 'Health' : 'Mandi', text: isGC ? 'Dr. Rajesh: Same-day KFT/CBC tests available in GC-2' : 'Wheat ₹2,125 (+1.2%)', color: isDarkMode ? 'text-emerald-400' : 'text-emerald-700' },
+                  { icon: '🚜', label: 'Service', text: isGC ? `AC Servicing slots open in ${areaName} for tomorrow` : 'Tractor Rental live in Sector 4', color: isDarkMode ? 'text-indigo-400' : 'text-indigo-800' },
+                  { icon: '🌩️', label: 'Weather', text: `Clear skies over ${areaName} today`, color: isDarkMode ? 'text-amber-400' : 'text-amber-700' },
+                  { icon: '🌎', label: isGC ? 'Society' : 'Global', text: isGC ? 'Community Meeting at 7 PM in Club House' : 'New Agency in Dubai', color: isDarkMode ? 'text-purple-400' : 'text-purple-800' },
+                  { icon: isGC ? '🏥' : '🌾', label: isGC ? 'Health' : 'Mandi', text: isGC ? 'Dr. Rajesh: Same-day KFT/CBC tests available in GC-2' : 'Wheat ₹2,125 (+1.2%)', color: isDarkMode ? 'text-emerald-400' : 'text-emerald-700' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center space-x-2 px-8 whitespace-nowrap">
+                    <span className="text-xs">{item.icon}</span>
+                    <span className={`text-[9px] font-black uppercase tracking-tighter opacity-50 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.label}:</span>
+                    <span className={`text-[10px] font-extrabold ${item.color}`}>{item.text}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      </div>
+        );
+      })()}
       
       {/* ====== PREMIUM SCOPE TABS WITH COUNTRY SELECTOR INTEGRATED ====== */}
       <div className="px-5 mt-6 relative">
@@ -514,7 +523,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
                 currentScopeId === 'local' ? 'text-white' : 'text-gray-500'
               }`}>
               <span>
-                {locationMode === 'default' ? '🌍' : locationMode === 'city' ? '🏙️' : '🌾'}
+                {locationMode === 'default' ? '🏘️' : locationMode === 'city' ? '🏙️' : '🌾'}
               </span>
               <span className="uppercase tracking-wider">
                 {locationMode === 'default' ? 'Local' : locationMode === 'city' ? 'City' : 'Village'}
@@ -644,6 +653,40 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
              <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl"></div>
           </div>
         </div>
+
+        {/* GAUR CITY TRUSTED EXPERT SECTION — DYNAMIC VISIBILITY */}
+        {(() => {
+          const savedAddr = localStorage.getItem('earthgram_user_address') || '';
+          const isGC = savedAddr.toLowerCase().includes('gaur city') || savedAddr.toLowerCase().includes('gc');
+          
+          if (!isGC) return null;
+
+          return (
+            <div className="px-5 mb-8 animate-fade-in">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className={`text-lg font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>GC-2 Trusted Experts</h2>
+                <span className="text-[8px] font-black bg-indigo-500 text-white px-2 py-0.5 rounded-full">SOCIETY FAVORITES</span>
+              </div>
+              <div className={`p-4 rounded-[2.5rem] border-2 relative overflow-hidden flex items-center space-x-4 ${
+                isDarkMode ? 'bg-slate-900/80 border-indigo-500/20' : 'bg-white border-indigo-100 shadow-premium'
+              }`}>
+                <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-2xl font-black shadow-lg">👨‍⚕️</div>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-1.5">
+                    <h3 className={`text-sm font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Dr. Rajesh Kumar</h3>
+                    <span className="text-[8px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full font-black">TOP BOSS</span>
+                  </div>
+                  <p className="text-[10px] text-gray-500 font-bold">KFT, CBC & General Physician</p>
+                  <div className="flex items-center mt-1 space-x-2">
+                    <span className="text-[9px] text-yellow-500 font-black">⭐ 4.9</span>
+                    <span className="text-[9px] text-gray-400 font-bold">• 128 Reviews in GC</span>
+                  </div>
+                </div>
+                <button onClick={() => navigate('/provider')} className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-[10px] font-black shadow-glow-indigo active:scale-95 transition-transform">BOOK</button>
+              </div>
+            </div>
+          );
+        })()}
 
         <div className="px-5 grid grid-cols-4 gap-3">
           {CATEGORIES.filter(c => {
