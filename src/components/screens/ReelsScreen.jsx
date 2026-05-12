@@ -30,7 +30,7 @@ const ReelsScreen = ({ isDarkMode }) => {
       {/* Video Background */}
       <div className="absolute inset-0 bg-black">
         <video 
-          key={currentReel.id} // Forces re-mount when reel changes
+          key={currentReel.id} 
           src={currentReel.videoUrl}
           className="w-full h-full object-cover opacity-90"
           autoPlay

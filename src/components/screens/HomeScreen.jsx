@@ -441,6 +441,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
           }`}>
             🔍
           </button>
+
           <button onClick={() => { setHasUnreadActivity(false); navigate('/activity'); }}
             className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg relative active:scale-90 transition-all ${
             isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-gray-100/80 text-gray-900'
@@ -699,9 +700,6 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
               className={`relative overflow-hidden aspect-square rounded-[1.5rem] flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-premium-sm group animate-fade-in border border-white/20 bg-gradient-to-br ${cat.color}`}
               style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}>
               
-              {/* Instant Match Badge */}
-              <div className="absolute top-1 right-1 w-4 h-4 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-[8px] border border-white/40 shadow-sm">⚡</div>
-
               <div className="w-8 h-8 bg-white/25 backdrop-blur-md rounded-xl flex items-center justify-center mb-1.5 shadow-inner border border-white/30 group-hover:scale-110 transition-transform">
                 <span className="text-base">{cat.icon}</span>
               </div>

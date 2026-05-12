@@ -25,6 +25,13 @@ const TXN_ICONS = {
   '👑': (<svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 3l3.057 7.528L12 7l3.943 3.528L19 3M5 3v18h14V3" /></svg>),
 };
 
+const LOCAL_COINS = [
+  { id: 1, name: 'Rajesh Coins', provider: 'Dr. Rajesh Clinic', balance: 50, color: 'from-indigo-500 to-purple-600', icon: '🩺' },
+  { id: 2, name: 'Harvest Coins', provider: 'Green Harvest', balance: 120, color: 'from-emerald-500 to-teal-600', icon: '🌾' },
+  { id: 3, name: 'Tech Tokens', provider: 'Digital Sol.', balance: 15, color: 'from-blue-500 to-cyan-600', icon: '💻' },
+  { id: 4, name: 'Fitness Coins', provider: 'Iron Gym', balance: 45, color: 'from-orange-500 to-red-600', icon: '💪' },
+];
+
 const WalletScreen = ({ isDarkMode, onClose }) => {
   const [showTopup, setShowTopup] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(null);
@@ -141,6 +148,29 @@ const WalletScreen = ({ isDarkMode, onClose }) => {
               <span className="text-[9px] font-bold text-gray-600">{action.label}</span>
             </button>
           ))}
+        </div>
+
+        {/* NEW: Local Coin Collection Section */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-sm font-extrabold text-gray-900">Alliance Coins</h3>
+            <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">VC Specific</span>
+          </div>
+          <div className="flex space-x-3 overflow-x-auto hide-scrollbar pb-2">
+             {LOCAL_COINS.map(coin => (
+               <div key={coin.id} className="min-w-[130px] bg-white rounded-2xl p-3 border border-gray-100 shadow-premium flex flex-col items-center card-lift">
+                 <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${coin.color} flex items-center justify-center text-lg shadow-lg mb-2`}>
+                   {coin.icon}
+                 </div>
+                 <p className="text-[10px] font-black text-gray-900 text-center leading-none">{coin.name}</p>
+                 <p className="text-[8px] text-gray-400 mt-1 uppercase font-bold tracking-tighter truncate w-full text-center">{coin.provider}</p>
+                 <div className="mt-3 w-full bg-gray-50 rounded-lg py-1 flex items-center justify-center space-x-1">
+                   <span className="text-xs font-black text-indigo-600">{coin.balance}</span>
+                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">Coins</span>
+                 </div>
+               </div>
+             ))}
+          </div>
         </div>
 
         {/* Transactions */}
