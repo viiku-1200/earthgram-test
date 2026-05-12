@@ -139,7 +139,77 @@ const WalletScreen = ({ isDarkMode, onClose }) => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-5 hide-scrollbar pb-8 -mt-4">
+      <div className="flex-1 overflow-y-auto p-5 hide-scrollbar pb-8 -mt-6">
+        {/* WORLD-CLASS SOVEREIGN CARD PREVIEW */}
+        <div className="mb-10 perspective-2000 group">
+           <div className={`relative h-56 w-full rounded-[3rem] p-8 overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.7)] animate-float-slow transition-all duration-1000 border-[3px] ${
+             isDarkMode ? 'bg-[#0a0a0a] border-amber-500/50' : 'bg-[#0a0a0a] border-amber-400'
+           }`}>
+              {/* Carbon Fiber Background Pattern */}
+              <div className="absolute inset-0 opacity-40 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+              
+              {/* Animated Liquid Gold Border Glow */}
+              <div className="absolute inset-0 rounded-[3rem] border border-amber-400/20 shadow-[inset_0_0_20px_rgba(245,158,11,0.2)]"></div>
+              <div className="absolute inset-0 rounded-[3rem] border border-amber-500/10 animate-pulse"></div>
+
+              {/* Holographic Light Sweep Animation */}
+              <div className="absolute -inset-[100%] bg-gradient-to-tr from-transparent via-white/10 to-transparent rotate-45 animate-light-sweep pointer-events-none"></div>
+              
+              {/* Card Content */}
+              <div className="relative z-10 h-full flex flex-col justify-between">
+                {/* Header: Logo and Chip */}
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-3">
+                    <img src="/logo.png" alt="Official Logo" className="w-12 h-12 object-contain drop-shadow-md" />
+                    <div className="h-8 w-[1px] bg-amber-500/30"></div>
+                    <div>
+                      <h3 className="text-amber-500 text-[10px] font-black uppercase tracking-[0.4em]">Sovereign</h3>
+                      <p className="text-white text-[9px] font-bold uppercase tracking-widest opacity-60">Elite Member</p>
+                    </div>
+                  </div>
+                  
+                  {/* Premium Gold Chip */}
+                  <div className="w-12 h-9 bg-gradient-to-br from-amber-200 via-amber-500 to-amber-200 rounded-lg shadow-2xl relative overflow-hidden border border-amber-400/50">
+                    <div className="absolute inset-0 grid grid-cols-3 gap-0.5 opacity-30">
+                      {[...Array(9)].map((_, i) => <div key={i} className="border-[0.5px] border-black/20"></div>)}
+                    </div>
+                    <div className="absolute top-1/2 left-0 w-full h-[1px] bg-black/10"></div>
+                  </div>
+                </div>
+
+                {/* Center: Brand Name (Stylized) */}
+                <div className="text-center py-2">
+                   <p className="text-white text-3xl font-black tracking-[0.2em] italic bg-gradient-to-r from-white via-amber-200 to-white bg-clip-text text-transparent drop-shadow-2xl">EARTHGRAM</p>
+                </div>
+
+                {/* Footer: Name and Status */}
+                <div className="flex justify-between items-end">
+                   <div className="space-y-1">
+                      <p className="text-neutral-500 text-[8px] font-black uppercase tracking-[0.3em]">Authorized Sovereign</p>
+                      <div className="flex items-center space-x-2">
+                         <p className="text-white text-base font-black tracking-widest drop-shadow-2xl uppercase">AMAN SHARMA</p>
+                         <div className="w-3.5 h-3.5 rounded-full bg-blue-500 flex items-center justify-center scale-90 shadow-glow-blue border border-white/20">
+                           <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.64.304 1.24.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" /></svg>
+                         </div>
+                      </div>
+                   </div>
+                   <div className="flex flex-col items-end space-y-2">
+                      <div className="flex -space-x-3">
+                         <div className="w-8 h-8 rounded-full bg-red-500/80 backdrop-blur-sm border border-white/20 shadow-lg"></div>
+                         <div className="w-8 h-8 rounded-full bg-amber-500/80 backdrop-blur-sm border border-white/20 shadow-lg"></div>
+                      </div>
+                      <div className="bg-amber-500/10 backdrop-blur-md px-3 py-1 rounded-full border border-amber-500/20">
+                        <p className="text-amber-500 text-[7px] font-black uppercase tracking-[0.3em]">Signature Class</p>
+                      </div>
+                   </div>
+                </div>
+              </div>
+
+              {/* Internal Holographic Reflectors */}
+              <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-white/5 via-transparent to-white/5 pointer-events-none"></div>
+           </div>
+        </div>
+
         {/* Quick Actions */}
         <div className="bg-white rounded-2xl p-4 shadow-premium border border-gray-100/50 flex justify-around mb-4">
           {QUICK_ACTIONS.map((action, i) => (

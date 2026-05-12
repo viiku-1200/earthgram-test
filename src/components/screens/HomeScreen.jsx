@@ -436,6 +436,17 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
             <span className={`absolute transition-all duration-500 ${isDarkMode ? 'opacity-0 rotate-90 scale-0' : 'opacity-100 rotate-0 scale-100'}`}>☀️</span>
             <span className={`absolute transition-all duration-500 ${isDarkMode ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-0'}`}>🌙</span>
           </button>
+          <button onClick={() => navigate('/wallet')}
+            className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg relative active:scale-90 transition-all ${
+            isDarkMode ? 'bg-slate-800 text-slate-300 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'bg-gray-100/80 text-gray-900'
+          }`}>
+            <span className="relative z-10">💎</span>
+            <div className="absolute top-2.5 right-2.5 flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-600 border border-white shadow-sm"></span>
+            </div>
+          </button>
+          
           <button onClick={() => navigate('/search')} className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg active:scale-90 transition-all ${
             isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-gray-100/80 text-gray-900'
           }`}>
