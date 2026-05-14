@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const ActivityScreen = ({ isDarkMode }) => {
+const ActivityScreen = ({ isDarkMode, adCoins = 0 }) => {
   const navigate = useNavigate();
   const [selectedReward, setSelectedReward] = useState(null);
 
@@ -80,8 +80,8 @@ const ActivityScreen = ({ isDarkMode }) => {
           </div>
         </div>
         <div className="bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-2xl flex items-center space-x-2 shadow-premium-sm">
-          <span className="text-sm font-black text-amber-600">230</span>
-          <span className="text-sm">🪙</span>
+          <span className="text-sm font-black text-amber-600">{(230 + adCoins).toFixed(adCoins > 0 ? 2 : 0)}</span>
+          <span className="text-sm">💎</span>
         </div>
       </div>
 
@@ -94,6 +94,16 @@ const ActivityScreen = ({ isDarkMode }) => {
              <div className="absolute top-0 right-0 p-4 opacity-5 scale-150">🪙</div>
              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-3">Local Wealth Portfolio</h3>
              <div className="flex space-x-4 overflow-x-auto hide-scrollbar py-1">
+                {/* Ad Reward Diamonds Asset */}
+                <button 
+                  onClick={() => setSelectedReward({ name: 'Ad Rewards', balance: adCoins.toFixed(2), color: 'from-amber-400 to-yellow-600', icon: '💎' })}
+                  className="flex flex-col items-center space-y-1.5 min-w-[60px] active:scale-90 transition-transform">
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center text-sm shadow-md border border-amber-200/50`}>
+                    💎
+                  </div>
+                  <span className={`text-[10px] font-black text-amber-500`}>{adCoins.toFixed(2)}</span>
+                </button>
+
                 {[
                   { name: 'Dr. Rajesh', balance: 50, color: 'from-indigo-500 to-purple-600', icon: '🩺' },
                   { name: 'Green Harvest', balance: 120, color: 'from-emerald-500 to-teal-600', icon: '🌾' },

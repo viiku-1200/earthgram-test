@@ -26,12 +26,9 @@ const BUDDY_DATA = [
 const SPOT_IMAGES = { 'Dance Studio': '🎶', 'Empty Room': '🏡', 'Local Food': '🍱', 'Gym': '💪' };
 const SPOT_GRADIENTS = { 'Dance Studio': 'from-pink-500 to-purple-600', 'Empty Room': 'from-teal-500 to-cyan-600', 'Local Food': 'from-orange-500 to-red-500', 'Gym': 'from-gray-700 to-gray-900' };
 
-const FEED_DATA = [
-  { type: 'alert', data: COMMUNITY_GROUPS[0] },
-  { type: 'reel', data: REELS_DATA[0] },
-  { type: 'vendor', data: COMMUNITY_GROUPS[1] },
-  { type: 'reel', data: REELS_DATA[1] },
-  { type: 'spot', data: LOCAL_SPOTS[2] },
+const EXPLORE_ADS = [
+  { id: 'ex-ad-1', brand: 'Signature Realty', tagline: 'Unlock your dream luxury villa in Ghaziabad', icon: '🏰', gradient: 'from-slate-800 to-slate-900', reward: 0.15 },
+  { id: 'ex-ad-2', brand: 'Elite Tech', tagline: 'Premium accessories for your lifestyle', icon: '⌚', gradient: 'from-indigo-800 to-slate-900', reward: 0.15 },
 ];
 
 // LIVE MAP DATA
@@ -86,7 +83,7 @@ const MapTabView = ({ isDarkMode }) => {
         <Marker position={LIVE_DRIVERS[1].pos}>
           <Popup>
             <div className="p-1">
-              <p className="font-bold">🏢 Sector 4 Mandi</p>
+              <p className="font-bold">🌾 Sector 4 Mandi</p>
               <p className="text-[10px] text-slate-500">Wheat Price: ₹2100/qtl</p>
               <button className="mt-2 w-full bg-slate-900 text-white text-[10px] py-1 rounded-lg">Check Prices</button>
             </div>
@@ -104,7 +101,7 @@ const MapTabView = ({ isDarkMode }) => {
               </div>
               <div className="flex -space-x-2">
                  <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-black border-2 border-white">🚜</div>
-                 <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-black border-2 border-white">🏢</div>
+                 <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-black border-2 border-white">🌾</div>
               </div>
            </div>
         </div>
@@ -113,11 +110,26 @@ const MapTabView = ({ isDarkMode }) => {
   );
 };
 
-const ExploreScreen = ({ isDarkMode }) => {
+const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('pulse');
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+
+  // AD STATE
+  const [activeMiningAd, setActiveMiningAd] = useState(null);
+  const [miningTimer, setMiningTimer] = useState(0);
+  const [showBurst, setShowBurst] = useState(false);
+
+  const FEED_DATA = [
+    { type: 'alert', data: COMMUNITY_GROUPS[0] },
+    { type: 'ad', data: EXPLORE_ADS[0] },
+    { type: 'reel', data: REELS_DATA[0] },
+    { type: 'vendor', data: COMMUNITY_GROUPS[1] },
+    { type: 'ad', data: EXPLORE_ADS[1] },
+    { type: 'reel', data: REELS_DATA[1] },
+    { type: 'spot', data: LOCAL_SPOTS[2] },
+  ];
 
   const handleScroll = (e) => {
     const currentScrollY = e.currentTarget.scrollTop;
@@ -127,6 +139,37 @@ const ExploreScreen = ({ isDarkMode }) => {
       setShowHeader(true); // Show on scroll up
     }
     setLastScrollY(currentScrollY);
+  };
+
+  const startMining = (ad) => {
+    setActiveMiningAd(ad);
+    setMiningTimer(5);
+  };
+
+  useEffect(() => {
+    let interval;
+    if (miningTimer > 0) {
+      interval = setInterval(() => {
+        setMiningTimer(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            completeMining();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [miningTimer]);
+
+  const completeMining = () => {
+    setShowBurst(true);
+    if (setAdCoins) setAdCoins(prev => parseFloat((prev + 0.15).toFixed(2)));
+    setTimeout(() => {
+      setShowBurst(false);
+      setActiveMiningAd(null);
+    }, 1500);
   };
 
   return (
@@ -188,8 +231,8 @@ const ExploreScreen = ({ isDarkMode }) => {
               {[
                 { icon: isGC ? '🏥' : '🌾', label: isGC ? 'Health' : 'Mandi', text: isGC ? 'Dr. Rajesh: Same-day KFT/CBC tests available in GC-2' : 'Wheat ₹2,125 (+1.2%)', color: isDarkMode ? 'text-emerald-400' : 'text-emerald-700' },
                 { icon: '🚜', label: 'Service', text: isGC ? `AC Servicing slots open in ${areaName} for tomorrow` : 'Tractor Rental live in Sector 4', color: isDarkMode ? 'text-indigo-400' : 'text-indigo-800' },
-                { icon: '🌩️', label: 'Weather', text: `Clear skies over ${areaName} today`, color: isDarkMode ? 'text-amber-400' : 'text-amber-700' },
-                { icon: '🌎', label: isGC ? 'Society' : 'Global', text: isGC ? 'Community Meeting at 7 PM in Club House' : 'New Agency in Dubai', color: isDarkMode ? 'text-purple-400' : 'text-purple-800' },
+                { icon: '🌤️', label: 'Weather', text: `Clear skies over ${areaName} today`, color: isDarkMode ? 'text-amber-400' : 'text-amber-700' },
+                { icon: '🌍', label: isGC ? 'Society' : 'Global', text: isGC ? 'Community Meeting at 7 PM in Club House' : 'New Agency in Dubai', color: isDarkMode ? 'text-purple-400' : 'text-purple-800' },
                 { icon: isGC ? '🏥' : '🌾', label: isGC ? 'Health' : 'Mandi', text: isGC ? 'Dr. Rajesh: Same-day KFT/CBC tests available in GC-2' : 'Wheat ₹2,125 (+1.2%)', color: isDarkMode ? 'text-emerald-400' : 'text-emerald-700' },
               ].map((item, i) => (
                 <div key={i} className="flex items-center space-x-2 px-8 whitespace-nowrap">
@@ -340,6 +383,24 @@ const ExploreScreen = ({ isDarkMode }) => {
         <div className="px-3 space-y-4">
           {FEED_DATA.map((item, index) => (
             <div key={index} className={`rounded-3xl border overflow-hidden shadow-sm animate-slide-up ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100'}`} style={{ animationDelay: `${index * 0.1}s` }}>
+              
+              {/* AD FEATURE */}
+              {item.type === 'ad' && (
+                <div onClick={() => startMining(item.data)} className={`p-4 relative cursor-pointer active:scale-[0.98] transition-transform ${isDarkMode ? 'bg-slate-800/50' : 'bg-indigo-50/50'}`}>
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner bg-gradient-to-br ${item.data.gradient}`}>{item.data.icon}</div>
+                    <div>
+                      <h3 className={`text-xs font-black uppercase tracking-wider ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>Sponsored Ad</h3>
+                      <p className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{item.data.brand}</p>
+                    </div>
+                  </div>
+                  <h4 className={`text-sm font-black mb-2 leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.data.tagline}</h4>
+                  <button className="w-full bg-black text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest shadow-lg active:scale-[0.98] transition-transform">
+                    Watch & Earn +0.15 Coins
+                  </button>
+                </div>
+              )}
+
               {/* Pulse Feed Content (Same as before) */}
               {item.type === 'alert' && (
                 <div className="p-4 relative overflow-hidden">
@@ -419,6 +480,31 @@ const ExploreScreen = ({ isDarkMode }) => {
           ))}
         </div>
       </>
+    )}
+
+    {/* AD MODAL */}
+    {activeMiningAd && (
+      <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-6 animate-fade-in">
+         <div className={`relative w-full max-w-sm rounded-[2rem] p-8 text-center overflow-hidden border ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-100'}`}>
+            <div className={`w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-5xl mb-8 shadow-lg bg-gradient-to-br ${activeMiningAd.gradient}`}>{activeMiningAd.icon}</div>
+            <h2 className={`text-2xl font-black mb-2 tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{activeMiningAd.brand}</h2>
+            <p className={`text-sm mb-8 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{activeMiningAd.tagline}</p>
+            {miningTimer > 0 ? (
+               <div className="flex flex-col items-center space-y-4">
+                  <div className={`text-5xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{miningTimer}s</div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-indigo-500 animate-pulse">Ad is playing...</p>
+               </div>
+            ) : (
+               <div className="flex flex-col items-center space-y-4">
+                  <div className="text-3xl font-black text-emerald-500 animate-bounce tracking-tight">Reward Unlocked</div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-4 py-1.5 rounded-full">+0.15 COINS ADDED</p>
+               </div>
+            )}
+            {!showBurst && miningTimer === 0 && (
+               <button onClick={() => setActiveMiningAd(null)} className="mt-8 w-full py-4 bg-indigo-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-transform">Close Ad</button>
+            )}
+         </div>
+      </div>
     )}
   </div>
   );

@@ -139,6 +139,43 @@ html, body {
 .shadow-glow-indigo {
   box-shadow: 0 8px 25px -5px rgba(99, 102, 241, 0.35);
 }
+
+/* --- SOVEREIGN UI EXTENSIONS --- */
+.glass-gold {
+  background: rgba(251, 191, 36, 0.03);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-premium {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.shadow-glow-gold {
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.2);
+}
+
+.animate-float-slow {
+  animation: floatSlow 8s ease-in-out infinite;
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(1deg); }
+}
+
+.text-gold-gradient {
+  background: linear-gradient(to bottom, #fde68a, #fbbf24, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.vault-ticker {
+  background: linear-gradient(90deg, rgba(15, 23, 42, 1) 0%, rgba(30, 41, 59, 0.9) 50%, rgba(15, 23, 42, 1) 100%);
+}
 .shadow-glow-green {
   box-shadow: 0 4px 15px -3px rgba(16, 185, 129, 0.4);
 }

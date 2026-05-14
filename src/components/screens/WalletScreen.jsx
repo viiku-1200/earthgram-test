@@ -32,7 +32,7 @@ const LOCAL_COINS = [
   { id: 4, name: 'Fitness Coins', provider: 'Iron Gym', balance: 45, color: 'from-orange-500 to-red-600', icon: '💪' },
 ];
 
-const WalletScreen = ({ isDarkMode, onClose }) => {
+const WalletScreen = ({ isDarkMode, onClose, adCoins = 0 }) => {
   const [showTopup, setShowTopup] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(null);
   const [customAmount, setCustomAmount] = useState('');
@@ -227,6 +227,18 @@ const WalletScreen = ({ isDarkMode, onClose }) => {
             <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">VC Specific</span>
           </div>
           <div className="flex space-x-3 overflow-x-auto hide-scrollbar pb-2">
+             {/* Ad Reward Coins (Vikas / Central) */}
+             <div className="min-w-[130px] bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-3 border border-amber-200 shadow-premium flex flex-col items-center card-lift">
+               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center text-lg shadow-lg mb-2">
+                 🪙
+               </div>
+               <p className="text-[10px] font-black text-gray-900 text-center leading-none">Ad Rewards</p>
+               <p className="text-[8px] text-amber-600 mt-1 uppercase font-bold tracking-tighter truncate w-full text-center">Watch-to-Earn</p>
+               <div className="mt-3 w-full bg-amber-100 rounded-lg py-1 flex items-center justify-center space-x-1">
+                 <span className="text-xs font-black text-amber-600">{adCoins.toFixed(2)}</span>
+                 <span className="text-[8px] font-bold text-amber-500 uppercase tracking-widest">Coins</span>
+               </div>
+             </div>
              {LOCAL_COINS.map(coin => (
                <div key={coin.id} className="min-w-[130px] bg-white rounded-2xl p-3 border border-gray-100 shadow-premium flex flex-col items-center card-lift">
                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${coin.color} flex items-center justify-center text-lg shadow-lg mb-2`}>

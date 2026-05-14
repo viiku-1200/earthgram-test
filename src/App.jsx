@@ -38,6 +38,16 @@ const AppContent = () => {
   });
   const [showSplash, setShowSplash] = useState(true);
 
+  // AD REWARD COINS — shared across Reels, Wallet, Activity
+  const [adCoins, setAdCoins] = useState(() => {
+    const saved = localStorage.getItem('earthgram_ad_coins');
+    return saved ? parseFloat(saved) : 0;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('earthgram_ad_coins', adCoins.toString());
+  }, [adCoins]);
+
   // Shared Booking State — persists across all sessions
   const [userBookings, setUserBookings] = useState(() => {
     const saved = localStorage.getItem('earthgram_bookings');
@@ -122,8 +132,8 @@ const AppContent = () => {
       <div className="h-full w-full">
         <Routes>
           <Route path="/" element={<HomeScreen isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} />} />
-          <Route path="/explore" element={<ExploreScreen isDarkMode={isDarkMode} />} />
-          <Route path="/reels" element={<ReelsScreen isDarkMode={isDarkMode} />} />
+          <Route path="/explore" element={<ExploreScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} />} />
+          <Route path="/reels" element={<ReelsScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} />} />
           <Route path="/community" element={<CommunityScreen isDarkMode={isDarkMode} />} />
           <Route path="/profile" element={
             <ProfileScreen
@@ -146,11 +156,11 @@ const AppContent = () => {
           <Route path="/register" element={<RegisterScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} onRegisterSuccess={(data) => { setCompanyData(data); setIsRegistered(true); setIsBossMode(true); navigate('/profile'); }} />} />
           <Route path="/provider" element={<ProviderProfileScreen isDarkMode={isDarkMode} onBack={() => navigate(-1)} />} />
           <Route path="/book" element={<BookingScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} userBookings={userBookings} addBooking={addBooking} cancelBooking={cancelBooking} />} />
-          <Route path="/activity" element={<ActivityScreen isDarkMode={isDarkMode} />} />
+          <Route path="/activity" element={<ActivityScreen isDarkMode={isDarkMode} adCoins={adCoins} />} />
           <Route path="/search" element={<SearchScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
           <Route path="/explore-search" element={<ExploreSearchScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
           <Route path="/messages" element={<MessagingScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
-          <Route path="/wallet" element={<WalletScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
+          <Route path="/wallet" element={<WalletScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} adCoins={adCoins} />} />
           <Route path="/itzpass" element={<ItzPassScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
           <Route path="/catalog" element={<ServiceCatalogScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
           <Route path="/upload-reel" element={<UploadReelScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
