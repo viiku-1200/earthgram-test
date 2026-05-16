@@ -17,7 +17,7 @@ const LucideIcon = ({ name, className, size = 24 }) => {
   return <Icon className={className} size={size} strokeWidth={2.5} />;
 };
 
-const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, selectedCountry, setSelectedCountry }) => {
+const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, selectedCountry, setSelectedCountry, qualityPosts = [] }) => {
   const navigate = useNavigate();
   const [activeBanner, setActiveBanner] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -471,11 +471,13 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
       {/* ====== LIVE PULSE TICKER (Proper Premium Integration) ====== */}
       {(() => {
         const savedAddr = localStorage.getItem('earthgram_user_address') || '';
-        // Extract the first part of the address (e.g., "Gaur City" from "Gaur City, Noida")
         const areaName = savedAddr ? savedAddr.split(',')[0].trim() : 'Live';
         const isGC = areaName.toLowerCase().includes('gaur city') || areaName.toLowerCase().includes('gc');
         const pulseTitle = areaName !== 'Live' ? `${areaName} Live` : 'Live Pulse';
         
+        // Find an active jury case to show in ticker
+        const activeJuryCase = qualityPosts.find(p => p.votes.forgive < 60);
+
         return (
           <div className={`flex items-center border-b overflow-hidden h-10 z-40 flex-shrink-0 ${
             isDarkMode ? 'bg-slate-900 border-slate-800 shadow-inner' : 'bg-gray-50 border-gray-100 shadow-sm'
@@ -492,11 +494,11 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
             <div className="flex-1 relative overflow-hidden h-full flex items-center">
               <div className="flex animate-marquee items-center">
                 {[
+                  ...(activeJuryCase ? [{ icon: '⚖️', label: 'Jury', text: `Verdict Pending for ${activeJuryCase.provider} in ${areaName}`, color: 'text-rose-500 font-black' }] : []),
                   { icon: isGC ? '🏥' : '🌾', label: isGC ? 'Health' : 'Mandi', text: isGC ? 'Dr. Rajesh: Same-day KFT/CBC tests available in GC-2' : 'Wheat ₹2,125 (+1.2%)', color: isDarkMode ? 'text-emerald-400' : 'text-emerald-700' },
                   { icon: '🚜', label: 'Service', text: isGC ? `AC Servicing slots open in ${areaName} for tomorrow` : 'Tractor Rental live in Sector 4', color: isDarkMode ? 'text-indigo-400' : 'text-indigo-800' },
                   { icon: '🌩️', label: 'Weather', text: `Clear skies over ${areaName} today`, color: isDarkMode ? 'text-amber-400' : 'text-amber-700' },
                   { icon: '🌎', label: isGC ? 'Society' : 'Global', text: isGC ? 'Community Meeting at 7 PM in Club House' : 'New Agency in Dubai', color: isDarkMode ? 'text-purple-400' : 'text-purple-800' },
-                  { icon: isGC ? '🏥' : '🌾', label: isGC ? 'Health' : 'Mandi', text: isGC ? 'Dr. Rajesh: Same-day KFT/CBC tests available in GC-2' : 'Wheat ₹2,125 (+1.2%)', color: isDarkMode ? 'text-emerald-400' : 'text-emerald-700' },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center space-x-2 px-8 whitespace-nowrap">
                     <span className="text-xs">{item.icon}</span>
@@ -505,6 +507,42 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ====== NEIGHBORHOOD JURY ALERT (New Premium Section) ====== */}
+      {(() => {
+        const criticalCase = qualityPosts.find(p => p.votes.forgive < 50);
+        if (!criticalCase) return null;
+
+        return (
+          <div className="px-5 mt-5 animate-slide-up">
+            <div 
+              onClick={() => navigate('/community')}
+              className={`p-4 rounded-3xl border-2 shadow-lg flex items-center justify-between relative overflow-hidden active:scale-[0.98] transition-all ${
+                isDarkMode ? 'bg-slate-900/80 border-rose-500/20 shadow-rose-500/5' : 'bg-rose-50/50 border-rose-100 shadow-rose-500/5'
+              }`}
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 rounded-full blur-2xl"></div>
+              <div className="flex items-center space-x-4 relative z-10">
+                <div className="w-12 h-12 bg-rose-500 rounded-2xl flex items-center justify-center text-white text-2xl shadow-glow-rose animate-pulse">⚖️</div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Neighborhood Jury Alert</span>
+                    <span className="w-1 h-1 bg-rose-400 rounded-full"></span>
+                    <span className="text-[10px] font-black text-rose-400 animate-pulse uppercase tracking-widest">Live Voting</span>
+                  </div>
+                  <h3 className={`text-sm font-black mt-0.5 ${isDarkMode ? 'text-white' : 'text-rose-950'}`}>
+                    Suspension Vote: <span className="text-rose-600">{criticalCase.provider}</span>
+                  </h3>
+                  <p className={`text-[10px] font-medium opacity-70 ${isDarkMode ? 'text-slate-400' : 'text-rose-800'}`}>
+                    Quality check failed. Your vote determines the verdict.
+                  </p>
+                </div>
+              </div>
+              <button className="bg-rose-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest relative z-10 shadow-lg">VOTE</button>
             </div>
           </div>
         );

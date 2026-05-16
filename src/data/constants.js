@@ -619,7 +619,7 @@ export const PROVIDER_PROFILES = {
     id: 'r1', name: 'Ravi Electric', tagline: 'Fast & reliable electrical solutions since 2018',
     category: 'Electrician', location: 'Sector 4, Ghaziabad', distance: '0.5 km',
     rating: 4.9, reviews: 120, jobsDone: 850, yearsExp: 6,
-    badges: ['verified', 'vaccinated', 'top-rated'],
+    badges: ['verified', 'vaccinated', 'top-rated', 'vouched'],
     neighborhoodTrust: { count: 18, area: 'Sector 4' },
     about: 'Professional electrician with 6 years of experience. Specializing in wiring, MCB fixing, fan installation, and emergency repairs. Available 24/7 for urgent calls in Ghaziabad area.',
     services: [
@@ -676,7 +676,7 @@ export const PROVIDER_PROFILES = {
     id: 'r5', name: 'ShineX Clean', tagline: 'Deep cleaning experts for spotless homes',
     category: 'Home Cleaning', location: 'Sector 6, Ghaziabad', distance: '1.2 km',
     rating: 4.8, reviews: 300, jobsDone: 1200, yearsExp: 5,
-    badges: ['verified', 'vaccinated', 'top-rated'],
+    badges: ['verified', 'vaccinated', 'top-rated', 'vouched'],
     neighborhoodTrust: { count: 35, area: 'Multiple sectors' },
     about: 'Professional deep cleaning agency with trained staff. We use eco-friendly products and advanced equipment. Serving 500+ happy families in Ghaziabad.',
     services: [
@@ -840,6 +840,7 @@ export const QUALITY_CHECK_POSTS = [
     comments: 15, timeAgo: '3 hours ago',
     verdict: 'unsafe',
     votes: { suspend: 78, forgive: 22 },
+    beforeImage: '🔌', afterImage: '⚠️',
   },
   {
     id: 'qc2',
@@ -852,6 +853,7 @@ export const QUALITY_CHECK_POSTS = [
     comments: 8, timeAgo: '1 day ago',
     verdict: 'approved',
     votes: { suspend: 0, forgive: 100 },
+    beforeImage: '🍳', afterImage: '✨',
   },
   {
     id: 'qc3',

@@ -63,7 +63,7 @@ const CoinBurst = ({ onDone }) => {
   );
 };
 
-const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins }) => {
+const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [] }) => {
   const [activeScope, setActiveScope] = useState('national');
   const [activeLang, setActiveLang] = useState('All');
   const [liked, setLiked] = useState({});
@@ -77,19 +77,26 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins }) => {
   const scrollRef = useRef(null);
   const timerRef = useRef(null);
 
+  // User-posted reels formatted for feed
+  const userFeedItems = userReels.map(r => ({
+    type: 'reel',
+    data: { ...r, isUserPost: true },
+    feedId: r.id,
+  }));
+
   const filtered = REELS_DATA.filter(r => {
     const s = activeScope === 'global' || r.scope === activeScope;
     const l = activeLang === 'All' || r.language === activeLang;
     return s && l;
   });
 
-  // Stable feed — rebuilt only when filter changes
-  const [feed, setFeed] = useState(() => buildFeed(REELS_DATA));
+  // Stable feed — rebuilt only when filter changes, user reels always prepended
+  const [feed, setFeed] = useState(() => [...userFeedItems, ...buildFeed(REELS_DATA)]);
   useEffect(() => {
-    setFeed(buildFeed(filtered.length >= 4 ? filtered : REELS_DATA));
+    setFeed([...userFeedItems, ...buildFeed(filtered.length >= 4 ? filtered : REELS_DATA)]);
     setCurrentIndex(0);
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
-  }, [activeScope, activeLang]);
+  }, [activeScope, activeLang, userReels]);
 
   const currentItem = feed[currentIndex];
 
@@ -207,10 +214,28 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins }) => {
             {item.type === 'reel' ? (
               /* ── NORMAL REEL ── */
               <div className="h-full w-full relative">
-                <video src={item.data.videoUrl}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  autoPlay={currentIndex === idx} loop muted playsInline />
+                {/* Real uploaded media (video or image) vs demo reel */}
+                {item.data.mediaUrl ? (
+                  item.data.mediaType === 'video' ? (
+                    <video src={item.data.mediaUrl}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      autoPlay={currentIndex === idx} loop muted playsInline />
+                  ) : (
+                    <img src={item.data.mediaUrl} alt="Reel" className="absolute inset-0 w-full h-full object-cover" />
+                  )
+                ) : (
+                  <video src={item.data.videoUrl}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    autoPlay={currentIndex === idx} loop muted playsInline />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/80" />
+
+                {/* YOUR POST badge for user-published reels */}
+                {item.data.isUserPost && (
+                  <div className="absolute top-40 left-4 z-20 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg animate-pulse">
+                    ✨ Your Post
+                  </div>
+                )}
 
                 {/* Badges */}
                 <div className="absolute top-40 left-4 flex flex-col space-y-1.5 z-20">

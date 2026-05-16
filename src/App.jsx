@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { QUALITY_CHECK_POSTS } from './data/constants';
 
 // Screen Components
 import HomeScreen from './components/screens/HomeScreen';
@@ -37,6 +38,68 @@ const AppContent = () => {
     return saved ? JSON.parse(saved) : null;
   });
   const [showSplash, setShowSplash] = useState(true);
+
+  // Quality Check Posts — shared real-time state with location tagging
+  const [qualityPosts, setQualityPosts] = useState(() => {
+    const saved = localStorage.getItem('earthgram_quality_posts');
+    if (saved) return JSON.parse(saved);
+    
+    // Add default location tags to initial data
+    return QUALITY_CHECK_POSTS.map((p, i) => ({
+      ...p,
+      userComments: [],
+      userRatings: [],
+      location: {
+        neighborhood: i % 2 === 0 ? 'Sector 4' : 'Gaur City',
+        city: 'Ghaziabad',
+        country: 'India'
+      }
+    }));
+  });
+
+  useEffect(() => {
+    localStorage.setItem('earthgram_quality_posts', JSON.stringify(qualityPosts));
+  }, [qualityPosts]);
+
+  const addQualityPost = useCallback((newPost) => {
+    // Stamp the new post with the user's current location
+    const savedAddr = localStorage.getItem('earthgram_user_address') || 'Sector 4, Ghaziabad, India';
+    const parts = savedAddr.split(',').map(s => s.trim());
+    const stampedPost = {
+      ...newPost,
+      location: {
+        neighborhood: parts[0] || 'Sector 4',
+        city: parts[1] || 'Ghaziabad',
+        country: parts[2] || 'India'
+      }
+    };
+    setQualityPosts(prev => [stampedPost, ...prev]);
+  }, []);
+
+  // User Reels — shared real-time state with location tagging
+  const [userReels, setUserReels] = useState(() => {
+    const saved = localStorage.getItem('earthgram_user_reels');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('earthgram_user_reels', JSON.stringify(userReels));
+  }, [userReels]);
+
+  const addUserReel = useCallback((newReel) => {
+    // Stamp the reel with the user's current location
+    const savedAddr = localStorage.getItem('earthgram_user_address') || 'Sector 4, Ghaziabad, India';
+    const parts = savedAddr.split(',').map(s => s.trim());
+    const stampedReel = {
+      ...newReel,
+      location: {
+        neighborhood: parts[0] || 'Sector 4',
+        city: parts[1] || 'Ghaziabad',
+        country: parts[2] || 'India'
+      }
+    };
+    setUserReels(prev => [stampedReel, ...prev]);
+  }, []);
 
   // AD REWARD COINS — shared across Reels, Wallet, Activity
   const [adCoins, setAdCoins] = useState(() => {
@@ -131,10 +194,10 @@ const AppContent = () => {
       <PhoneFrame>
       <div className="h-full w-full">
         <Routes>
-          <Route path="/" element={<HomeScreen isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} />} />
-          <Route path="/explore" element={<ExploreScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} />} />
-          <Route path="/reels" element={<ReelsScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} />} />
-          <Route path="/community" element={<CommunityScreen isDarkMode={isDarkMode} />} />
+          <Route path="/" element={<HomeScreen isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} qualityPosts={qualityPosts} />} />
+          <Route path="/explore" element={<ExploreScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} qualityPosts={qualityPosts} userReels={userReels} activeScope={activeScope} selectedCountry={selectedCountry} />} />
+          <Route path="/reels" element={<ReelsScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} userReels={userReels} activeScope={activeScope} selectedCountry={selectedCountry} />} />
+          <Route path="/community" element={<CommunityScreen isDarkMode={isDarkMode} qualityPosts={qualityPosts} setQualityPosts={setQualityPosts} activeScope={activeScope} selectedCountry={selectedCountry} />} />
           <Route path="/profile" element={
             <ProfileScreen
               isDarkMode={isDarkMode}
@@ -148,13 +211,16 @@ const AppContent = () => {
               isRegistered={isRegistered}
               companyData={companyData}
               userBookings={userBookings}
+              addQualityPost={addQualityPost}
+              activeScope={activeScope}
+              selectedCountry={selectedCountry}
             />
           } />
 
           {/* Overlays / Full screens */}
           <Route path="/chat" element={<ChatScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
           <Route path="/register" element={<RegisterScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} onRegisterSuccess={(data) => { setCompanyData(data); setIsRegistered(true); setIsBossMode(true); navigate('/profile'); }} />} />
-          <Route path="/provider" element={<ProviderProfileScreen isDarkMode={isDarkMode} onBack={() => navigate(-1)} />} />
+          <Route path="/provider" element={<ProviderProfileScreen isDarkMode={isDarkMode} onBack={() => navigate(-1)} qualityPosts={qualityPosts} />} />
           <Route path="/book" element={<BookingScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} userBookings={userBookings} addBooking={addBooking} cancelBooking={cancelBooking} />} />
           <Route path="/activity" element={<ActivityScreen isDarkMode={isDarkMode} adCoins={adCoins} />} />
           <Route path="/search" element={<SearchScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
@@ -163,7 +229,7 @@ const AppContent = () => {
           <Route path="/wallet" element={<WalletScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} adCoins={adCoins} />} />
           <Route path="/itzpass" element={<ItzPassScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
           <Route path="/catalog" element={<ServiceCatalogScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
-          <Route path="/upload-reel" element={<UploadReelScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
+          <Route path="/upload-reel" element={<UploadReelScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} addUserReel={addUserReel} />} />
         </Routes>
       </div>
 

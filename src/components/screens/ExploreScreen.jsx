@@ -38,7 +38,19 @@ const LIVE_DRIVERS = [
   { id: 2, name: 'Mandi Express', pos: [28.6650, 77.4500], type: 'mandi', status: 'stationary' },
 ];
 
-const MapTabView = ({ isDarkMode }) => {
+// Map Controller to handle zoom/center changes based on scope
+const MapController = ({ activeScope, userPos }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (activeScope === 'local') map.setView(userPos, 15);
+    else if (activeScope === 'city') map.setView(userPos, 12);
+    else if (activeScope === 'national') map.setView(userPos, 5);
+    else if (activeScope === 'global') map.setView(userPos, 3);
+  }, [activeScope, userPos, map]);
+  return null;
+};
+
+const MapTabView = ({ isDarkMode, qualityPosts = [], activeScope, userPos }) => {
   const [driverPos, setDriverPos] = useState(LIVE_DRIVERS[0].pos);
   
   // Real-Time Movement Simulation
@@ -52,65 +64,97 @@ const MapTabView = ({ isDarkMode }) => {
     return () => clearInterval(interval);
   }, []);
 
+  // Filter Pins based on Scope
+  const filteredQualityPosts = qualityPosts.filter(p => {
+    if (!p.location) return true;
+    if (typeof p.location === 'string') return true; // Legacy strings show everywhere
+    if (activeScope === 'global') return true;
+    if (activeScope === 'national') return p.location.country === 'India';
+    if (activeScope === 'city') return p.location.city === 'Ghaziabad';
+    if (activeScope === 'local') return p.location.neighborhood === 'Sector 4';
+    return true;
+  });
+
   return (
     <div className="h-full relative overflow-hidden animate-fade-in">
-      <MapContainer center={INITIAL_CENTER} zoom={15} className="h-full w-full z-0">
+      <MapContainer center={userPos} zoom={15} className="h-full w-full z-0">
+        <MapController activeScope={activeScope} userPos={userPos} />
         <TileLayer
-          url={isDarkMode 
+          url={isDarkMode
             ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           }
           attribution='&copy; OpenStreetMap'
         />
-        
-        {/* User Location */}
-        <Marker position={INITIAL_CENTER}>
-          <Popup>You are here 📍</Popup>
+
+        {/* Real User Location */}
+        <Marker position={userPos}>
+          <Popup>📍 You are here</Popup>
         </Marker>
 
-        {/* Live Driver (Simulated Movement) */}
-        <Marker position={driverPos}>
-          <Popup>
-            <div className="p-1">
-              <p className="font-bold">🚜 Ravi (Tractor)</p>
-              <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Live • Moving Now</p>
-              <button className="mt-2 w-full bg-slate-900 text-white text-[10px] py-1 rounded-lg">Call Operator</button>
-            </div>
-          </Popup>
-        </Marker>
+        {/* Live Driver (Simulated Movement) - Only visible in Local/City */}
+        {(activeScope === 'local' || activeScope === 'city') && (
+          <>
+            <Marker position={driverPos}>
+              <Popup>
+                <div className="p-1">
+                  <p className="font-bold">🚜 Ravi (Tractor)</p>
+                  <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Live • Moving Now</p>
+                </div>
+              </Popup>
+            </Marker>
+            <Marker position={LIVE_DRIVERS[1].pos}>
+              <Popup>
+                <div className="p-1">
+                  <p className="font-bold">🌾 Sector 4 Mandi</p>
+                  <button className="mt-2 w-full bg-slate-900 text-white text-[10px] py-1 rounded-lg">Check Prices</button>
+                </div>
+              </Popup>
+            </Marker>
+          </>
+        )}
 
-        {/* Mandi Point */}
-        <Marker position={LIVE_DRIVERS[1].pos}>
-          <Popup>
-            <div className="p-1">
-              <p className="font-bold">🌾 Sector 4 Mandi</p>
-              <p className="text-[10px] text-slate-500">Wheat Price: ₹2100/qtl</p>
-              <button className="mt-2 w-full bg-slate-900 text-white text-[10px] py-1 rounded-lg">Check Prices</button>
-            </div>
-          </Popup>
-        </Marker>
+        {/* Live Quality Check Jury Pins - Filtered */}
+        {filteredQualityPosts.map((post, i) => {
+          const offset = (i + 1) * 0.0015;
+          const pinPos = [userPos[0] + offset, userPos[1] + offset * 0.5];
+          return (
+            <Marker key={post.id} position={pinPos}>
+              <Popup>
+                <div className="p-1">
+                  <p className="font-bold text-rose-600">⚖️ {post.provider}</p>
+                  <p className="text-[10px] text-slate-500">{post.providerCategory}</p>
+                  <p className="text-[10px] font-bold mt-1">
+                    Forgive: {post.votes.forgive}% | Suspend: {post.votes.suspend}%
+                  </p>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
 
       {/* Floating Info Overlay */}
       <div className="absolute bottom-6 left-6 right-6 z-10">
         <div className={`p-4 rounded-[2rem] shadow-2xl backdrop-blur-xl border ${isDarkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-gray-100'}`}>
-           <div className="flex items-center justify-between">
-              <div>
-                 <h3 className={`text-sm font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Real-Time Radar</h3>
-                 <p className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>2 Services active nearby</p>
-              </div>
-              <div className="flex -space-x-2">
-                 <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-black border-2 border-white">🚜</div>
-                 <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-black border-2 border-white">🌾</div>
-              </div>
-           </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className={`text-sm font-black uppercase tracking-tighter ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{activeScope} Radar</h3>
+              <p className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                {filteredQualityPosts.length} jury cases in scope
+              </p>
+            </div>
+            <div className="flex -space-x-2">
+              <div className="w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center text-white text-xs font-black border-2 border-white animate-pulse">⚖️</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins }) => {
+const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], userReels = [], activeScope = 'local', selectedCountry = 'in' }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('pulse');
   const [showHeader, setShowHeader] = useState(true);
@@ -121,8 +165,42 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins }) => {
   const [miningTimer, setMiningTimer] = useState(0);
   const [showBurst, setShowBurst] = useState(false);
 
+  // Filtering logic for the feed based on activeScope
+  const filteredQualityPosts = qualityPosts.filter(p => {
+    // No location data = show everywhere
+    if (!p.location) return true;
+    // Old format: location is a string like "Sector 4, Gaur City"
+    if (typeof p.location === 'string') {
+      if (activeScope === 'global' || activeScope === 'national') return true;
+      if (activeScope === 'city') return true; // local string = same city
+      if (activeScope === 'local') return true; // local string = same area
+      return true;
+    }
+    // New format: location is an object { neighborhood, city, country }
+    if (activeScope === 'global') return true;
+    if (activeScope === 'national') return p.location.country === 'India';
+    if (activeScope === 'city') return p.location.city === 'Ghaziabad';
+    if (activeScope === 'local') return p.location.neighborhood === 'Sector 4';
+    return true;
+  });
+
+  const filteredUserReels = userReels.filter(r => {
+    if (!r.location) return true;
+    if (typeof r.location === 'string') return true; // Legacy strings show everywhere
+    if (activeScope === 'global') return true;
+    if (activeScope === 'national') return r.location.country === 'India';
+    if (activeScope === 'city') return r.location.city === 'Ghaziabad';
+    if (activeScope === 'local') return r.location.neighborhood === 'Sector 4';
+    return true;
+  });
+
+  // Dynamic real-time feed: jury cases + user reels + static base content
   const FEED_DATA = [
-    { type: 'alert', data: COMMUNITY_GROUPS[0] },
+    // Real jury cases from community (Filtered)
+    ...filteredQualityPosts.map(post => ({ type: 'jury', data: post })),
+    // User-uploaded reels (Filtered)
+    ...filteredUserReels.map(reel => ({ type: 'userReel', data: reel })),
+    // Static base content
     { type: 'ad', data: EXPLORE_ADS[0] },
     { type: 'reel', data: REELS_DATA[0] },
     { type: 'vendor', data: COMMUNITY_GROUPS[1] },
@@ -185,7 +263,9 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins }) => {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h1 className={`text-2xl font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Explore</h1>
-          <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>📍 Sector 4, Ghaziabad</p>
+          <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+            📍 {activeScope === 'local' ? 'Sector 4, Ghaziabad' : activeScope === 'city' ? 'Ghaziabad City' : activeScope === 'national' ? 'India' : 'Worldwide'}
+          </p>
         </div>
         <button onClick={() => navigate('/search')} className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${isDarkMode ? 'bg-slate-800 text-white' : 'bg-white text-gray-900'}`}>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -248,7 +328,12 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins }) => {
     })()}
 
     {activeTab === 'map' ? (
-      <MapTabView isDarkMode={isDarkMode} />
+      <MapTabView 
+        isDarkMode={isDarkMode} 
+        qualityPosts={qualityPosts} 
+        activeScope={activeScope} 
+        userPos={localStorage.getItem('earthgram_user_gps') ? [JSON.parse(localStorage.getItem('earthgram_user_gps')).lat, JSON.parse(localStorage.getItem('earthgram_user_gps')).lng] : INITIAL_CENTER} 
+      />
     ) : activeTab === 'deals' ? (
       <div className="flex-1 flex flex-col items-center justify-center p-10 text-center animate-fade-in">
         <div className="text-6xl mb-4">🏷️</div>
@@ -384,6 +469,61 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins }) => {
           {FEED_DATA.map((item, index) => (
             <div key={index} className={`rounded-3xl border overflow-hidden shadow-sm animate-slide-up ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100'}`} style={{ animationDelay: `${index * 0.1}s` }}>
               
+              {/* JURY VOTE CARD — real-time from qualityPosts */}
+              {item.type === 'jury' && (() => {
+                const post = item.data;
+                const forgivePct = post.votes.forgive;
+                const suspendPct = post.votes.suspend;
+                const isRed = forgivePct < 50;
+                return (
+                  <div className="p-4 relative overflow-hidden" onClick={() => navigate('/community')}>
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 rounded-bl-full"></div>
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner ${isRed ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>⚖️</div>
+                      <div>
+                        <h3 className={`text-xs font-black uppercase tracking-wider ${isRed ? 'text-rose-500' : 'text-emerald-600'}`}>Live Jury Vote</h3>
+                        <p className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{post.provider} • {post.providerCategory}</p>
+                      </div>
+                      <span className="ml-auto text-[8px] font-black bg-rose-500 text-white px-2 py-0.5 rounded-full uppercase animate-pulse">Live</span>
+                    </div>
+                    <h4 className={`text-sm font-black mb-3 leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{post.title}</h4>
+                    <div className="space-y-2">
+                      <div className="relative h-8 rounded-xl overflow-hidden border border-rose-200 bg-rose-50">
+                        <div className="absolute top-0 left-0 bottom-0 bg-rose-400 transition-all duration-500" style={{ width: `${suspendPct}%` }}></div>
+                        <div className="absolute inset-0 flex items-center justify-between px-3 text-[10px] font-black text-rose-900">
+                          <span>🔴 Suspend</span><span>{suspendPct}%</span>
+                        </div>
+                      </div>
+                      <div className="relative h-8 rounded-xl overflow-hidden border border-emerald-200 bg-emerald-50">
+                        <div className="absolute top-0 left-0 bottom-0 bg-emerald-400 transition-all duration-500" style={{ width: `${forgivePct}%` }}></div>
+                        <div className="absolute inset-0 flex items-center justify-between px-3 text-[10px] font-black text-emerald-900">
+                          <span>🟢 Forgive</span><span>{forgivePct}%</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button className={`mt-3 w-full text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest shadow-lg ${isRed ? 'bg-rose-600' : 'bg-emerald-600'}`}>Cast Your Vote →</button>
+                  </div>
+                );
+              })()}
+
+              {/* USER REEL CARD — real-time from userReels */}
+              {item.type === 'userReel' && (
+                <div className="relative overflow-hidden cursor-pointer" onClick={() => navigate('/reels')}>
+                  <div className="relative h-52 w-full">
+                    {item.data.mediaType === 'video'
+                      ? <video src={item.data.mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+                      : <img src={item.data.mediaUrl} alt="reel" className="w-full h-full object-cover" />
+                    }
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                    <div className="absolute top-3 left-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest shadow-lg">✨ Your Post</div>
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <p className="text-white text-[10px] font-black uppercase tracking-widest">{item.data.category}</p>
+                      <p className="text-white/80 text-xs mt-0.5 line-clamp-2">{item.data.caption}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* AD FEATURE */}
               {item.type === 'ad' && (
                 <div onClick={() => startMining(item.data)} className={`p-4 relative cursor-pointer active:scale-[0.98] transition-transform ${isDarkMode ? 'bg-slate-800/50' : 'bg-indigo-50/50'}`}>

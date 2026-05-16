@@ -311,41 +311,126 @@ const RegisterScreen = ({ isDarkMode, onClose, onRegisterSuccess }) => {
   );
 
   // ============== STEP 4: VERIFICATION ==============
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpInput, setOtpInput] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+  const [timer, setTimer] = useState(30);
+
+  const handleSendOTP = () => {
+    if (formData.aadharNumber.length === 12) {
+      setOtpSent(true);
+      setTimer(30);
+      // Simulated timer
+      const interval = setInterval(() => {
+        setTimer(t => {
+          if (t <= 1) { clearInterval(interval); return 0; }
+          return t - 1;
+        });
+      }, 1000);
+    }
+  };
+
+  const handleVerifyOTP = () => {
+    setIsVerifying(true);
+    // Simulate Aadhaar server verification delay
+    setTimeout(() => {
+      setIsVerifying(false);
+      setIsVerified(true);
+      setOtpSent(false);
+    }, 2000);
+  };
+
   const VerificationStep = () => (
     <div className="space-y-4">
       <div className="text-center mb-4">
         <span className="text-4xl block mb-2">🛡️</span>
-        <h2 className="text-xl font-black text-gray-900">Verification</h2>
-        <p className="text-xs text-gray-500">Build trust with verified badge on your profile</p>
+        <h2 className="text-xl font-black text-gray-900">Legal Verification</h2>
+        <p className="text-xs text-gray-500">Government-grade verification for Boss Mode</p>
       </div>
 
-      <InputField label="Aadhar Number *" value={formData.aadharNumber}
-        onChange={v => updateField('aadharNumber', v.replace(/\D/g, '').slice(0, 12))}
-        placeholder="XXXX XXXX XXXX" extra="Your ID is encrypted and never shared publicly" />
+      <div className="relative">
+        <InputField 
+          label="Aadhar Number *" 
+          value={formData.aadharNumber}
+          onChange={v => updateField('aadharNumber', v.replace(/\D/g, '').slice(0, 12))}
+          placeholder="XXXX XXXX XXXX" 
+          extra="Linked mobile number will receive an OTP" 
+        />
+        {formData.aadharNumber.length === 12 && !isVerified && (
+          <button 
+            onClick={handleSendOTP}
+            className="absolute right-2 top-7 bg-indigo-600 text-white text-[10px] font-black px-3 py-1.5 rounded-lg shadow-lg active:scale-95 transition-transform"
+          >
+            SEND OTP
+          </button>
+        )}
+        {isVerified && (
+          <div className="absolute right-2 top-8 flex items-center space-x-1 text-emerald-600 font-black text-[10px] uppercase">
+            <span className="w-4 h-4 bg-emerald-100 rounded-full flex items-center justify-center">✓</span>
+            <span>Verified</span>
+          </div>
+        )}
+      </div>
 
       {/* ID Upload */}
-      <div className="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-all">
+      <div className="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-all relative overflow-hidden">
         <span className="text-4xl block mb-2">🪪</span>
         <p className="text-sm font-bold text-gray-700">Upload Aadhar Photo</p>
         <p className="text-[10px] text-gray-400 mt-1">Front side • JPG/PNG • Max 5MB</p>
+        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
       </div>
 
-      <InputField label="Service Address / Area *" value={formData.address}
-        onChange={v => updateField('address', v)} placeholder="e.g., Sector 4, Ghaziabad" />
+      <InputField label="Business Operating Area *" value={formData.address}
+        onChange={v => updateField('address', v)} placeholder="e.g., Gaur City 2, Noida" />
 
-      <button className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex items-center space-x-3 hover:bg-blue-50 hover:border-blue-200 transition-colors active:scale-[0.98]">
-        <span className="text-xl">📍</span>
-        <div className="text-left">
-          <p className="text-sm font-bold text-gray-700">Pin Your Service Location</p>
-          <p className="text-[10px] text-gray-400">Helps customers find you on the map</p>
-        </div>
-      </button>
-
-      <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-        <p className="text-[10px] text-green-700 font-medium leading-relaxed">
-          <span className="font-bold">✅ After verification:</span> You'll get a "Verified" badge on your profile, increasing customer trust by 3x.
+      <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3">
+        <p className="text-[10px] text-indigo-700 font-medium leading-relaxed">
+          <span className="font-bold text-indigo-900">🔐 Biometric Shield:</span> Your Aadhar data is processed via secure UIDAI-style encryption. EarthGram never stores your full ID.
         </p>
       </div>
+
+      {/* OTP MODAL OVERLAY */}
+      {otpSent && (
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in">
+          <div className="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl animate-scale-up">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">📱</div>
+              <h3 className="text-lg font-black text-gray-900">Enter OTP</h3>
+              <p className="text-[10px] text-gray-500 mt-1">Sent to mobile linked with Aadhar <br/> <span className="font-bold text-gray-800">XXXX-XXXX-{formData.aadharNumber.slice(-4)}</span></p>
+            </div>
+            
+            <input 
+              type="text" 
+              maxLength="6"
+              value={otpInput}
+              onChange={e => setOtpInput(e.target.value.replace(/\D/g, ''))}
+              className="w-full bg-gray-100 border-2 border-gray-200 rounded-2xl py-4 text-center text-3xl font-black tracking-[0.5em] focus:border-indigo-500 outline-none transition-all"
+              placeholder="000000"
+            />
+
+            <div className="mt-6 space-y-3">
+              <button 
+                onClick={handleVerifyOTP}
+                disabled={otpInput.length !== 6 || isVerifying}
+                className={`w-full py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${
+                  otpInput.length === 6 ? 'bg-indigo-600 text-white shadow-lg' : 'bg-gray-200 text-gray-400'
+                }`}
+              >
+                {isVerifying ? 'VERIFYING...' : 'VERIFY & CONTINUE'}
+              </button>
+              
+              <div className="text-center">
+                {timer > 0 ? (
+                  <p className="text-[10px] font-bold text-gray-400 uppercase">Resend OTP in {timer}s</p>
+                ) : (
+                  <button onClick={handleSendOTP} className="text-[10px] font-black text-indigo-600 uppercase">Resend OTP Now</button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 

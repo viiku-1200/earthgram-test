@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { generateMockBio } from '../../utils/gemini';
 import BusinessCard from '../common/BusinessCard';
@@ -33,11 +33,24 @@ const MENU_ITEMS = [
   ), label: 'Settings', desc: 'Account, notifications', bg: 'bg-gray-100', color: 'text-gray-600', key: 'settings' },
 ];
 
-const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, bizBio, setBizBio, isGeneratingBio, setIsGeneratingBio, isRegistered, companyData }) => {
+const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, bizBio, setBizBio, isGeneratingBio, setIsGeneratingBio, isRegistered, companyData, addQualityPost }) => {
   const navigate = useNavigate();
   const [gpsData, setGpsData] = useState(null);
   const [userAddress, setUserAddress] = useState(null);
   const [showBusinessCard, setShowBusinessCard] = useState(false);
+  const [showQCForm, setShowQCForm] = useState(false);
+  const [qcForm, setQcForm] = useState({ provider: '', category: '', desc: '', beforeImage: null, afterImage: null });
+  const beforeInputRef = useRef(null);
+  const afterInputRef = useRef(null);
+
+  const handlePhotoSelect = (file, type) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setQcForm(p => ({ ...p, [type]: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     const savedGps = localStorage.getItem('earthgram_user_gps');
@@ -161,6 +174,13 @@ const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, b
             <span className="text-2xl mb-2">💬</span>
             <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Messages</span>
             <span className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>Customer chats</span>
+          </button>
+
+          <button onClick={() => setShowQCForm(true)} className="bg-gradient-to-br from-rose-600 to-red-500 p-4 rounded-2xl shadow-premium-lg flex flex-col items-start active:scale-[0.98] transition-transform text-left relative overflow-hidden text-white border-2 border-white/20">
+            <div className="absolute top-0 right-0 bg-white text-red-600 text-[8px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">JURY</div>
+            <span className="text-2xl mb-2">📸</span>
+            <span className="text-sm font-bold text-white">Quality Check</span>
+            <span className="text-[10px] text-white/80 mt-0.5">Post evidence</span>
           </button>
         </div>
       </div>
@@ -316,6 +336,100 @@ const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, b
           bizBio={bizBio} 
           onClose={() => setShowBusinessCard(false)} 
         />
+      )}
+
+      {/* Quality Check Post Form */}
+      {showQCForm && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end justify-center" onClick={() => setShowQCForm(false)}>
+          <div className={`w-full max-w-[480px] rounded-t-[2.5rem] p-6 pb-10 ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`} onClick={e => e.stopPropagation()}>
+            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6"></div>
+            <h2 className={`text-lg font-black mb-6 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>📸 Post Quality Check</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 block">Provider Name</label>
+                <input value={qcForm.provider} onChange={e => setQcForm(p => ({ ...p, provider: e.target.value }))} placeholder="e.g., Ravi Electric" className={`w-full px-4 py-3 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isDarkMode ? 'bg-slate-800 text-white border-slate-700' : 'bg-slate-50 border border-slate-100'}`} />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 block">Service Category</label>
+                <input value={qcForm.category} onChange={e => setQcForm(p => ({ ...p, category: e.target.value }))} placeholder="e.g., AC Repair, Cleaning" className={`w-full px-4 py-3 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isDarkMode ? 'bg-slate-800 text-white border-slate-700' : 'bg-slate-50 border border-slate-100'}`} />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 block">What Happened?</label>
+                <textarea value={qcForm.desc} onChange={e => setQcForm(p => ({ ...p, desc: e.target.value }))} placeholder="Describe the service quality..." rows="3" className={`w-full px-4 py-3 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none ${isDarkMode ? 'bg-slate-800 text-white border-slate-700' : 'bg-slate-50 border border-slate-100'}`} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {/* BEFORE PHOTO */}
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 block">Before Photo</label>
+                  <input ref={beforeInputRef} type="file" accept="image/*" className="hidden" onChange={e => handlePhotoSelect(e.target.files[0], 'beforeImage')} />
+                  <div
+                    onClick={() => beforeInputRef.current.click()}
+                    className={`h-24 rounded-xl overflow-hidden flex items-center justify-center border-2 border-dashed cursor-pointer active:scale-95 transition-transform ${isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-slate-50'}`}
+                  >
+                    {qcForm.beforeImage
+                      ? <img src={qcForm.beforeImage} alt="Before" className="w-full h-full object-cover" />
+                      : <div className="flex flex-col items-center space-y-1">
+                          <span className="text-2xl">📷</span>
+                          <span className={`text-[9px] font-black uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Tap to Upload</span>
+                        </div>
+                    }
+                  </div>
+                </div>
+                {/* AFTER PHOTO */}
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 block">After Photo</label>
+                  <input ref={afterInputRef} type="file" accept="image/*" className="hidden" onChange={e => handlePhotoSelect(e.target.files[0], 'afterImage')} />
+                  <div
+                    onClick={() => afterInputRef.current.click()}
+                    className={`h-24 rounded-xl overflow-hidden flex items-center justify-center border-2 border-dashed cursor-pointer active:scale-95 transition-transform ${isDarkMode ? 'border-emerald-900/30 bg-slate-800' : 'border-emerald-200 bg-emerald-50'}`}
+                  >
+                    {qcForm.afterImage
+                      ? <img src={qcForm.afterImage} alt="After" className="w-full h-full object-cover" />
+                      : <div className="flex flex-col items-center space-y-1">
+                          <span className="text-2xl">🌟</span>
+                          <span className={`text-[9px] font-black uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-emerald-400'}`}>Tap to Upload</span>
+                        </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                if (!qcForm.provider.trim() || !qcForm.desc.trim()) return;
+                const newPost = {
+                  id: 'qc_' + Date.now(),
+                  author: companyData?.fullName || 'Aryan Singh',
+                  authorAvatar: '👤',
+                  location: 'My Location',
+                  provider: qcForm.provider,
+                  providerCategory: qcForm.category || 'Service',
+                  title: `Quality Check: ${qcForm.provider}`,
+                  desc: qcForm.desc,
+                  beforeImage: qcForm.beforeImage || '📸',
+                  afterImage: qcForm.afterImage || '📸',
+                  images: [],
+                  reactions: { helpful: 0, notHelpful: 0 },
+                  comments: 0,
+                  timeAgo: 'Just now',
+                  verdict: 'pending',
+                  votes: { suspend: 50, forgive: 50 },
+                  userComments: [],
+                  userRatings: [],
+                };
+                addQualityPost(newPost);
+                setQcForm({ provider: '', category: '', desc: '', beforeImage: null, afterImage: null });
+                setShowQCForm(false);
+                navigate('/community');
+              }}
+              className="w-full mt-6 bg-gradient-to-r from-rose-600 to-red-500 text-white py-4 rounded-2xl text-sm font-black uppercase tracking-widest active:scale-95 transition-all shadow-xl"
+            >
+              Submit Quality Check
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

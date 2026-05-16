@@ -2,19 +2,33 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PROVIDER_PROFILES, generateFallbackProfile } from '../../data/constants';
 
-const ProviderProfileScreen = ({ isDarkMode, onBack }) => {
+const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
   const [activeTab, setActiveTab] = useState('services');
   const location = useLocation();
   const navigate = useNavigate();
   const summaryProfile = location.state?.profile;
   const profile = summaryProfile ? (PROVIDER_PROFILES[summaryProfile.id] || generateFallbackProfile(summaryProfile)) : null;
 
-  if (!profile) return null;
+  // Find if this provider has any active/past quality check cases
+  const juryCase = profile ? qualityPosts.find(p => p.provider.toLowerCase() === profile.name.toLowerCase()) : null;
+  
+  // Calculate verdict based on jury case
+  let verdict = { label: 'Vouched', color: 'bg-rose-50 text-rose-600', sub: 'Passed neighborhood check' };
+  if (juryCase) {
+    const forgivePct = juryCase.votes.forgive;
+    if (forgivePct < 25) verdict = { label: 'Terminated', color: 'bg-red-600 text-white', sub: 'Extreme community violations' };
+    else if (forgivePct < 50) verdict = { label: 'Suspended', color: 'bg-amber-600 text-white', sub: '1-Day quality suspension' };
+    else if (forgivePct < 75) verdict = { label: 'Guilty', color: 'bg-rose-500 text-white', sub: 'Quality warning issued' };
+    else verdict = { label: 'Secured', color: 'bg-emerald-600 text-white', sub: 'Verified by neighborhood' };
+  }
 
+  if (!profile) return null;
+  
   const BADGE_MAP = {
     'verified': { label: 'Verified', color: 'bg-indigo-50 text-indigo-600', icon: <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg> },
     'vaccinated': { label: 'Vaccinated', color: 'bg-emerald-50 text-emerald-600', icon: <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> },
     'top-rated': { label: 'Top Rated', color: 'bg-amber-50 text-amber-600', icon: <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg> },
+    'vouched': { label: verdict.label, color: verdict.color, icon: <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
   };
 
   const renderStars = (rating) => {
@@ -33,15 +47,29 @@ const ProviderProfileScreen = ({ isDarkMode, onBack }) => {
   return (
     <div className="absolute inset-0 bg-gradient-to-b from-white to-gray-50 z-50 flex flex-col overflow-y-auto hide-scrollbar">
       {/* Hero Header */}
-      <div className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 pt-10 pb-20 px-5 overflow-hidden">
+      <div className={`relative pt-10 pb-20 px-5 overflow-hidden transition-colors ${juryCase && juryCase.votes.forgive < 50 ? 'bg-gradient-to-br from-rose-700 via-rose-800 to-black' : 'bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700'}`}>
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full -translate-y-1/2 translate-x-1/4"></div>
         </div>
         <button onClick={onBack} className="relative z-10 w-9 h-9 bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center text-white active:scale-90 transition-transform">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
         </button>
-        <button className="absolute top-12 right-5 w-9 h-9 bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center text-white active:scale-90 transition-transform z-10">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+        
+        {/* JURY ALERT RIBBON */}
+        {juryCase && (
+          <div className="absolute top-12 left-20 right-5 h-9 bg-black/30 backdrop-blur-md rounded-full border border-white/20 flex items-center px-4 space-x-2 animate-pulse">
+            <span className="text-[9px] font-black text-white uppercase tracking-tighter">Live Verdict:</span>
+            <span className={`text-[10px] font-black uppercase tracking-widest ${juryCase.votes.forgive < 50 ? 'text-rose-400' : 'text-emerald-400'}`}>
+              {juryCase.votes.forgive}% Forgive
+            </span>
+            <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+               <div className={`h-full transition-all duration-500 ${juryCase.votes.forgive < 50 ? 'bg-rose-500' : 'bg-emerald-500'}`} style={{ width: `${juryCase.votes.forgive}%` }}></div>
+            </div>
+          </div>
+        )}
+
+        <button onClick={() => navigate('/community')} className="absolute top-12 right-5 w-9 h-9 bg-rose-500 rounded-full flex items-center justify-center text-white active:scale-90 transition-transform z-10 shadow-lg">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </button>
 
         {/* Floating profile card */}
@@ -51,7 +79,10 @@ const ProviderProfileScreen = ({ isDarkMode, onBack }) => {
               {profile.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
             </div>
             <div className="flex-1">
-              <h1 className="text-lg font-extrabold text-gray-900">{profile.name}</h1>
+              <div className="flex items-center space-x-2">
+                <h1 className="text-lg font-extrabold text-gray-900">{profile.name}</h1>
+                {juryCase && <span className="text-[8px] bg-indigo-500 text-white px-1.5 py-0.5 rounded-full font-black">JURY CHECKED</span>}
+              </div>
               <p className="text-[10px] text-gray-400">{profile.category} · {profile.location}</p>
               <div className="flex items-center space-x-2 mt-1">
                 {renderStars(profile.rating)}
@@ -70,12 +101,32 @@ const ProviderProfileScreen = ({ isDarkMode, onBack }) => {
         {profile.badges.map(badge => {
           const b = BADGE_MAP[badge];
           return b ? (
-            <span key={badge} className={`text-[9px] font-bold ${b.color} px-2.5 py-1 rounded-full flex items-center space-x-1`}>
+            <span key={badge} className={`text-[9px] font-bold ${b.color} px-2.5 py-1 rounded-full flex items-center space-x-1 shadow-sm`}>
               {b.icon}<span>{b.label}</span>
             </span>
           ) : null;
         })}
         <span className="text-[9px] font-bold bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">📍 {profile.distance}</span>
+      </div>
+
+      {/* Community Standing / Verdict */}
+      <div className="px-5 mt-4">
+        <div className={`${juryCase && juryCase.votes.forgive < 50 ? 'bg-rose-50 border-rose-100' : 'bg-emerald-50 border-emerald-100'} border rounded-2xl p-4 flex items-center space-x-4`}>
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl ${juryCase && juryCase.votes.forgive < 50 ? 'bg-rose-500 text-white shadow-glow-rose' : 'bg-emerald-500 text-white shadow-glow-emerald'}`}>
+            {juryCase && juryCase.votes.forgive < 50 ? '⚖️' : '🛡️'}
+          </div>
+          <div className="flex-1">
+            <p className={`text-xs font-black uppercase tracking-widest ${juryCase && juryCase.votes.forgive < 50 ? 'text-rose-600' : 'text-emerald-700'}`}>
+              Community Standing: {verdict.label}
+            </p>
+            <p className={`text-[10px] font-bold mt-0.5 ${juryCase && juryCase.votes.forgive < 50 ? 'text-rose-400' : 'text-emerald-500'}`}>
+              {verdict.sub}
+            </p>
+          </div>
+          <button onClick={() => navigate('/community')} className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${juryCase && juryCase.votes.forgive < 50 ? 'bg-rose-600 text-white shadow-lg' : 'bg-emerald-100 text-emerald-700'}`}>
+            Details
+          </button>
+        </div>
       </div>
 
       {/* Neighborhood Trust */}
