@@ -701,7 +701,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
           );
         })()}
 
-        <div className="px-5 grid grid-cols-4 gap-3">
+        <div className="px-5 grid grid-cols-3 gap-3">
           {CATEGORIES.filter(c => {
             if (selectedCountry !== 'in' && c.id === '1') return false;
             return !['7', '10', '11', '12', '13', '14', '15', '19', '20'].includes(c.id) && 
@@ -709,17 +709,16 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
                    (!c.countries || c.countries.includes(selectedCountry));
           }).map((cat, i) => (
             <button key={cat.id} onClick={() => { setSelectedCategory(cat.id); setSelectedSubCategory(null); }}
-              className={`relative overflow-hidden aspect-square rounded-[1.5rem] flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-premium-sm group animate-fade-in border border-white/20 bg-gradient-to-br ${cat.color}`}
+              className={`flex flex-col items-center justify-center p-4 rounded-[2rem] shadow-premium-sm border card-lift animate-fade-in group active:scale-95 transition-all duration-300 ${
+                isDarkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-white border-gray-100/50'
+              }`}
               style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}>
-              
-              <div className="w-8 h-8 bg-white/25 backdrop-blur-md rounded-xl flex items-center justify-center mb-1.5 shadow-inner border border-white/30 group-hover:scale-110 transition-transform">
-                <span className="text-base">{cat.icon}</span>
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl mb-2 bg-gradient-to-br ${cat.color || 'from-indigo-500 to-indigo-600'} shadow-lg text-white group-hover:scale-110 transition-transform`}>
+                {cat.icon}
               </div>
-              
-              <span className="text-[8px] font-black text-white leading-tight uppercase tracking-widest px-1">{cat.name}</span>
-              
-              {/* Subtle Overlay Shine */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span className={`text-[9px] font-black uppercase tracking-tighter text-center leading-none ${isDarkMode ? 'text-slate-300' : 'text-slate-800'}`}>
+                {cat.name}
+              </span>
             </button>
           ))}
         </div>
@@ -911,7 +910,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
 
       {/* ====== SCOPE MAP ====== */}
       <div className="px-5 mt-6">
-        <ScopeMap scope={currentScopeId} isDarkMode={isDarkMode} />
+        <ScopeMap scope={currentScopeId} isDarkMode={isDarkMode} selectedCountry={selectedCountry} />
       </div>
 
       {/* ====== VIRTUAL COMPANY SECTION - PREMIUM GRID ====== */}

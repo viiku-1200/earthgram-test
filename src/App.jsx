@@ -175,6 +175,41 @@ const AppContent = () => {
     localStorage.setItem('earthgram_biz_bio', bizBio);
   }, [bizBio]);
 
+  // Automatic Real-Time Location Request on App Load
+  useEffect(() => {
+    if (navigator.geolocation && !localStorage.getItem('earthgram_user_gps')) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          
+          // Save GPS to LocalStorage
+          localStorage.setItem('earthgram_user_gps', JSON.stringify({
+            lat: latitude,
+            lng: longitude,
+            timestamp: new Date().toISOString()
+          }));
+
+          // Reverse Geocoding
+          try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
+            const data = await response.json();
+            if (data && data.address) {
+              const addr = data.address;
+              const shortAddress = `${addr.suburb || addr.neighbourhood || addr.road || ''}, ${addr.city || addr.town || addr.state || ''}`.trim().replace(/^, |, $/, '');
+              localStorage.setItem('earthgram_user_address', shortAddress || data.display_name);
+              // Trigger a state update event so maps know to refresh
+              window.dispatchEvent(new Event('earthgram_location_updated'));
+            }
+          } catch (err) {
+            console.error("Geocoding failed on load:", err);
+          }
+        },
+        (error) => console.error("Auto-location failed:", error),
+        { enableHighAccuracy: true }
+      );
+    }
+  }, []);
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -196,8 +231,9 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<HomeScreen isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} qualityPosts={qualityPosts} />} />
           <Route path="/explore" element={<ExploreScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} qualityPosts={qualityPosts} userReels={userReels} activeScope={activeScope} selectedCountry={selectedCountry} />} />
-          <Route path="/reels" element={<ReelsScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} userReels={userReels} activeScope={activeScope} selectedCountry={selectedCountry} />} />
+          <Route path="/reels" element={<ReelsScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} userReels={userReels} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} />} />
           <Route path="/community" element={<CommunityScreen isDarkMode={isDarkMode} qualityPosts={qualityPosts} setQualityPosts={setQualityPosts} activeScope={activeScope} selectedCountry={selectedCountry} />} />
+
           <Route path="/profile" element={
             <ProfileScreen
               isDarkMode={isDarkMode}

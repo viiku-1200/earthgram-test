@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { REELS_DATA } from '../../data/constants';
+import { REELS_DATA, COUNTRIES } from '../../data/constants';
 
 const SCOPES = ['local', 'national', 'global'];
 const LANGUAGES = ['All', 'Hindi', 'English', 'Tamil', 'Italian'];
@@ -11,21 +11,31 @@ const ADS_DATA = [
   { id: 'ad4', brand: 'Iron Core Gym', tagline: 'Transform your body — results guaranteed in 90 days', gradient: 'from-rose-700 via-red-800 to-rose-900', icon: '💪', cta: 'Join Now', accent: '#f43f5e' },
 ];
 
-// Build feed: 8 reels first, then inject 4 ads at random positions
+// Build feed: 8 reels first, then inject ads at safe intervals
 function buildFeed(reels) {
   // Take first 8 (or all if less)
   const base = reels.slice(0, Math.max(reels.length, 8));
   const result = [...base];
-  // Pick 4 random unique positions to insert ads (after index 1, so never first)
+  
+  // Safe number of ads: no more than 4, and no more than available slots
+  const numAds = Math.min(4, Math.max(0, base.length - 1));
+  
+  // Pick random unique positions to insert ads (after index 1, so never first)
   const positions = [];
-  while (positions.length < 4) {
+  let attempts = 0;
+  while (positions.length < numAds && attempts < 100) {
     const p = Math.floor(Math.random() * (base.length - 1)) + 2;
     if (!positions.includes(p)) positions.push(p);
+    attempts++;
   }
+  
   positions.sort((a, b) => b - a); // insert from end so indexes don't shift
-  ADS_DATA.forEach((ad, i) => {
-    result.splice(positions[i], 0, { type: 'ad', data: ad, feedId: `ad-slot-${i}` });
+  
+  positions.forEach((pos, i) => {
+    const ad = ADS_DATA[i % ADS_DATA.length];
+    result.splice(pos, 0, { type: 'ad', data: ad, feedId: `ad-slot-${i}` });
   });
+  
   return result.map((item, idx) =>
     item.type === 'ad' ? item : { type: 'reel', data: item, feedId: `reel-${item.id}` }
   );
@@ -63,8 +73,7 @@ const CoinBurst = ({ onDone }) => {
   );
 };
 
-const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [] }) => {
-  const [activeScope, setActiveScope] = useState('national');
+const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], activeScope = 'local', setActiveScope, selectedCountry = 'in' }) => {
   const [activeLang, setActiveLang] = useState('All');
   const [liked, setLiked] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -77,26 +86,72 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [] }) =>
   const scrollRef = useRef(null);
   const timerRef = useRef(null);
 
+  // Dynamic country data for filtering
+  const selectedCountryData = COUNTRIES.find(c => c.id === selectedCountry);
+  const selectedCountryName = selectedCountryData?.name || 'India';
+  const selectedCapitalName = selectedCountryData?.capital || 'Ghaziabad';
+
+  // Geospatial filtering for user reels
+  const filteredUserReels = userReels.filter(r => {
+    if (!r.location) return true;
+    if (typeof r.location === 'string') return true;
+    if (activeScope === 'global') return true;
+    if (activeScope === 'national') return r.location.country === selectedCountryName;
+    if (activeScope === 'city') return r.location.city === selectedCapitalName;
+    if (activeScope === 'local') return r.location.neighborhood === 'Sector 4';
+    return true;
+  });
+
   // User-posted reels formatted for feed
-  const userFeedItems = userReels.map(r => ({
+  const userFeedItems = filteredUserReels.map(r => ({
     type: 'reel',
     data: { ...r, isUserPost: true },
     feedId: r.id,
   }));
 
   const filtered = REELS_DATA.filter(r => {
-    const s = activeScope === 'global' || r.scope === activeScope;
+    // Geospatial scope match matching ExploreScreen
+    let scopeMatch = false;
+    if (activeScope === 'global') {
+      scopeMatch = true;
+    } else if (activeScope === 'national') {
+      if (r.scope) {
+        scopeMatch = r.scope === 'national' || r.scope === 'local';
+      } else if (r.location) {
+        scopeMatch = r.location.country === 'India';
+      } else {
+        scopeMatch = true;
+      }
+    } else if (activeScope === 'city') {
+      if (r.scope) {
+        scopeMatch = r.scope === 'local';
+      } else if (r.location) {
+        scopeMatch = r.location.city === 'Ghaziabad';
+      } else {
+        scopeMatch = true;
+      }
+    } else if (activeScope === 'local') {
+      if (r.scope) {
+        scopeMatch = r.scope === 'local';
+      } else if (r.location) {
+        scopeMatch = r.location.neighborhood === 'Sector 4';
+      } else {
+        scopeMatch = true;
+      }
+    }
+
     const l = activeLang === 'All' || r.language === activeLang;
-    return s && l;
+    return scopeMatch && l;
   });
 
   // Stable feed — rebuilt only when filter changes, user reels always prepended
-  const [feed, setFeed] = useState(() => [...userFeedItems, ...buildFeed(REELS_DATA)]);
+  const [feed, setFeed] = useState(() => [...userFeedItems, ...buildFeed(filtered.length > 0 ? filtered : REELS_DATA)]);
   useEffect(() => {
-    setFeed([...userFeedItems, ...buildFeed(filtered.length >= 4 ? filtered : REELS_DATA)]);
+    setFeed([...userFeedItems, ...buildFeed(filtered.length > 0 ? filtered : REELS_DATA)]);
     setCurrentIndex(0);
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [activeScope, activeLang, userReels]);
+
 
   const currentItem = feed[currentIndex];
 

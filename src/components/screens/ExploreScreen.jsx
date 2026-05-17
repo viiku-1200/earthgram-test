@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { COMMUNITY_GROUPS, REELS_DATA, LOCAL_SPOTS, EXPLORE_CATEGORIES } from '../../data/constants';
+import { COMMUNITY_GROUPS, REELS_DATA, LOCAL_SPOTS, EXPLORE_CATEGORIES, COUNTRIES } from '../../data/constants';
 
 // Fix Leaflet marker icon issue in React
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -32,25 +32,42 @@ const EXPLORE_ADS = [
 ];
 
 // LIVE MAP DATA
-const INITIAL_CENTER = [28.6692, 77.4538]; // Sector 4, Ghaziabad
+const DEFAULT_CENTER = [28.6692, 77.4538]; // Sector 4, Ghaziabad (fallback)
 const LIVE_DRIVERS = [
   { id: 1, name: 'Tractor (Ravi)', pos: [28.6710, 77.4550], type: 'transport', status: 'moving' },
   { id: 2, name: 'Mandi Express', pos: [28.6650, 77.4500], type: 'mandi', status: 'stationary' },
 ];
 
-// Map Controller to handle zoom/center changes based on scope
-const MapController = ({ activeScope, userPos }) => {
+// Helper: get center position for a country
+const getCountryCenter = (countryId) => {
+  const country = COUNTRIES.find(c => c.id === countryId);
+  return country?.gps || DEFAULT_CENTER;
+};
+
+// Map Controller to handle zoom/center changes based on scope + country
+const MapController = ({ activeScope, countryCenter, selectedCountry, userPos }) => {
   const map = useMap();
   useEffect(() => {
-    if (activeScope === 'local') map.setView(userPos, 15);
-    else if (activeScope === 'city') map.setView(userPos, 12);
-    else if (activeScope === 'national') map.setView(userPos, 5);
-    else if (activeScope === 'global') map.setView(userPos, 3);
-  }, [activeScope, userPos, map]);
+    const activeCenter = (selectedCountry === 'in' && userPos) ? userPos : countryCenter;
+
+    if (activeScope === 'local') {
+      // Local: zoom into user's live GPS or country capital at street level
+      map.flyTo(activeCenter, 15, { duration: 1.5 });
+    } else if (activeScope === 'city') {
+      // City: show the city area
+      map.flyTo(activeCenter, 12, { duration: 1.5 });
+    } else if (activeScope === 'national') {
+      // National: show the whole country
+      map.flyTo(countryCenter, 5, { duration: 1.5 });
+    } else if (activeScope === 'global') {
+      // Global: show the whole world
+      map.flyTo([20, 0], 2, { duration: 1.5 });
+    }
+  }, [activeScope, countryCenter, selectedCountry, userPos, map]);
   return null;
 };
 
-const MapTabView = ({ isDarkMode, qualityPosts = [], activeScope, userPos }) => {
+const MapTabView = ({ isDarkMode, qualityPosts = [], activeScope, userPos, countryCenter, selectedCountry }) => {
   const [driverPos, setDriverPos] = useState(LIVE_DRIVERS[0].pos);
   
   // Real-Time Movement Simulation
@@ -64,21 +81,28 @@ const MapTabView = ({ isDarkMode, qualityPosts = [], activeScope, userPos }) => 
     return () => clearInterval(interval);
   }, []);
 
+  // Get selected country's name for dynamic filtering
+  const selectedCountryData = COUNTRIES.find(c => c.id === selectedCountry);
+  const selectedCountryName = selectedCountryData?.name || 'India';
+  const selectedCapitalName = selectedCountryData?.capital || 'Ghaziabad';
+
   // Filter Pins based on Scope
   const filteredQualityPosts = qualityPosts.filter(p => {
     if (!p.location) return true;
     if (typeof p.location === 'string') return true; // Legacy strings show everywhere
     if (activeScope === 'global') return true;
-    if (activeScope === 'national') return p.location.country === 'India';
-    if (activeScope === 'city') return p.location.city === 'Ghaziabad';
+    if (activeScope === 'national') return p.location.country === selectedCountryName;
+    if (activeScope === 'city') return p.location.city === selectedCapitalName;
     if (activeScope === 'local') return p.location.neighborhood === 'Sector 4';
     return true;
   });
 
+  const activeCenter = (selectedCountry === 'in' && userPos) ? userPos : countryCenter;
+
   return (
     <div className="h-full relative overflow-hidden animate-fade-in">
-      <MapContainer center={userPos} zoom={15} className="h-full w-full z-0">
-        <MapController activeScope={activeScope} userPos={userPos} />
+      <MapContainer center={activeCenter} zoom={15} className="h-full w-full z-0">
+        <MapController activeScope={activeScope} countryCenter={countryCenter} selectedCountry={selectedCountry} userPos={userPos} />
         <TileLayer
           url={isDarkMode
             ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -87,10 +111,22 @@ const MapTabView = ({ isDarkMode, qualityPosts = [], activeScope, userPos }) => 
           attribution='&copy; OpenStreetMap'
         />
 
-        {/* Real User Location */}
-        <Marker position={userPos}>
-          <Popup>📍 You are here</Popup>
+        {/* Real User Location or Country Capital */}
+        <Marker position={activeCenter}>
+          <Popup>{(selectedCountry === 'in' && userPos) ? '📍 You are here' : '🏛️ Capital Center'}</Popup>
         </Marker>
+
+        {/* Capital City Marker — visible in National/Global scope */}
+        {(activeScope === 'national' || activeScope === 'global') && countryCenter && (
+          <Marker position={countryCenter}>
+            <Popup>
+              <div className="p-1 text-center">
+                <p className="font-bold text-sm">{COUNTRIES.find(c => c.id === selectedCountry)?.flag} {COUNTRIES.find(c => c.id === selectedCountry)?.capital}</p>
+                <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">Capital · {COUNTRIES.find(c => c.id === selectedCountry)?.name}</p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
 
         {/* Live Driver (Simulated Movement) - Only visible in Local/City */}
         {(activeScope === 'local' || activeScope === 'city') && (
@@ -159,11 +195,31 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
   const [activeTab, setActiveTab] = useState('pulse');
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  
+  // Real-Time Location State
+  const [userPos, setUserPos] = useState(() => {
+    const saved = localStorage.getItem('earthgram_user_gps');
+    return saved ? [JSON.parse(saved).lat, JSON.parse(saved).lng] : null;
+  });
+
+  useEffect(() => {
+    const updateLocation = () => {
+      const saved = localStorage.getItem('earthgram_user_gps');
+      if (saved) setUserPos([JSON.parse(saved).lat, JSON.parse(saved).lng]);
+    };
+    window.addEventListener('earthgram_location_updated', updateLocation);
+    return () => window.removeEventListener('earthgram_location_updated', updateLocation);
+  }, []);
 
   // AD STATE
   const [activeMiningAd, setActiveMiningAd] = useState(null);
   const [miningTimer, setMiningTimer] = useState(0);
   const [showBurst, setShowBurst] = useState(false);
+
+  // Get selected country's name for dynamic filtering
+  const selectedCountryData = COUNTRIES.find(c => c.id === selectedCountry);
+  const selectedCountryName = selectedCountryData?.name || 'India';
+  const selectedCapitalName = selectedCountryData?.capital || 'Ghaziabad';
 
   // Filtering logic for the feed based on activeScope
   const filteredQualityPosts = qualityPosts.filter(p => {
@@ -172,24 +228,24 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
     // Old format: location is a string like "Sector 4, Gaur City"
     if (typeof p.location === 'string') {
       if (activeScope === 'global' || activeScope === 'national') return true;
-      if (activeScope === 'city') return true; // local string = same city
-      if (activeScope === 'local') return true; // local string = same area
+      if (activeScope === 'city') return true;
+      if (activeScope === 'local') return true;
       return true;
     }
     // New format: location is an object { neighborhood, city, country }
     if (activeScope === 'global') return true;
-    if (activeScope === 'national') return p.location.country === 'India';
-    if (activeScope === 'city') return p.location.city === 'Ghaziabad';
+    if (activeScope === 'national') return p.location.country === selectedCountryName;
+    if (activeScope === 'city') return p.location.city === selectedCapitalName;
     if (activeScope === 'local') return p.location.neighborhood === 'Sector 4';
     return true;
   });
 
   const filteredUserReels = userReels.filter(r => {
     if (!r.location) return true;
-    if (typeof r.location === 'string') return true; // Legacy strings show everywhere
+    if (typeof r.location === 'string') return true;
     if (activeScope === 'global') return true;
-    if (activeScope === 'national') return r.location.country === 'India';
-    if (activeScope === 'city') return r.location.city === 'Ghaziabad';
+    if (activeScope === 'national') return r.location.country === selectedCountryName;
+    if (activeScope === 'city') return r.location.city === selectedCapitalName;
     if (activeScope === 'local') return r.location.neighborhood === 'Sector 4';
     return true;
   });
@@ -331,8 +387,10 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
       <MapTabView 
         isDarkMode={isDarkMode} 
         qualityPosts={qualityPosts} 
-        activeScope={activeScope} 
-        userPos={localStorage.getItem('earthgram_user_gps') ? [JSON.parse(localStorage.getItem('earthgram_user_gps')).lat, JSON.parse(localStorage.getItem('earthgram_user_gps')).lng] : INITIAL_CENTER} 
+        activeScope={activeScope}
+        selectedCountry={selectedCountry}
+        countryCenter={getCountryCenter(selectedCountry)}
+        userPos={userPos || getCountryCenter(selectedCountry)} 
       />
     ) : activeTab === 'deals' ? (
       <div className="flex-1 flex flex-col items-center justify-center p-10 text-center animate-fade-in">

@@ -1,9 +1,30 @@
 import React, { useState } from 'react';
-import { COMMUNITY_GROUPS } from '../../data/constants';
+import { COMMUNITY_GROUPS, COUNTRIES } from '../../data/constants';
 
-const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts }) => {
+const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts, activeScope = 'local', selectedCountry = 'in' }) => {
   const [activeSubTab, setActiveSubTab] = useState('quality');
   const [commentInputs, setCommentInputs] = useState({});
+
+  // Dynamic country data for filtering
+  const selectedCountryData = COUNTRIES.find(c => c.id === selectedCountry);
+  const selectedCountryName = selectedCountryData?.name || 'India';
+  const selectedCapitalName = selectedCountryData?.capital || 'Ghaziabad';
+
+  // Geospatial filtering logic matching ExploreScreen
+  const filteredQualityPosts = qualityPosts.filter(p => {
+    if (!p.location) return true;
+    if (typeof p.location === 'string') {
+      if (activeScope === 'global' || activeScope === 'national') return true;
+      if (activeScope === 'city') return true;
+      if (activeScope === 'local') return true;
+      return true;
+    }
+    if (activeScope === 'global') return true;
+    if (activeScope === 'national') return p.location.country === selectedCountryName;
+    if (activeScope === 'city') return p.location.city === selectedCapitalName;
+    if (activeScope === 'local') return p.location.neighborhood === 'Sector 4';
+    return true;
+  });
 
   // REAL-TIME: Vote Suspend
   const handleVoteSuspend = (postId) => {
@@ -96,7 +117,7 @@ const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts }) => 
             </div>
             
             <div className="space-y-8 pb-10">
-              {qualityPosts.map((post, i) => {
+              {filteredQualityPosts.map((post, i) => {
                 const avgRating = getLiveRating(post);
                 const isGuilty = post.votes.forgive < 50;
                 const isExtreme = post.votes.forgive < 25;
