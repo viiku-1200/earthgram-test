@@ -1,0 +1,453 @@
+@import "tailwindcss";
+
+/* ========== MOBILE VIEWPORT FIX ========== */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+#root {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+}
+@supports (height: 100dvh) {
+  html, body, #root { height: 100dvh; }
+}
+
+/* Safe area for notched phones */
+.safe-area-top { padding-top: env(safe-area-inset-top, 0px); }
+.safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* Dynamic viewport height utility */
+.h-dvh { height: 100vh; }
+@supports (height: 100dvh) {
+  .h-dvh { height: 100dvh; }
+}
+
+/* ========== GLOBAL TYPOGRAPHY ========== */
+* {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ========== SCROLLBAR HIDING ========== */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ========== SLIDE ANIMATIONS ========== */
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ========== FADE IN ========== */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Staggered fade-in for lists */
+.stagger-1 { animation-delay: 0.05s; opacity: 0; }
+.stagger-2 { animation-delay: 0.1s; opacity: 0; }
+.stagger-3 { animation-delay: 0.15s; opacity: 0; }
+.stagger-4 { animation-delay: 0.2s; opacity: 0; }
+.stagger-5 { animation-delay: 0.25s; opacity: 0; }
+
+/* ========== FLOAT / BREATHE ========== */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* ========== GLOW PULSE ========== */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px 2px rgba(99, 102, 241, 0.3); }
+  50% { box-shadow: 0 0 20px 6px rgba(99, 102, 241, 0.5); }
+}
+.animate-glow {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* ========== PIN PULSE (Map) ========== */
+@keyframes pin-pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
+}
+.pin-ring {
+  animation: pin-pulse 2s ease-out infinite;
+}
+
+/* ========== SHIMMER LOADING ========== */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* ========== CROSSFADE FOR BANNERS ========== */
+@keyframes crossfade-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-crossfade {
+  animation: crossfade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ========== GLASSMORPHISM ========== */
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.glass-dark {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ========== PREMIUM SHADOWS (Multi-layered ambient depth) ========== */
+.shadow-premium-sm {
+  box-shadow: 
+    0 6px 16px -4px rgba(0, 0, 0, 0.08), 
+    0 2px 6px -2px rgba(0, 0, 0, 0.04);
+}
+.shadow-premium {
+  box-shadow: 
+    0 16px 36px -6px rgba(0, 0, 0, 0.09), 
+    0 6px 16px -4px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(0, 0, 0, 0.01);
+}
+.shadow-premium-lg {
+  box-shadow: 
+    0 24px 50px -12px rgba(0, 0, 0, 0.12), 
+    0 8px 20px -6px rgba(0, 0, 0, 0.05),
+    0 0 0 1px rgba(0, 0, 0, 0.01);
+}
+.shadow-premium-2xl {
+  box-shadow: 
+    0 35px 80px -16px rgba(0, 0, 0, 0.16), 
+    0 12px 30px -8px rgba(0, 0, 0, 0.07),
+    0 0 0 1px rgba(0, 0, 0, 0.01);
+}
+.shadow-glow-indigo {
+  box-shadow: 0 8px 25px -5px rgba(99, 102, 241, 0.35);
+}
+
+
+/* --- SOVEREIGN UI EXTENSIONS --- */
+.glass-gold {
+  background: rgba(251, 191, 36, 0.03);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-premium {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.shadow-glow-gold {
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.2);
+}
+
+.animate-float-slow {
+  animation: floatSlow 8s ease-in-out infinite;
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(1deg); }
+}
+
+.text-gold-gradient {
+  background: linear-gradient(to bottom, #fde68a, #fbbf24, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.vault-ticker {
+  background: linear-gradient(90deg, rgba(15, 23, 42, 1) 0%, rgba(30, 41, 59, 0.9) 50%, rgba(15, 23, 42, 1) 100%);
+}
+.shadow-glow-green {
+  box-shadow: 0 4px 15px -3px rgba(16, 185, 129, 0.4);
+}
+
+/* ========== CARD HOVER LIFT ========== */
+.card-lift {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 24px 50px -10px rgba(0, 0, 0, 0.12), 
+    0 8px 24px -6px rgba(0, 0, 0, 0.05);
+}
+.card-lift:active {
+  transform: scale(0.98);
+}
+
+/* ========== GRADIENT BORDER ========== */
+.gradient-border {
+  position: relative;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px; height: 100%;
+  border-radius: 4px 0 0 4px;
+  background: linear-gradient(180deg, #6366f1, #8b5cf6, #a855f7);
+}
+
+/* ========== SCOPE TABS ========== */
+.scope-tab {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.scope-tab.active {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  box-shadow: 0 4px 15px -3px rgba(99, 102, 241, 0.5);
+}
+
+/* ========== MAP STYLES ========== */
+
+/* Local map - warm, detailed neighborhood feel */
+.map-local {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 30%, #f0f9ff 60%, #eff6ff 100%);
+  position: relative;
+  overflow: hidden;
+}
+.map-local::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(209, 213, 219, 0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(209, 213, 219, 0.4) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+.map-local::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 70%, rgba(34, 197, 94, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 30%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Futuristic Satellite Radar Scanning Sweep */
+@keyframes radar-scan {
+  0% {
+    transform: translateY(-120px);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.7;
+  }
+  85% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(520px);
+    opacity: 0;
+  }
+}
+.radar-scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(to bottom, transparent, rgba(99, 102, 241, 0.03) 40%, rgba(99, 102, 241, 0.15) 90%, #6366f1 100%);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.12);
+  opacity: 0;
+  z-index: 5;
+  pointer-events: none;
+  animation: radar-scan 6s linear infinite;
+}
+
+
+/* National map - India silhouette dark elegant */
+.map-national {
+  background: linear-gradient(145deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  position: relative;
+  overflow: hidden;
+}
+.map-national::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(99, 102, 241, 0.15) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Global map - space-like, dark, glowing */
+.map-global {
+  background: linear-gradient(160deg, #020617 0%, #0f172a 40%, #1e1b4b 70%, #020617 100%);
+  position: relative;
+  overflow: hidden;
+}
+.map-global::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.12) 0%, transparent 60%),
+    radial-gradient(circle at 20% 80%, rgba(236, 72, 153, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(34, 211, 238, 0.08) 0%, transparent 40%);
+}
+.map-global::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.06) 1px, transparent 0);
+  background-size: 32px 32px;
+}
+
+/* Map pin glow */
+.map-pin {
+  filter: drop-shadow(0 0 6px rgba(99, 102, 241, 0.6));
+}
+.map-pin-green {
+  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.6));
+}
+.map-pin-amber {
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.6));
+}
+.map-pin-red {
+  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.6));
+}
+
+/* Connection lines on global map */
+@keyframes dash-flow {
+  to { stroke-dashoffset: -20; }
+}
+.connection-line {
+  stroke-dasharray: 6 4;
+  animation: dash-flow 1.5s linear infinite;
+}
+
+/* ========== RIPPLE EFFECT ========== */
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* =========================================================
+   Leaflet Zoom Controls Fix (Prevents clipping from rounded corners)
+========================================================= */
+.leaflet-top.leaflet-left {
+  top: 50px !important;
+  left: 20px !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+.btn-ripple::after {
+  content: '';
+  position: absolute;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0);
+  pointer-events: none;
+}
+.btn-ripple:active::after {
+  animation: ripple 0.5s ease-out;
+}
+
+/* ========== ONLINE INDICATOR GLOW ========== */
+@keyframes online-glow {
+  0%, 100% { box-shadow: 0 0 4px 1px rgba(16, 185, 129, 0.4); }
+  50% { box-shadow: 0 0 10px 3px rgba(16, 185, 129, 0.6); }
+}
+.online-dot {
+  animation: online-glow 2s ease-in-out infinite;
+}
+
+/* ========== SPLASH SCREEN ANIMATIONS ========== */
+@keyframes scale-in {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.animate-scale-in {
+  animation: scale-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fade-in-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+  opacity: 0;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+.bg-conic-gradient {
+  background: conic-gradient(from 0deg, currentColor, transparent);
+}
+
+/* ========== MARQUEE TICKER ========== */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+  display: flex;
+  width: max-content;
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}

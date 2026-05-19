@@ -22,15 +22,12 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
   const [activeBanner, setActiveBanner] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
-  const [splitPaneCategory, setSplitPaneCategory] = useState(null);
-  const [splitPaneSubCategory, setSplitPaneSubCategory] = useState(null);
-  const [locationMode, setLocationMode] = useState('default');
+  const [locationMode, setLocationMode] = useState('default'); 
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
   const [hasUnreadActivity, setHasUnreadActivity] = useState(true);
   const [activeEmpowerBanner, setActiveEmpowerBanner] = useState(0);
-  const [homeUIVersion, setHomeUIVersion] = useState('v3'); // 'v2' or 'v3' for live A/B testing
   const empowerScrollRef = React.useRef(null);
 
   // Custom States for Unified Service Radar UI
@@ -730,20 +727,6 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
 
         {/* Right: Essential Grouped Discovery Actions */}
         <div className="flex items-center space-x-2">
-          {/* Layout Version Switcher (A/B Testing Mode) */}
-          <button 
-            onClick={() => setHomeUIVersion(prev => prev === 'v3' ? 'v2' : 'v3')}
-            className={`w-10 h-10 rounded-2xl flex flex-col items-center justify-center text-[10px] font-black uppercase tracking-tighter border active:scale-90 transition-all duration-300 ${
-              isDarkMode 
-                ? 'bg-slate-800 border-slate-700 text-indigo-400 hover:text-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.2)]' 
-                : 'bg-white border-gray-200 text-indigo-600 shadow-sm hover:bg-gray-50'
-            }`}
-            title="Switch UI Design (V2 / V3)"
-          >
-            <span className="text-xs leading-none mb-0.5">🔀</span>
-            <span className="text-[7px] leading-none">{homeUIVersion}</span>
-          </button>
-          
           {/* Dark Mode Toggle */}
           <button 
             onClick={() => setIsDarkMode(!isDarkMode)}
@@ -1013,259 +996,89 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
         </div>
       </div>
 
-      {/* ====== A/B DESIGN TESTING WRAPPER ====== */}
-      {homeUIVersion === 'v3' ? (
-        <>
-          {/* ====== SECTION TITLE: Services Around Me (V3) ====== */}
-          <div className="mt-8 px-5 animate-fade-in">
-            <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Services Around Me</h2>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Select a category to find premium local experts</p>
-          </div>
+      {/* ====== SECTION 4: COMPACT FOUR-ZONE SERVICE HUB ====== */}
+      <div className="mt-6 px-5 animate-fade-in">
+        {/* Dynamic Zone Selector Tabs */}
+        <div className="flex overflow-x-auto no-scrollbar space-x-2 mb-4 pb-1">
+          {[
+            { id: 'daily', label: 'Daily Services', icon: '🧹', activeClass: isDarkMode ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' : 'bg-indigo-50 text-indigo-600 border-indigo-100 shadow-sm' },
+            { id: 'emergency', label: 'Emergency', icon: '🚨', activeClass: isDarkMode ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-red-50 text-red-600 border-red-100 shadow-sm' },
+            { id: 'rural', label: 'Rural & Farm', icon: '🚜', activeClass: isDarkMode ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-sm' },
+            { id: 'pro', label: 'Pro & Travel', icon: '💼', activeClass: isDarkMode ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' : 'bg-purple-50 text-purple-600 border-purple-100 shadow-sm' }
+          ].filter(zone => {
+            if (locationMode === 'city') return zone.id !== 'rural';
+            if (locationMode === 'village') return zone.id === 'rural' || zone.id === 'emergency';
+            return true;
+          }).map((zone) => (
+            <button
+              key={zone.id}
+              onClick={() => setActiveZone(zone.id)}
+              className={`flex-shrink-0 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-wider border transition-all active:scale-95 flex items-center space-x-2 ${
+                activeZone === zone.id
+                  ? `${zone.activeClass} border-2`
+                  : (isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-400' : 'bg-white border-gray-100 text-gray-500')
+              }`}
+            >
+              <span>{zone.icon}</span>
+              <span className="font-outfit">{zone.label}</span>
+            </button>
+          ))}
+        </div>
 
-          {/* ====== SECTION 4: SPLIT-PANE VERTICAL CATEGORY RAIL (V3) ====== */}
-          <div className="mt-4 px-5 animate-fade-in">
-            <div className="flex space-x-4 h-[28rem]">
-              
-              {/* Left Rail (Categories) */}
-              <div className="w-[4.5rem] flex-shrink-0 flex flex-col space-y-3 overflow-y-auto hide-scrollbar pb-6">
-                {CATEGORIES.filter(c => !c.visibility || c.visibility.includes(locationMode)).map((cat) => {
-                  const isActive = splitPaneCategory === cat.id;
-                  return (
-                    <button
-                      key={cat.id}
-                      onClick={() => { setSplitPaneCategory(cat.id); setSplitPaneSubCategory(null); }}
-                      className={`relative flex flex-col items-center justify-center p-2 rounded-[1.5rem] transition-all duration-300 active:scale-95 border ${
-                        isActive 
-                          ? (isDarkMode ? 'bg-indigo-600 border-indigo-500 shadow-[0_0_15px_rgba(79,70,229,0.3)]' : 'bg-indigo-600 border-indigo-500 shadow-lg shadow-indigo-200')
-                          : (isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100 shadow-sm')
-                      }`}
-                    >
-                      <div className={`w-10 h-10 rounded-[1.1rem] flex items-center justify-center text-[22px] mb-1.5 ${isActive ? 'text-white' : (isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-gray-50 text-gray-600')}`}>
-                        {cat.icon}
-                      </div>
-                      <span className={`text-[8px] font-black uppercase tracking-wider text-center leading-[1.1] ${isActive ? 'text-indigo-50' : (isDarkMode ? 'text-slate-500' : 'text-gray-400')}`}>
-                        {cat.name.split(' ')[0]}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+        {/* Compact Grid of Active Zone Categories */}
+        <div className="grid grid-cols-4 gap-3 bg-gray-50/30 dark:bg-slate-900/20 p-3 rounded-[2.5rem] border border-gray-100/50 dark:border-slate-800/50">
+          {CATEGORIES.filter(c => {
+            const emergencyIds = ['1', '2', '8'];
+            const dailyIds = ['3', '4', '5', '6', '9', '16', '17', '18', '22', '24', '25'];
+            const ruralIds = ['11', '12', '13', '15', '19', '20', '27', '28'];
+            const proIds = ['7', '10', '14'];
 
-              {/* Right Panel (Dynamic Content) */}
-              <div className={`flex-1 rounded-[2rem] p-4 flex flex-col overflow-y-auto hide-scrollbar border shadow-premium-lg relative ${
-                isDarkMode ? 'bg-slate-900 border-slate-800/80' : 'bg-gray-50/50 border-gray-100'
-              }`}>
-                {(() => {
-                  const activeCat = CATEGORIES.find(c => c.id === (splitPaneCategory || CATEGORIES.filter(cat => !cat.visibility || cat.visibility.includes(locationMode))[0]?.id));
-                  if (!activeCat) return null;
+            // Visibility filter per mode
+            if (c.visibility && !c.visibility.includes(locationMode)) return false;
 
-                  // Filter providers based on splitPaneSubCategory state
-                  const getFilteredSplitPaneProviders = () => {
-                    const providers = activeCat.providers || [];
-                    if (!splitPaneSubCategory || splitPaneSubCategory === 'All') return providers;
-                    return providers.filter(p => p.sub.toLowerCase() === splitPaneSubCategory.toLowerCase() || p.sub.toLowerCase().includes(splitPaneSubCategory.toLowerCase()));
-                  };
-                  const filteredProviders = getFilteredSplitPaneProviders();
+            if (activeZone === 'emergency') return emergencyIds.includes(String(c.id));
+            if (activeZone === 'daily') return dailyIds.includes(String(c.id));
+            if (activeZone === 'rural') return ruralIds.includes(String(c.id));
+            if (activeZone === 'pro') return proIds.includes(String(c.id));
+            return false;
+          }).map((cat, i) => {
+            let bgGlow = 'from-red-500/10 to-red-600/10 hover:shadow-red-500/5';
+            let glowBorder = 'border-red-500/30 shadow-red-500/5 text-red-400';
+            
+            if (activeZone === 'daily') {
+               bgGlow = 'from-indigo-500/10 to-indigo-600/10 hover:shadow-indigo-500/5';
+               glowBorder = 'border-indigo-500/30 shadow-indigo-500/5 text-indigo-400';
+            } else if (activeZone === 'rural') {
+               bgGlow = 'from-emerald-500/10 to-emerald-600/10 hover:shadow-emerald-500/5';
+               glowBorder = 'border-emerald-500/30 shadow-emerald-500/5 text-emerald-400';
+            } else if (activeZone === 'pro') {
+               bgGlow = 'from-purple-500/10 to-purple-600/10 hover:shadow-purple-500/5';
+               glowBorder = 'border-purple-500/30 shadow-purple-500/5 text-purple-400';
+            }
 
-                  return (
-                    <div className="animate-fade-in flex flex-col min-h-full">
-                      {/* Right Panel Header */}
-                      <div className={`flex items-center justify-between mb-4 sticky top-0 z-10 pt-1 pb-2 backdrop-blur-md transition-all ${
-                        isDarkMode ? 'bg-slate-900/90' : 'bg-gray-50/90'
-                      }`}>
-                        <h3 className={`text-base font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{activeCat.name}</h3>
-                        <span className={`text-[8px] px-2.5 py-1 rounded-full font-black uppercase tracking-widest ${isDarkMode ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-100 text-indigo-600'}`}>
-                          {filteredProviders.length} PROS
-                        </span>
-                      </div>
-
-                      {/* Sub-categories row */}
-                      {activeCat.subTabs && (
-                        <div className="flex space-x-2 overflow-x-auto hide-scrollbar mb-4 pb-1 shrink-0">
-                          {activeCat.subTabs.map((tab) => {
-                            const isChipActive = splitPaneSubCategory === tab.name || (!splitPaneSubCategory && tab.name === 'All');
-                            return (
-                              <button 
-                                key={tab.name}
-                                onClick={() => setSplitPaneSubCategory(tab.name === 'All' ? null : tab.name)}
-                                className={`flex-shrink-0 px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center space-x-1.5 transition-all active:scale-95 border ${
-                                  isChipActive
-                                    ? 'bg-indigo-600 border-indigo-500 text-white shadow-sm'
-                                    : (isDarkMode ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700' : 'bg-white text-gray-600 border-gray-200 shadow-sm hover:bg-gray-50')
-                                }`}
-                              >
-                                <span className="text-sm">{tab.icon}</span>
-                                <span>{tab.name}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {/* Instant Match Banner */}
-                      <div 
-                        onClick={() => navigate('/book', { state: { category: activeCat, subCategory: splitPaneSubCategory || 'All', mode: 'instant' } })}
-                        className={`mb-4 p-4 rounded-[1.5rem] border-2 flex items-center justify-between cursor-pointer active:scale-95 transition-all duration-300 relative overflow-hidden shrink-0 group ${
-                          isDarkMode ? 'bg-indigo-950/20 border-indigo-500/30 hover:border-indigo-500/50' : 'bg-indigo-50/50 border-indigo-100 hover:border-indigo-200'
-                        }`}
-                      >
-                        <div className="absolute -right-2 -bottom-2 opacity-5 text-4xl group-hover:scale-110 transition-transform">⚡</div>
-                        <div className="flex items-center space-x-3">
-                          <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white text-base shadow-glow-indigo animate-bounce-subtle">⚡</div>
-                          <div className="flex flex-col">
-                            <h4 className={`text-[10px] font-black uppercase tracking-widest ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Instant Match</h4>
-                            <p className={`text-[8px] font-bold ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
-                              Best {splitPaneSubCategory || activeCat.name.split(' ')[0]} expert instantly
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest group-hover:translate-x-0.5 transition-transform">Match →</span>
-                      </div>
-
-                      {/* Providers / Staff list */}
-                      <div className="flex flex-col space-y-3 pb-4">
-                        {filteredProviders.slice(0, 5).map((provider) => (
-                          <div 
-                            key={provider.id} 
-                            onClick={() => navigate('/provider', { state: { profile: provider } })}
-                            className={`flex items-center justify-between p-3.5 rounded-[1.5rem] border cursor-pointer transition-all active:scale-[0.98] hover:shadow-premium-sm ${
-                              isDarkMode ? 'bg-slate-950/80 border-slate-800/80 hover:bg-slate-950' : 'bg-white border-gray-100 shadow-sm hover:bg-gray-50/50'
-                            }`}
-                          >
-                            <div className="flex items-center space-x-3">
-                              <div className={`w-11 h-11 rounded-full flex items-center justify-center text-xl shadow-inner border ${
-                                isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-indigo-50 border-indigo-100'
-                              }`}>
-                                {provider.avatar || activeCat.icon}
-                              </div>
-                              <div className="flex flex-col">
-                                <div className="flex items-center space-x-1.5">
-                                  <h4 className={`text-[11px] font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{provider.name}</h4>
-                                  {provider.available && <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>}
-                                </div>
-                                <p className={`text-[9px] font-bold mt-0.5 uppercase tracking-wider ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                                  {provider.sub} • {provider.distance}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-end justify-center">
-                              <span className={`text-[11px] font-black ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>{provider.price.split(' ')[0]}</span>
-                              <div className="flex items-center space-x-0.5 mt-1 bg-yellow-50 dark:bg-yellow-500/10 px-1.5 py-0.5 rounded-md">
-                                <span className="text-yellow-500 text-[8px]">★</span>
-                                <span className={`text-[9px] font-black ${isDarkMode ? 'text-yellow-500' : 'text-yellow-700'}`}>{provider.rating}</span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                        
-                        {filteredProviders.length === 0 && (
-                          <div className="flex flex-col items-center justify-center py-10 text-center opacity-60">
-                            <span className="text-4xl mb-3 grayscale opacity-50">🔭</span>
-                            <h4 className={`text-[11px] font-black uppercase tracking-widest ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>No Pros Found</h4>
-                            <p className={`text-[9px] font-bold mt-1 max-w-[80%] ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>We are currently onboarding partners in this category.</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          {/* ====== SECTION TITLE: Explore Categories (V2) ====== */}
-          <div className="mt-8 px-5 animate-fade-in">
-            <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Explore Categories</h2>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Select a category to find premium local experts</p>
-          </div>
-
-          {/* ====== SECTION 4: COMPACT FOUR-ZONE SERVICE HUB (V2) ====== */}
-          <div className="mt-4 px-5 animate-fade-in">
-            {/* Dynamic Zone Selector Tabs */}
-            <div className="flex overflow-x-auto no-scrollbar space-x-2 mb-4 pb-1">
-              {[
-                { id: 'daily', label: 'Daily Services', icon: '🧹', activeClass: isDarkMode ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' : 'bg-indigo-50 text-indigo-600 border-indigo-100 shadow-sm' },
-                { id: 'emergency', label: 'Emergency', icon: '🚨', activeClass: isDarkMode ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-red-50 text-red-600 border-red-100 shadow-sm' },
-                { id: 'rural', label: 'Rural & Farm', icon: '🚜', activeClass: isDarkMode ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-sm' },
-                { id: 'pro', label: 'Pro & Travel', icon: '💼', activeClass: isDarkMode ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' : 'bg-purple-50 text-purple-600 border-purple-100 shadow-sm' }
-              ].filter(zone => {
-                if (locationMode === 'city') return zone.id !== 'rural';
-                if (locationMode === 'village') return zone.id === 'rural' || zone.id === 'emergency';
-                return true;
-              }).map((zone) => (
-                <button
-                  key={zone.id}
-                  onClick={() => setActiveZone(zone.id)}
-                  className={`flex-shrink-0 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-wider border transition-all active:scale-95 flex items-center space-x-2 ${
-                    activeZone === zone.id
-                      ? `${zone.activeClass} border-2`
-                      : (isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-400' : 'bg-white border-gray-100 text-gray-500')
-                  }`}
-                >
-                  <span>{zone.icon}</span>
-                  <span className="font-outfit">{zone.label}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* Compact Grid of Active Zone Categories */}
-            <div className="grid grid-cols-4 gap-3 bg-gray-50/30 dark:bg-slate-900/20 p-3 rounded-[2.5rem] border border-gray-100/50 dark:border-slate-800/50">
-              {CATEGORIES.filter(c => {
-                const emergencyIds = ['1', '2', '8'];
-                const dailyIds = ['3', '4', '5', '6', '9', '16', '17', '18', '22', '24', '25'];
-                const ruralIds = ['11', '12', '13', '15', '19', '20', '27', '28'];
-                const proIds = ['7', '10', '14'];
-
-                // Visibility filter per mode
-                if (c.visibility && !c.visibility.includes(locationMode)) return false;
-
-                if (activeZone === 'emergency') return emergencyIds.includes(String(c.id));
-                if (activeZone === 'daily') return dailyIds.includes(String(c.id));
-                if (activeZone === 'rural') return ruralIds.includes(String(c.id));
-                if (activeZone === 'pro') return proIds.includes(String(c.id));
-                return false;
-              }).map((cat, i) => {
-                let bgGlow = 'from-red-500/10 to-red-600/10 hover:shadow-red-500/5';
-                let glowBorder = 'border-red-500/30 shadow-red-500/5 text-red-400';
-                
-                if (activeZone === 'daily') {
-                   bgGlow = 'from-indigo-500/10 to-indigo-600/10 hover:shadow-indigo-500/5';
-                   glowBorder = 'border-indigo-500/30 shadow-indigo-500/5 text-indigo-400';
-                } else if (activeZone === 'rural') {
-                   bgGlow = 'from-emerald-500/10 to-emerald-600/10 hover:shadow-emerald-500/5';
-                   glowBorder = 'border-emerald-500/30 shadow-emerald-500/5 text-emerald-400';
-                } else if (activeZone === 'pro') {
-                   bgGlow = 'from-purple-500/10 to-purple-600/10 hover:shadow-purple-500/5';
-                   glowBorder = 'border-purple-500/30 shadow-purple-500/5 text-purple-400';
-                }
-
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => { setSelectedCategory(cat.id); setSelectedSubCategory(null); }}
-                    className={`relative aspect-square rounded-[2rem] flex flex-col items-center justify-center p-2 text-center active:scale-95 transition-all duration-300 shadow-sm border border-gray-100/10 bg-gradient-to-br ${bgGlow} group`}
-                  >
-                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center text-xl mb-1.5 transition-all duration-300 group-hover:scale-110 shadow-md ${
-                      isDarkMode 
-                        ? `bg-slate-900/90 border ${glowBorder}` 
-                        : `bg-gradient-to-br ${cat.color || 'from-indigo-500 to-indigo-600'} text-white`
-                    }`}>
-                      {cat.icon}
-                    </div>
-                    <span className={`text-[9px] font-black leading-tight uppercase tracking-tight truncate max-w-full ${
-                      isDarkMode ? 'text-slate-300' : 'text-gray-800'
-                    }`}>
-                      {cat.name.split(' ')[0]}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </>
-      )}
+            return (
+              <button
+                key={cat.id}
+                onClick={() => { setSelectedCategory(cat.id); setSelectedSubCategory(null); }}
+                className={`relative aspect-square rounded-[2rem] flex flex-col items-center justify-center p-2 text-center active:scale-95 transition-all duration-300 shadow-sm border border-gray-100/10 bg-gradient-to-br ${bgGlow} group`}
+              >
+                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center text-xl mb-1.5 transition-all duration-300 group-hover:scale-110 shadow-md ${
+                  isDarkMode 
+                    ? `bg-slate-900/90 border ${glowBorder}` 
+                    : `bg-gradient-to-br ${cat.color || 'from-indigo-500 to-indigo-600'} text-white`
+                }`}>
+                  {cat.icon}
+                </div>
+                <span className={`text-[9px] font-black leading-tight uppercase tracking-tight truncate max-w-full ${
+                  isDarkMode ? 'text-slate-300' : 'text-gray-800'
+                }`}>
+                  {cat.name.split(' ')[0]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* ====== THREE MODE-SPECIFIC LAYOUTS ====== */}
       {locationMode === 'city' && (
