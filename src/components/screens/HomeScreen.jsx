@@ -1148,12 +1148,23 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
                                 </p>
                               </div>
                             </div>
-                            <div className="flex flex-col items-end justify-center">
-                              <span className={`text-[11px] font-black ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>{provider.price.split(' ')[0]}</span>
-                              <div className="flex items-center space-x-0.5 mt-1 bg-yellow-50 dark:bg-yellow-500/10 px-1.5 py-0.5 rounded-md">
-                                <span className="text-yellow-500 text-[8px]">★</span>
-                                <span className={`text-[9px] font-black ${isDarkMode ? 'text-yellow-500' : 'text-yellow-700'}`}>{provider.rating}</span>
+                            <div className="flex flex-col items-end justify-center space-y-1.5">
+                              <div className="text-right">
+                                <span className={`text-[11px] font-black ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>{provider.price.split(' ')[0]}</span>
+                                <div className="flex items-center justify-end space-x-0.5 mt-0.5 bg-yellow-50 dark:bg-yellow-500/10 px-1.5 py-0.5 rounded-md">
+                                  <span className="text-yellow-500 text-[8px]">★</span>
+                                  <span className={`text-[9px] font-black ${isDarkMode ? 'text-yellow-500' : 'text-yellow-700'}`}>{provider.rating}</span>
+                                </div>
                               </div>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate('/book', { state: { provider: provider, service: { name: provider.sub || activeCat.name, price: provider.price } } });
+                                }}
+                                className="px-3 py-1 text-[8px] font-black uppercase tracking-widest text-white bg-indigo-600 dark:bg-indigo-500 rounded-[0.5rem] active:scale-90 hover:scale-105 transition-all shadow-sm shadow-indigo-600/30"
+                              >
+                                BOOK
+                              </button>
                             </div>
                           </div>
                         ))}
