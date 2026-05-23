@@ -45,11 +45,8 @@ const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, b
 
   const handlePhotoSelect = (file, type) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setQcForm(p => ({ ...p, [type]: reader.result }));
-    };
-    reader.readAsDataURL(file);
+    const blobUrl = URL.createObjectURL(file);
+    setQcForm(p => ({ ...p, [type]: blobUrl }));
   };
 
   useEffect(() => {
@@ -401,6 +398,7 @@ const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, b
                 if (!qcForm.provider.trim() || !qcForm.desc.trim()) return;
                 const newPost = {
                   id: 'qc_' + Date.now(),
+                  isUserPost: true,
                   author: companyData?.fullName || 'Aryan Singh',
                   authorAvatar: '👤',
                   location: 'My Location',

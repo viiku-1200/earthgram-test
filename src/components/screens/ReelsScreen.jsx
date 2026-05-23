@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { REELS_DATA, COUNTRIES } from '../../data/constants';
 
 const SCOPES = ['local', 'national', 'global'];
 const LANGUAGES = ['All', 'Hindi', 'English', 'Tamil', 'Italian'];
 
 const ADS_DATA = [
-  { id: 'ad1', brand: 'Green Harvest', tagline: 'Fresh organic produce delivered daily to your door', gradient: 'from-emerald-700 via-teal-800 to-emerald-900', icon: '🌾', cta: 'Shop Now', accent: '#10b981' },
-  { id: 'ad2', brand: 'City Craft Studios', tagline: 'Handmade premium furniture for your dream home', gradient: 'from-amber-700 via-orange-800 to-red-900', icon: '🪑', cta: 'Explore', accent: '#f59e0b' },
-  { id: 'ad3', brand: 'Dr. Rajesh Clinic', tagline: 'Book your personal health checkup today', gradient: 'from-blue-700 via-indigo-800 to-blue-900', icon: '🩺', cta: 'Book Now', accent: '#6366f1' },
-  { id: 'ad4', brand: 'Iron Core Gym', tagline: 'Transform your body — results guaranteed in 90 days', gradient: 'from-rose-700 via-red-800 to-rose-900', icon: '💪', cta: 'Join Now', accent: '#f43f5e' },
+  { id: 'ad1', brand: 'Green Harvest', tagline: 'Fresh organic produce delivered daily to your door', gradient: 'from-emerald-700 via-teal-800 to-emerald-900', icon: '🌾', cta: 'Shop Now', accent: '#10b981', videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
+  { id: 'ad2', brand: 'City Craft Studios', tagline: 'Handmade premium furniture for your dream home', gradient: 'from-amber-700 via-orange-800 to-red-900', icon: '🪑', cta: 'Explore', accent: '#f59e0b', videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4' },
+  { id: 'ad3', brand: 'Dr. Rajesh Clinic', tagline: 'Book your personal health checkup today', gradient: 'from-blue-700 via-indigo-800 to-blue-900', icon: '🩺', cta: 'Book Now', accent: '#6366f1', videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
+  { id: 'ad4', brand: 'Iron Core Gym', tagline: 'Transform your body — results guaranteed in 90 days', gradient: 'from-rose-700 via-red-800 to-rose-900', icon: '💪', cta: 'Join Now', accent: '#f43f5e', videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4' },
 ];
 
 // Build feed: 8 reels first, then inject ads at safe intervals
@@ -36,7 +36,7 @@ function buildFeed(reels) {
     result.splice(pos, 0, { type: 'ad', data: ad, feedId: `ad-slot-${i}` });
   });
   
-  return result.map((item, idx) =>
+  return result.map((item) =>
     item.type === 'ad' ? item : { type: 'reel', data: item, feedId: `reel-${item.id}` }
   );
 }
@@ -46,7 +46,7 @@ const CoinBurst = ({ onDone }) => {
   useEffect(() => {
     const t = setTimeout(onDone, 1800);
     return () => clearTimeout(t);
-  }, []);
+  }, [onDone]);
   return (
     <div className="absolute inset-0 z-[80] pointer-events-none flex items-end justify-center pb-40">
       <div className="flex flex-col items-center animate-coin-burst">
@@ -73,12 +73,35 @@ const CoinBurst = ({ onDone }) => {
   );
 };
 
+// Video component that handles dynamic play/pause based on scroll position
+const ReelVideo = ({ src, isActive }) => {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (isActive && videoRef.current) {
+      videoRef.current.play().catch(e => console.warn('Autoplay prevented:', e));
+    } else if (!isActive && videoRef.current) {
+      videoRef.current.pause();
+    }
+  }, [isActive, src]);
+
+  return (
+    <video
+      ref={videoRef}
+      src={src}
+      className="absolute inset-0 w-full h-full object-cover"
+      loop
+      muted
+      playsInline
+    />
+  );
+};
+
 const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], activeScope = 'local', setActiveScope, selectedCountry = 'in' }) => {
   const [activeLang, setActiveLang] = useState('All');
   const [liked, setLiked] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [adTimer, setAdTimer] = useState(0);
-  const [timerRunning, setTimerRunning] = useState(false);
   const [completedAds, setCompletedAds] = useState(new Set());
   const [adsWatched, setAdsWatched] = useState(0);
   const [showBurst, setShowBurst] = useState(false);
@@ -92,7 +115,8 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
   const selectedCapitalName = selectedCountryData?.capital || 'Ghaziabad';
 
   // Geospatial filtering for user reels
-  const filteredUserReels = userReels.filter(r => {
+  const filteredUserReels = useMemo(() => userReels.filter(r => {
+    if (r.isUserPost) return true;
     if (!r.location) return true;
     if (typeof r.location === 'string') return true;
     if (activeScope === 'global') return true;
@@ -100,16 +124,16 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
     if (activeScope === 'city') return r.location.city === selectedCapitalName;
     if (activeScope === 'local') return r.location.neighborhood === 'Sector 4';
     return true;
-  });
+  }), [userReels, activeScope, selectedCountryName, selectedCapitalName]);
 
   // User-posted reels formatted for feed
-  const userFeedItems = filteredUserReels.map(r => ({
+  const userFeedItems = useMemo(() => filteredUserReels.map(r => ({
     type: 'reel',
     data: { ...r, isUserPost: true },
     feedId: r.id,
-  }));
+  })), [filteredUserReels]);
 
-  const filtered = REELS_DATA.filter(r => {
+  const filtered = useMemo(() => REELS_DATA.filter(r => {
     // Geospatial scope match matching ExploreScreen
     let scopeMatch = false;
     if (activeScope === 'global') {
@@ -142,51 +166,30 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
 
     const l = activeLang === 'All' || r.language === activeLang;
     return scopeMatch && l;
-  });
+  }), [activeScope, activeLang]);
 
   // Stable feed — rebuilt only when filter changes, user reels always prepended
-  const [feed, setFeed] = useState(() => [...userFeedItems, ...buildFeed(filtered.length > 0 ? filtered : REELS_DATA)]);
+  const feed = useMemo(() => {
+    return [...userFeedItems, ...buildFeed(filtered.length > 0 ? filtered : REELS_DATA)];
+  }, [userFeedItems, filtered]);
+
+  // Reset scroll and currentIndex when filters or userReels change
   useEffect(() => {
-    setFeed([...userFeedItems, ...buildFeed(filtered.length > 0 ? filtered : REELS_DATA)]);
-    setCurrentIndex(0);
+    setTimeout(() => {
+      setCurrentIndex(0);
+    }, 0);
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [activeScope, activeLang, userReels]);
 
-
-  const currentItem = feed[currentIndex];
-
-  // Start/stop timer based on current item
-  useEffect(() => {
-    clearInterval(timerRef.current);
-    setTimerRunning(false);
-    if (currentItem?.type === 'ad' && !completedAds.has(currentItem.feedId)) {
-      setAdTimer(5);
-      setTimerRunning(true);
-    } else {
-      setAdTimer(0);
-    }
-  }, [currentIndex, feed]);
-
-  useEffect(() => {
-    if (!timerRunning) return;
-    timerRef.current = setInterval(() => {
-      setAdTimer(prev => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current);
-          setTimerRunning(false);
-          onAdComplete();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timerRef.current);
-  }, [timerRunning]);
-
+  // Ad Completion callback — declared before useEffects to satisfy React-Hooks rules
   const onAdComplete = useCallback(() => {
     const item = feed[currentIndex];
     if (!item || item.type !== 'ad' || completedAds.has(item.feedId)) return;
-    setCompletedAds(prev => new Set(prev).add(item.feedId));
+    setCompletedAds(prev => {
+      const next = new Set(prev);
+      next.add(item.feedId);
+      return next;
+    });
     // Show coin burst
     setShowBurst(true);
     // Credit 0.03 coins
@@ -204,6 +207,31 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
       return next;
     });
   }, [feed, currentIndex, completedAds, setAdCoins]);
+
+  const currentItem = feed[currentIndex];
+
+  // Ad watch timer logic — starts a 5s countdown when an uncompleted ad is shown
+  useEffect(() => {
+    clearInterval(timerRef.current);
+    
+    if (currentItem?.type === 'ad' && !completedAds.has(currentItem.feedId)) {
+      let timeLeft = 5;
+      setAdTimer(timeLeft);
+      
+      timerRef.current = setInterval(() => {
+        timeLeft -= 1;
+        setAdTimer(timeLeft);
+        if (timeLeft <= 0) {
+          clearInterval(timerRef.current);
+          onAdComplete();
+        }
+      }, 1000);
+    } else {
+      setAdTimer(0);
+    }
+    
+    return () => clearInterval(timerRef.current);
+  }, [currentIndex, currentItem, completedAds, onAdComplete]);
 
   const handleScroll = () => {
     if (!scrollRef.current) return;
@@ -272,16 +300,12 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
                 {/* Real uploaded media (video or image) vs demo reel */}
                 {item.data.mediaUrl ? (
                   item.data.mediaType === 'video' ? (
-                    <video src={item.data.mediaUrl}
-                      className="absolute inset-0 w-full h-full object-cover"
-                      autoPlay={currentIndex === idx} loop muted playsInline />
+                    <ReelVideo src={item.data.mediaUrl} isActive={currentIndex === idx} />
                   ) : (
                     <img src={item.data.mediaUrl} alt="Reel" className="absolute inset-0 w-full h-full object-cover" />
                   )
                 ) : (
-                  <video src={item.data.videoUrl}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    autoPlay={currentIndex === idx} loop muted playsInline />
+                  <ReelVideo src={item.data.videoUrl} isActive={currentIndex === idx} />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/80" />
 
@@ -336,26 +360,44 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
                 <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-8 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-20">
                   <div className="flex items-center space-x-3 mb-2">
                     <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-black border-2 border-white shadow-lg">
-                      {item.data.creator.charAt(1).toUpperCase()}{item.data.creator.charAt(2).toUpperCase()}
+                      {(() => {
+                        const creatorName = item.data.creator || '@you';
+                        return creatorName.startsWith('@') 
+                          ? creatorName.slice(1, 3).toUpperCase() 
+                          : creatorName.slice(0, 2).toUpperCase();
+                      })()}
                     </div>
                     <div className="flex-1">
                       <h3 className="font-black text-sm flex items-center space-x-1.5">
-                        <span>{item.data.creator}</span>
+                        <span>{item.data.creator || '@you'}</span>
                         <span className="text-[8px] bg-blue-500 text-white px-1.5 py-0.5 rounded-full">✓</span>
                       </h3>
-                      <p className="text-[10px] text-white/50">📍 {item.data.location} · {item.data.role}</p>
+                      <p className="text-[10px] text-white/50 font-medium">
+                        📍 {typeof item.data.location === 'object' 
+                          ? `${item.data.location.neighborhood || ''}, ${item.data.location.city || ''}` 
+                          : item.data.location} · {item.data.role}
+                      </p>
                     </div>
                     <button className="border border-white/40 px-3 py-1.5 rounded-full text-[11px] font-bold backdrop-blur-sm">Follow</button>
                   </div>
                   <p className="text-sm mb-4 w-4/5 leading-snug text-white/90">{item.data.desc}</p>
                   <button className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-2xl font-bold text-sm active:scale-[0.98] transition-transform">
-                    {item.data.cta} →
+                    {item.data.cta || 'Book Now'} →
                   </button>
                 </div>
               </div>
             ) : (
               /* ── SPONSORED AD ── */
               <div className={`h-full w-full relative bg-gradient-to-br ${item.data.gradient} flex items-center justify-center overflow-hidden`}>
+                
+                {/* AD VIDEO BACKGROUND */}
+                {item.data.videoUrl && (
+                  <>
+                    <ReelVideo src={item.data.videoUrl} isActive={currentIndex === idx} />
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+                  </>
+                )}
+
                 <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
 
                 {/* Animated background glow */}
@@ -392,7 +434,7 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
                         <span className="text-amber-300 font-black text-sm">+0.03 🪙 Added to Wallet</span>
                       </div>
                     </div>
-                  ) : currentIndex === idx && timerRunning ? (
+                  ) : currentIndex === idx && adTimer > 0 ? (
                     <div className="flex flex-col items-center space-y-3 mb-6">
                       {/* Circular countdown */}
                       <div className="relative w-20 h-20">

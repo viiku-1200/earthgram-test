@@ -58,7 +58,11 @@ const AppContent = () => {
   });
 
   useEffect(() => {
-    localStorage.setItem('earthgram_quality_posts', JSON.stringify(qualityPosts));
+    try {
+      localStorage.setItem('earthgram_quality_posts', JSON.stringify(qualityPosts));
+    } catch (err) {
+      console.warn('Failed to save quality posts to localStorage', err);
+    }
   }, [qualityPosts]);
 
   const addQualityPost = useCallback((newPost) => {
@@ -83,7 +87,11 @@ const AppContent = () => {
   });
 
   useEffect(() => {
-    localStorage.setItem('earthgram_user_reels', JSON.stringify(userReels));
+    try {
+      localStorage.setItem('earthgram_user_reels', JSON.stringify(userReels));
+    } catch (err) {
+      console.warn('Failed to save user reels to localStorage', err);
+    }
   }, [userReels]);
 
   const addUserReel = useCallback((newReel) => {

@@ -37,17 +37,15 @@ const UploadReelScreen = ({ isDarkMode, onClose, addUserReel }) => {
     const isImage = file.type.startsWith('image/');
     if (!isVideo && !isImage) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData(prev => ({
-        ...prev,
-        mediaFile: file,
-        mediaUrl: reader.result,
-        mediaType: isVideo ? 'video' : 'image',
-        thumbnail: isImage ? reader.result : null,
-      }));
-    };
-    reader.readAsDataURL(file);
+    // Use Blob URL for instantaneous load instead of base64
+    const blobUrl = URL.createObjectURL(file);
+    setFormData(prev => ({
+      ...prev,
+      mediaFile: file,
+      mediaUrl: blobUrl,
+      mediaType: isVideo ? 'video' : 'image',
+      thumbnail: isImage ? blobUrl : null,
+    }));
   };
 
   const handlePublish = () => {
@@ -55,45 +53,50 @@ const UploadReelScreen = ({ isDarkMode, onClose, addUserReel }) => {
     setIsPublishing(true);
     setPublishProgress(0);
 
+    let progress = 0;
     // Simulate upload progress
     const interval = setInterval(() => {
-      setPublishProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          // Build reel object
-          const newReel = {
-            id: 'reel_' + Date.now(),
-            type: 'reel',
-            isUserPost: true,
-            username: 'You',
-            handle: '@yourhandle',
-            avatar: '👤',
-            category: formData.category,
-            scope: formData.scope.toLowerCase(),
-            language: formData.language,
-            caption: formData.caption,
-            tags: formData.tags.split(' ').filter(t => t.startsWith('#')),
-            mediaUrl: formData.mediaUrl,
-            mediaType: formData.mediaType,
-            thumbnail: formData.thumbnail || formData.mediaUrl,
-            ctaText: formData.ctaText,
-            ctaLink: formData.ctaLink,
-            price: formData.showPrice ? formData.price : null,
-            likes: 0,
-            comments: 0,
-            shares: 0,
-            timeAgo: 'Just now',
-            isVerified: false,
-            gradient: 'from-indigo-800 via-purple-900 to-indigo-900',
-            icon: '📹',
-          };
-          if (addUserReel) addUserReel(newReel);
-          setIsPublishing(false);
-          setStep(2);
-          return 100;
-        }
-        return prev + 5;
-      });
+      progress += 5;
+      if (progress >= 100) {
+        clearInterval(interval);
+        setPublishProgress(100);
+        // Build reel object
+        const newReel = {
+          id: 'reel_' + Date.now(),
+          type: 'reel',
+          isUserPost: true,
+          username: 'You',
+          handle: '@yourhandle',
+          creator: '@yourhandle',
+          avatar: '👤',
+          category: formData.category,
+          role: formData.category,
+          scope: formData.scope.toLowerCase(),
+          language: formData.language,
+          caption: formData.caption,
+          desc: formData.caption,
+          tags: formData.tags.split(' ').filter(t => t.startsWith('#')),
+          mediaUrl: formData.mediaUrl,
+          mediaType: formData.mediaType,
+          thumbnail: formData.thumbnail || formData.mediaUrl,
+          ctaText: formData.ctaText,
+          cta: formData.ctaText,
+          ctaLink: formData.ctaLink,
+          price: formData.showPrice ? formData.price : null,
+          likes: '0',
+          comments: '0',
+          shares: '0',
+          timeAgo: 'Just now',
+          isVerified: false,
+          gradient: 'from-indigo-800 via-purple-900 to-indigo-900',
+          icon: '📹',
+        };
+        if (addUserReel) addUserReel(newReel);
+        setIsPublishing(false);
+        setStep(2);
+      } else {
+        setPublishProgress(progress);
+      }
     }, 60);
   };
 

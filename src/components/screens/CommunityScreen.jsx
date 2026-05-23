@@ -12,6 +12,7 @@ const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts, activ
 
   // Geospatial filtering logic matching ExploreScreen
   const filteredQualityPosts = qualityPosts.filter(p => {
+    if (p.isUserPost) return true;
     if (!p.location) return true;
     if (typeof p.location === 'string') {
       if (activeScope === 'global' || activeScope === 'national') return true;
@@ -132,14 +133,14 @@ const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts, activ
                     {/* 1. BEFORE & AFTER IMAGES */}
                     <div className="grid grid-cols-2 gap-1 p-2">
                       <div className="relative aspect-video rounded-[1.5rem] overflow-hidden bg-slate-100 flex items-center justify-center border border-black/5">
-                        {post.beforeImage && post.beforeImage.startsWith('data:')
+                        {post.beforeImage && (post.beforeImage.startsWith('data:') || post.beforeImage.startsWith('blob:'))
                           ? <img src={post.beforeImage} alt="Before" className="w-full h-full object-cover" />
                           : <span className="text-4xl">{post.beforeImage || '📸'}</span>
                         }
                         <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest">Before</div>
                       </div>
                       <div className="relative aspect-video rounded-[1.5rem] overflow-hidden bg-emerald-50 flex items-center justify-center border border-emerald-500/10">
-                        {post.afterImage && post.afterImage.startsWith('data:')
+                        {post.afterImage && (post.afterImage.startsWith('data:') || post.afterImage.startsWith('blob:'))
                           ? <img src={post.afterImage} alt="After" className="w-full h-full object-cover" />
                           : <span className="text-4xl">{post.afterImage || '📸'}</span>
                         }
