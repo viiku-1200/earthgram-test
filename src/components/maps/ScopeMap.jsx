@@ -24,11 +24,30 @@ const MapAutoCenter = ({ center }) => {
       // Only fly if the map is significantly far from the target center (e.g. country change)
       const dist = Math.sqrt(Math.pow(current.lat - center[0], 2) + Math.pow(current.lng - center[1], 2));
       if (dist > 0.01) {
-        map.flyTo(center, 15, { animate: true, duration: 1.5 });
+        map.flyTo(center, 14, { animate: true, duration: 1.5 });
       }
     }
   }, [center, map]);
   return null;
+};
+
+// Custom DivIcon for User Location (Pulsing Blue Dot - No labels)
+export const createUserIcon = () => {
+  return L.divIcon({
+    html: `
+      <div class="relative flex items-center justify-center">
+        <!-- Outer pulsing halo -->
+        <div class="absolute w-8 h-8 bg-blue-500/35 rounded-full animate-ping opacity-75"></div>
+        <!-- Inner pulsing halo -->
+        <div class="absolute w-5 h-5 bg-blue-500/45 rounded-full animate-pulse opacity-50"></div>
+        <!-- Center solid core with premium white border -->
+        <div class="w-3.5 h-3.5 bg-blue-600 rounded-full border-2 border-white shadow-[0_2px_6px_rgba(37,99,235,0.6)] relative z-10"></div>
+      </div>
+    `,
+    className: 'custom-user-icon-container',
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+  });
 };
 
 // Custom DivIcon for labeled markers with dual-ring pulsing radar effect
@@ -65,6 +84,7 @@ const createLabeledIcon = (emoji, label, color = 'indigo') => {
   });
 };
 
+
 const GLOW_COLORS = {
   indigo: 'rgba(99,102,241,0.6)', pink: 'rgba(236,72,153,0.6)', green: 'rgba(16,185,129,0.6)',
   amber: 'rgba(245,158,11,0.6)', blue: 'rgba(59,130,246,0.6)', violet: 'rgba(139,92,246,0.6)',
@@ -80,7 +100,7 @@ const SIZE_MAP = { lg: 14, md: 10, sm: 7 };
 const DEFAULT_CENTER = [28.6692, 77.4538]; // Sector 4, Ghaziabad
 
 // ==================== LOCAL MAP (REAL-TIME) ====================
-const LocalMap = ({ isDarkMode, countryCenter, selectedCountry }) => {
+const LocalMap = ({ isDarkMode, countryCenter, selectedCountry, customProviders = [] }) => {
   const navigate = useNavigate();
   // Live driver position relative to current center
   const [driverPos, setDriverPos] = useState([countryCenter[0] + 0.0018, countryCenter[1] + 0.0012]);
@@ -175,29 +195,38 @@ const LocalMap = ({ isDarkMode, countryCenter, selectedCountry }) => {
   // Map providers to simulated coordinates around the current center
   const serviceMarkers = useMemo(() => {
     const center = (selectedCountry === 'in' && userPos) ? userPos : countryCenter;
-    return PROVIDERS.slice(0, 10).map((p, i) => ({
+    const baseMarkers = PROVIDERS.slice(0, 10).map((p, i) => ({
       ...p,
       pos: [
         center[0] + (Math.sin(i * 2.1) * 0.007),
         center[1] + (Math.cos(i * 2.1) * 0.007)
       ]
     }));
-  }, [userPos, countryCenter, selectedCountry]);
+    
+    // Add real custom providers that have location data
+    const customMarkers = customProviders.filter(p => p.location).map(p => ({
+      ...p,
+      pos: p.location
+    }));
+    
+    return [...customMarkers, ...baseMarkers];
+  }, [userPos, countryCenter, selectedCountry, customProviders]);
 
   return (
     <div className="map-local relative w-full h-[340px] rounded-[3.5rem] overflow-hidden shadow-premium-2xl border-4 border-white dark:border-slate-800 animate-fade-in group">
-      <MapContainer center={mapCenter} zoom={15} className="h-full w-full z-0" scrollWheelZoom={false}>
+      <MapContainer center={mapCenter} zoom={14} className="h-full w-full z-0" scrollWheelZoom={false}>
         <TileLayer
-          url={isDarkMode 
-            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          }
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          className={isDarkMode ? "dark-map-tiles" : ""}
           attribution='&copy; OpenStreetMap'
         />
         <MapAutoCenter center={mapCenter} />
         
         {/* Default / User Location */}
-        <Marker position={(selectedCountry === 'in' && userPos) ? userPos : countryCenter}>
+        <Marker 
+          position={(selectedCountry === 'in' && userPos) ? userPos : countryCenter}
+          icon={createUserIcon()}
+        >
           <Popup>
              <div className="text-center p-1">
                 <p className="font-bold text-xs">{(selectedCountry === 'in' && userPos) ? 'Your Live Location' : 'Capital Center'}</p>
@@ -521,13 +550,13 @@ const GlobalMap = () => {
 };
 
 // ==================== MAIN EXPORT ====================
-const ScopeMap = ({ scope, isDarkMode, selectedCountry = 'in' }) => {
+const ScopeMap = ({ scope, isDarkMode, selectedCountry = 'in', customProviders = [] }) => {
   const country = COUNTRIES.find(c => c.id === selectedCountry);
   const countryCenter = country?.gps || DEFAULT_CENTER;
 
   if (scope === 'national') return <NationalMap selectedCountry={selectedCountry} />;
   if (scope === 'global') return <GlobalMap />;
-  return <LocalMap isDarkMode={isDarkMode} countryCenter={countryCenter} selectedCountry={selectedCountry} />;
+  return <LocalMap isDarkMode={isDarkMode} countryCenter={countryCenter} selectedCountry={selectedCountry} customProviders={customProviders} />;
 };
 
 export default ScopeMap;

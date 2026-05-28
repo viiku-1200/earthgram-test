@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import { QUALITY_CHECK_POSTS } from './data/constants';
+import { QUALITY_CHECK_POSTS, CONVERSATIONS } from './data/constants';
 
 // Screen Components
 import HomeScreen from './components/screens/HomeScreen';
@@ -133,6 +133,26 @@ const AppContent = () => {
     });
   }, []);
 
+  // Shared Chat/Messaging State — persists across all sessions
+  const [conversations, setConversations] = useState(() => {
+    const saved = localStorage.getItem('earthgram_conversations');
+    return saved ? JSON.parse(saved) : CONVERSATIONS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('earthgram_conversations', JSON.stringify(conversations));
+  }, [conversations]);
+
+  // Virtual Shop Providers
+  const [customProviders, setCustomProviders] = useState(() => {
+    const saved = localStorage.getItem('earthgram_custom_providers');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('earthgram_custom_providers', JSON.stringify(customProviders));
+  }, [customProviders]);
+
   const cancelBooking = useCallback((bookingId) => {
     setUserBookings(prev => {
       const updated = prev.map(b =>
@@ -237,8 +257,8 @@ const AppContent = () => {
       <PhoneFrame>
       <div className="h-full w-full">
         <Routes>
-          <Route path="/" element={<HomeScreen isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} qualityPosts={qualityPosts} />} />
-          <Route path="/explore" element={<ExploreScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} qualityPosts={qualityPosts} userReels={userReels} activeScope={activeScope} selectedCountry={selectedCountry} />} />
+          <Route path="/" element={<HomeScreen isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} qualityPosts={qualityPosts} customProviders={customProviders} adCoins={adCoins} setAdCoins={setAdCoins} />} />
+          <Route path="/explore" element={<ExploreScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} qualityPosts={qualityPosts} userReels={userReels} activeScope={activeScope} selectedCountry={selectedCountry} customProviders={customProviders} />} />
           <Route path="/reels" element={<ReelsScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} userReels={userReels} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} />} />
           <Route path="/community" element={<CommunityScreen isDarkMode={isDarkMode} qualityPosts={qualityPosts} setQualityPosts={setQualityPosts} activeScope={activeScope} selectedCountry={selectedCountry} />} />
 
@@ -263,13 +283,21 @@ const AppContent = () => {
 
           {/* Overlays / Full screens */}
           <Route path="/chat" element={<ChatScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
-          <Route path="/register" element={<RegisterScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} onRegisterSuccess={(data) => { setCompanyData(data); setIsRegistered(true); setIsBossMode(true); navigate('/profile'); }} />} />
+          <Route path="/register" element={<RegisterScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} onRegisterSuccess={(data) => { 
+            setCompanyData(data); 
+            setIsRegistered(true); 
+            setIsBossMode(true);
+            if (data.providerObj) {
+              setCustomProviders(prev => [data.providerObj, ...prev]);
+            }
+            navigate('/profile'); 
+          }} />} />
           <Route path="/provider" element={<ProviderProfileScreen isDarkMode={isDarkMode} onBack={() => navigate(-1)} qualityPosts={qualityPosts} />} />
           <Route path="/book" element={<BookingScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} userBookings={userBookings} addBooking={addBooking} cancelBooking={cancelBooking} />} />
           <Route path="/activity" element={<ActivityScreen isDarkMode={isDarkMode} adCoins={adCoins} />} />
-          <Route path="/search" element={<SearchScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
+          <Route path="/search" element={<SearchScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} customProviders={customProviders} />} />
           <Route path="/explore-search" element={<ExploreSearchScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
-          <Route path="/messages" element={<MessagingScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
+          <Route path="/messages" element={<MessagingScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} conversations={conversations} setConversations={setConversations} />} />
           <Route path="/wallet" element={<WalletScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} adCoins={adCoins} />} />
           <Route path="/itzpass" element={<ItzPassScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
           <Route path="/catalog" element={<ServiceCatalogScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { COMMUNITY_GROUPS, REELS_DATA, LOCAL_SPOTS, EXPLORE_CATEGORIES, COUNTRIES } from '../../data/constants';
+import { createUserIcon } from '../maps/ScopeMap';
 
 // Fix Leaflet marker icon issue in React
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -52,7 +53,7 @@ const MapController = ({ activeScope, countryCenter, selectedCountry, userPos })
 
     if (activeScope === 'local') {
       // Local: zoom into user's live GPS or country capital at street level
-      map.flyTo(activeCenter, 15, { duration: 1.5 });
+      map.flyTo(activeCenter, 14, { duration: 1.5 });
     } else if (activeScope === 'city') {
       // City: show the city area
       map.flyTo(activeCenter, 12, { duration: 1.5 });
@@ -101,24 +102,22 @@ const MapTabView = ({ isDarkMode, qualityPosts = [], activeScope, userPos, count
 
   return (
     <div className="h-full relative overflow-hidden animate-fade-in">
-      <MapContainer center={activeCenter} zoom={15} className="h-full w-full z-0">
+      <MapContainer center={activeCenter} zoom={14} className="h-full w-full z-0">
         <MapController activeScope={activeScope} countryCenter={countryCenter} selectedCountry={selectedCountry} userPos={userPos} />
         <TileLayer
-          url={isDarkMode
-            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          }
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          className={isDarkMode ? "dark-map-tiles" : ""}
           attribution='&copy; OpenStreetMap'
         />
 
         {/* Real User Location or Country Capital */}
-        <Marker position={activeCenter}>
+        <Marker position={activeCenter} icon={createUserIcon()}>
           <Popup>{(selectedCountry === 'in' && userPos) ? '📍 You are here' : '🏛️ Capital Center'}</Popup>
         </Marker>
 
         {/* Capital City Marker — visible in National/Global scope */}
         {(activeScope === 'national' || activeScope === 'global') && countryCenter && (
-          <Marker position={countryCenter}>
+          <Marker position={countryCenter} icon={createUserIcon()}>
             <Popup>
               <div className="p-1 text-center">
                 <p className="font-bold text-sm">{COUNTRIES.find(c => c.id === selectedCountry)?.flag} {COUNTRIES.find(c => c.id === selectedCountry)?.capital}</p>

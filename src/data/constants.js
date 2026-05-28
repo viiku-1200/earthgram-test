@@ -408,6 +408,138 @@ export const CATEGORIES = [
     color: 'from-orange-500 to-red-700',
     subTabs: [{ name: 'Pool Load', icon: '📦', bg: 'bg-orange-50' }, { name: 'Ride', icon: '🚗', bg: 'bg-gray-50' }, { name: 'All', icon: '📋', bg: 'bg-gray-50' }],
     providers: [{ id: 'smt1', name: 'Kisan Mini Truck', sub: 'Pool Load', distance: '0.5 km', rating: '4.9', reviews: 18, price: '₹50 share', tag: 'Daily @ 6 AM', available: true }]
+  },
+  {
+    id: '29', name: 'Tailor', icon: '🧵', lucide: 'Scissors', color: 'from-violet-500 to-purple-700', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'lk', 'pk', 'sg', 'th', 'vn', 'us', 'uk'],
+    subTabs: [
+      { name: 'Stitching', icon: '🪡', bg: 'bg-violet-100' },
+      { name: 'Alterations', icon: '✂️', bg: 'bg-blue-100' },
+      { name: 'Blouse', icon: '👗', bg: 'bg-pink-100' },
+      { name: 'Kurta/Suit', icon: '🥻', bg: 'bg-amber-100' },
+      { name: 'Embroidery', icon: '🧶', bg: 'bg-rose-100' },
+      { name: 'All', icon: '📋', bg: 'bg-gray-100' },
+    ],
+    providers: [
+      { id: 'tl1', name: 'Master Stitch Tailors', sub: 'Stitching', distance: '0.4 km', rating: '4.9', reviews: 380, price: '₹250 start', tag: '⭐ Top Rated', available: true },
+      { id: 'tl2', name: 'Perfect Fit Alterations', sub: 'Alterations', distance: '0.6 km', rating: '4.8', reviews: 210, price: '₹100 start', tag: 'Same Day', available: true },
+      { id: 'tl3', name: 'Rekha Designer Blouse', sub: 'Blouse', distance: '0.9 km', rating: '4.9', reviews: 540, price: '₹400 start', tag: '👗 Bridal Expert', available: true },
+      { id: 'tl4', name: 'Shahi Darzi House', sub: 'Kurta/Suit', distance: '1.2 km', rating: '4.7', reviews: 175, price: '₹600 start', tag: 'Men & Women', available: true },
+      { id: 'tl5', name: 'Royal Embroidery Works', sub: 'Embroidery', distance: '1.5 km', rating: '4.8', reviews: 95, price: '₹500 start', tag: 'Zari & Thread', available: true },
+      { id: 'tl6', name: 'Quick Tailor Express', sub: 'Stitching', distance: '0.3 km', rating: '4.6', reviews: 420, price: '₹150 start', tag: '⚡ 2hr Delivery', available: true },
+      { id: 'tl7', name: 'Noor Fashion Studio', sub: 'Kurta/Suit', distance: '2.0 km', rating: '4.9', reviews: 290, price: '₹800 start', tag: 'Premium Fabric', available: true },
+    ],
+  },
+  {
+    id: '30', name: 'Shoes Service', icon: '👟', lucide: 'Footprints', color: 'from-amber-600 to-yellow-800', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'lk', 'pk', 'sg', 'th', 'vn', 'us', 'uk'],
+    subTabs: [
+      { name: 'Repair', icon: '🔧', bg: 'bg-amber-100' },
+      { name: 'Polish', icon: '✨', bg: 'bg-yellow-100' },
+      { name: 'Custom Making', icon: '👞', bg: 'bg-orange-100' },
+      { name: 'Cleaning', icon: '🧹', bg: 'bg-blue-100' },
+      { name: 'Sole Replacement', icon: '🩴', bg: 'bg-green-100' },
+      { name: 'All', icon: '📋', bg: 'bg-gray-100' },
+    ],
+    providers: [
+      { id: 'sh1', name: 'Shoe Doctor Pro', sub: 'Repair', distance: '0.3 km', rating: '4.9', reviews: 450, price: '₹100 start', tag: '⚡ Quick Fix', available: true },
+      { id: 'sh2', name: 'Classic Shine Polish', sub: 'Polish', distance: '0.5 km', rating: '4.7', reviews: 320, price: '₹50 start', tag: 'Mirror Finish', available: true },
+      { id: 'sh3', name: 'Craftsmen Custom Shoes', sub: 'Custom Making', distance: '1.8 km', rating: '4.9', reviews: 185, price: '₹1,500 start', tag: '👞 Handmade', available: true },
+      { id: 'sh4', name: 'FreshKick Cleaning', sub: 'Cleaning', distance: '1.0 km', rating: '4.8', reviews: 210, price: '₹200/pair', tag: 'Sneaker Expert', available: true },
+      { id: 'sh5', name: 'SoleMaster Works', sub: 'Sole Replacement', distance: '0.7 km', rating: '4.8', reviews: 140, price: '₹250 start', tag: 'All Brands', available: true },
+      { id: 'sh6', name: 'Leather Craft Studio', sub: 'Custom Making', distance: '2.5 km', rating: '4.9', reviews: 95, price: '₹2,500 start', tag: '🏆 Premium Leather', available: true },
+      { id: 'sh7', name: 'Moochi Express', sub: 'Repair', distance: '0.2 km', rating: '4.6', reviews: 680, price: '₹60 start', tag: 'Nearest', available: true },
+    ],
+  },
+  {
+    id: '31', name: 'Two-Wheeler Care', icon: '🏍️', lucide: 'Bike', color: 'from-orange-600 to-red-800', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'lk', 'pk', 'sg', 'th', 'vn', 'us', 'uk'],
+    subTabs: [
+      { name: 'Engine Service', icon: '🔧', bg: 'bg-orange-50' },
+      { name: 'Wash & Polish', icon: '🧼', bg: 'bg-blue-50' },
+      { name: 'Tyre & Puncture', icon: '🚨', bg: 'bg-amber-50' },
+      { name: 'Spares & Oil', icon: '🛢️', bg: 'bg-gray-100' },
+      { name: 'Modification', icon: '🎨', bg: 'bg-pink-50' },
+      { name: 'All', icon: '📋', bg: 'bg-gray-50' },
+    ],
+    providers: [
+      { id: 'tw1', name: 'MotoFix Doorstep Garage', sub: 'Engine Service', distance: '0.5 km', rating: '4.9', reviews: 850, price: '₹399 start', tag: '🏍️ Two-Wheeler Expert', available: true },
+      { id: 'tw2', name: 'Classic Royal Enfield Care', sub: 'Engine Service', distance: '1.8 km', rating: '4.9', reviews: 540, price: '₹499 tuning', tag: '👑 Bullet / Cruiser Expert', available: true },
+      { id: 'tw3', name: 'BikeShine Doorstep Wash', sub: 'Wash & Polish', distance: '0.4 km', rating: '4.8', reviews: 620, price: '₹99 start', tag: '✨ Foam + Wax Finish', available: true },
+      { id: 'tw4', name: 'Quick Puncture SOS', sub: 'Tyre & Puncture', distance: '0.3 km', rating: '4.7', reviews: 1120, price: '₹50 start', tag: '⚡ 10 min away', available: true },
+      { id: 'tw5', name: 'Balaji Bike Spares & Oil', sub: 'Spares & Oil', distance: '1.0 km', rating: '4.8', reviews: 310, price: '₹Var', tag: '🔋 Genuine Parts Only', available: true },
+      { id: 'tw6', name: 'MotoKraft Custom Works', sub: 'Modification', distance: '2.5 km', rating: '4.9', reviews: 185, price: '₹999 start', tag: '🎨 Wraps & Exhaust', available: true },
+      { id: 'tw7', name: 'Scooty Service Center', sub: 'Engine Service', distance: '0.7 km', rating: '4.6', reviews: 430, price: '₹299 start', tag: '🛵 Activa / Jupiter', available: true },
+      { id: 'tw8', name: 'Chain & Brake Clinic', sub: 'Spares & Oil', distance: '1.5 km', rating: '4.7', reviews: 275, price: '₹150 start', tag: '⛓️ Chain Lube & Brake Pad', available: true },
+    ],
+  },
+  {
+    id: '32', name: 'Car Service & Care', icon: '🚗', lucide: 'Car', color: 'from-slate-700 to-indigo-900', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'lk', 'pk', 'sg', 'th', 'vn', 'us', 'uk'],
+    subTabs: [
+      { name: 'General Service', icon: '🔧', bg: 'bg-indigo-50' },
+      { name: 'Deep Detailing', icon: '🧼', bg: 'bg-cyan-50' },
+      { name: 'Denting & Paint', icon: '🎨', bg: 'bg-purple-50' },
+      { name: 'AC & Electrical', icon: '❄️', bg: 'bg-blue-50' },
+      { name: 'Towing & Tyres', icon: '🚨', bg: 'bg-amber-50' },
+      { name: 'All', icon: '📋', bg: 'bg-gray-50' },
+    ],
+    providers: [
+      { id: 'cs1', name: 'Express Car Engine Doctor', sub: 'General Service', distance: '1.0 km', rating: '4.9', reviews: 680, price: '₹599 diagnostic', tag: '🚗 Sedan & SUV Specialist', available: true },
+      { id: 'cs2', name: 'Speedy Doorstep Detailing', sub: 'Deep Detailing', distance: '0.8 km', rating: '4.8', reviews: 420, price: '₹499 start', tag: '🧼 Eco Waterless Wash', available: true },
+      { id: 'cs3', name: 'CarbonCraft Wraps & Decals', sub: 'Denting & Paint', distance: '2.5 km', rating: '4.8', reviews: 215, price: '₹999 start', tag: '✨ Premium Customization', available: true },
+      { id: 'cs4', name: 'PaintCraft Dent Removal', sub: 'Denting & Paint', distance: '1.5 km', rating: '4.7', reviews: 340, price: '₹799 start', tag: '🔨 Scratch & Bumper Fix', available: true },
+      { id: 'cs5', name: 'Car AC Masters', sub: 'AC & Electrical', distance: '1.2 km', rating: '4.9', reviews: 510, price: '₹350 gas refill', tag: '❄️ All Brands', available: true },
+      { id: 'cs6', name: 'RoadGuard Towing Service', sub: 'Towing & Tyres', distance: '3.0 km', rating: '4.6', reviews: 190, price: '₹500 start', tag: '🚨 24/7 Emergency', available: true },
+      { id: 'cs7', name: 'Sharma Tyre & Alignment Hub', sub: 'Towing & Tyres', distance: '0.9 km', rating: '4.8', reviews: 750, price: '₹200 start', tag: '🛞 Balancing & Rotation', available: true },
+      { id: 'cs8', name: 'AutoGlow Interior Spa', sub: 'Deep Detailing', distance: '2.0 km', rating: '4.9', reviews: 165, price: '₹1,499 full', tag: '💎 Ceramic Coating', available: true },
+    ],
+  },
+  {
+    id: '33', name: 'Carpenter', icon: '🪚', lucide: 'Hammer', color: 'from-amber-800 to-amber-955', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'lk', 'pk', 'sg', 'th', 'vn', 'us', 'uk'],
+    subTabs: [
+      { name: 'General Repair', icon: '🔧', bg: 'bg-amber-50' },
+      { name: 'Door & Window', icon: '🚪', bg: 'bg-orange-50' },
+      { name: 'Locksmith', icon: '🔑', bg: 'bg-red-50' },
+      { name: 'Drill & Hang', icon: '🔩', bg: 'bg-gray-50' },
+      { name: 'All', icon: '📋', bg: 'bg-gray-50' },
+    ],
+    providers: [
+      { id: 'cp1', name: 'Sharma Door & Window Care', sub: 'Door & Window', distance: '0.4 km', rating: '4.9', reviews: 380, price: '₹199 visit', tag: '🚪 Fitting & Hinges', available: true },
+      { id: 'cp2', name: 'Verma Locksmith & Key', sub: 'Locksmith', distance: '0.6 km', rating: '4.8', reviews: 210, price: '₹150 start', tag: '🔑 Smart Lock Expert', available: true },
+      { id: 'cp3', name: 'Quick Drill & Wall Hanging', sub: 'Drill & Hang', distance: '0.5 km', rating: '4.9', reviews: 140, price: '₹99 start', tag: '⚡ Same Day Drill', available: true },
+      { id: 'cp4', name: 'Perfect Fit Local Carpenter', sub: 'General Repair', distance: '1.2 km', rating: '4.7', reviews: 175, price: '₹250 visit', tag: '🪛 Wood Fitting', available: true },
+    ],
+  },
+  {
+    id: '34', name: 'Painting & Waterproofing', icon: '🎨', lucide: 'Palette', color: 'from-purple-600 to-pink-700', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'lk', 'pk', 'sg', 'th', 'vn', 'us', 'uk'],
+    subTabs: [
+      { name: 'Painting', icon: '🏠', bg: 'bg-purple-50' },
+      { name: 'Waterproofing', icon: '☔', bg: 'bg-blue-50' },
+      { name: 'Accent Walls', icon: '🖼️', bg: 'bg-pink-50' },
+      { name: 'Quick Touchup', icon: '🖌️', bg: 'bg-yellow-50' },
+      { name: 'All', icon: '📋', bg: 'bg-gray-50' },
+    ],
+    providers: [
+      { id: 'pt1', name: 'Classic Painters & Co.', sub: 'Painting', distance: '1.0 km', rating: '4.9', reviews: 450, price: '₹999 start', tag: '🎨 Interior & Exterior', available: true },
+      { id: 'pt2', name: 'LeakStop Waterproofing', sub: 'Waterproofing', distance: '1.5 km', rating: '4.8', reviews: 320, price: '₹1,200 start', tag: '☔ Terrace & Wall Seal', available: true },
+      { id: 'pt3', name: 'WallArt Stencils & Decors', sub: 'Accent Walls', distance: '2.2 km', rating: '4.9', reviews: 185, price: '₹1,500 start', tag: '🖼️ Textures & Wallpaper', available: true },
+      { id: 'pt4', name: 'Quick Paint Touchup', sub: 'Quick Touchup', distance: '0.5 km', rating: '4.7', reviews: 210, price: '₹199 start', tag: '⚡ Same Day Service', available: true },
+      { id: 'pt5', name: 'Berger Express Painting', sub: 'Painting', distance: '2.8 km', rating: '4.9', reviews: 680, price: '₹Var', tag: '🏆 Dust-Free Painting', available: true },
+    ],
+  },
+  {
+    id: '35', name: 'Furniture Service', icon: '🛋️', lucide: 'Armchair', color: 'from-yellow-600 to-amber-800', visibility: ['default', 'city', 'town', 'village'], countries: ['in', 'np', 'bd', 'lk', 'pk', 'sg', 'th', 'vn', 'us', 'uk'],
+    subTabs: [
+      { name: 'Sofa & Cushion', icon: '🛋️', bg: 'bg-orange-50' },
+      { name: 'Polish & Shine', icon: '✨', bg: 'bg-yellow-50' },
+      { name: 'Assembly', icon: '📦', bg: 'bg-blue-50' },
+      { name: 'Modular Kitchen', icon: '🍳', bg: 'bg-green-50' },
+      { name: 'All', icon: '📋', bg: 'bg-gray-50' },
+    ],
+    providers: [
+      { id: 'fn1', name: 'Sofa Spa & Upholstery', sub: 'Sofa & Cushion', distance: '1.5 km', rating: '4.9', reviews: 280, price: '₹800 start', tag: '🛋️ Foam & Cushioning', available: true },
+      { id: 'fn2', name: 'Royal Wood Polishers', sub: 'Polish & Shine', distance: '2.0 km', rating: '4.7', reviews: 95, price: '₹400 start', tag: '✨ Dining Table & Sofa', available: true },
+      { id: 'fn3', name: 'IKEA Assembly Pro', sub: 'Assembly', distance: '1.5 km', rating: '4.9', reviews: 120, price: '₹299 start', tag: '📦 Wardrobes & Beds', available: true },
+      { id: 'fn4', name: 'Perfect Fit Cabinets', sub: 'Modular Kitchen', distance: '1.2 km', rating: '4.8', reviews: 175, price: '₹Var', tag: '🍳 Modular Kitchen Fix', available: true },
+      { id: 'fn5', name: 'WoodCraft Custom Furniture', sub: 'Assembly', distance: '0.4 km', rating: '4.9', reviews: 380, price: '₹1,200 start', tag: '🪑 Custom Sofas & Beds', available: true },
+    ],
   }
 ];
 
@@ -890,4 +1022,146 @@ export const ALL_SEARCHABLE_PROVIDERS = [
   { id: 'sp17', name: 'Dr. Sharma Clinic', category: 'Healthcare', sub: 'Doctor', rating: 4.8, reviews: 340, price: '₹800/visit', distance: '1.2 km', avatar: '⚕️', available: true, tag: 'MD General' },
   { id: 'sp18', name: 'Verma & Associates CA', category: 'Consultancy', sub: 'CA', rating: 4.7, reviews: 85, price: '₹2000/session', distance: '2.5 km', avatar: '📊', available: true, tag: 'Tax Expert' },
   { id: 'sp19', name: 'Legal Hub', category: 'Legal', sub: 'Legal', rating: 4.6, reviews: 60, price: '₹1000/hr', distance: '3.0 km', avatar: '⚖️', available: true, tag: 'Corporate' },
+];
+
+export const FAMOUS_LOCAL_FOOD = [
+  {
+    id: 'food_1',
+    dishName: 'Special Butter Momos 🥟',
+    restaurantName: 'Green Kitchen Cafe',
+    rating: 4.9,
+    reviews: 120,
+    distance: '0.4 km',
+    price: '₹180',
+    coinReward: 15,
+    tag: 'Dine-In • 15 Coins 🪙',
+    availableSeats: 5,
+    menu: [
+      { name: 'Special Butter Momos 🥟', price: '₹180' },
+      { name: 'Chilli Garlic Noodles 🍜', price: '₹150' },
+      { name: 'Steamed Veg Momos 🥟', price: '₹120' }
+    ]
+  },
+  {
+    id: 'food_2',
+    dishName: 'Chicken Biryani 🍛',
+    restaurantName: 'The Royal Biryani',
+    rating: 4.8,
+    reviews: 340,
+    distance: '1.2 km',
+    price: '₹290',
+    coinReward: 25,
+    tag: 'Sizzling Hot • 25 Coins 🪙',
+    availableSeats: 8,
+    menu: [
+      { name: 'Hyderabadi Chicken Biryani 🍛', price: '₹290' },
+      { name: 'Double Ka Meetha 🍞', price: '₹90' },
+      { name: 'Chicken Seekh Kebab 🍢', price: '₹220' }
+    ]
+  },
+  {
+    id: 'food_3',
+    dishName: 'Crispy Masala Dosa 🥞',
+    restaurantName: 'Anna South Cafe',
+    rating: 4.7,
+    reviews: 215,
+    distance: '0.8 km',
+    price: '₹140',
+    coinReward: 10,
+    tag: 'Crispy Choice • 10 Coins 🪙',
+    availableSeats: 3,
+    menu: [
+      { name: 'Crispy Butter Masala Dosa 🥞', price: '₹140' },
+      { name: 'Idli Sambar Combo ⚪', price: '₹80' },
+      { name: 'Filter Coffee ☕', price: '₹50' }
+    ]
+  },
+  {
+    id: 'food_4',
+    dishName: 'Choco Lava Dessert 🍫',
+    restaurantName: 'Sugar Dust Bakers',
+    rating: 4.9,
+    reviews: 95,
+    distance: '1.5 km',
+    price: '₹160',
+    coinReward: 20,
+    tag: 'Sweet Delight • 20 Coins 🪙',
+    availableSeats: 4,
+    menu: [
+      { name: 'Choco Lava Sizzler 🍫', price: '₹160' },
+      { name: 'Red Velvet Pastry 🍰', price: '₹110' },
+      { name: 'Mango Milkshake 🥭', price: '₹130' }
+    ]
+  }
+];
+
+export const LOCAL_RESTAURANTS = [
+  {
+    id: 'rest_1',
+    name: 'Green Kitchen Cafe',
+    emoji: '🏡',
+    cuisine: 'Chinese & Healthy Fast Food',
+    distance: '0.4 km',
+    rating: 4.9,
+    reviews: 120,
+    coinReward: 15,
+    availableSeats: 5,
+    bio: 'A cozy, garden-themed cafe offering the best handmade momos and fresh artisan noodles in the neighborhood. Perfect for casual dates, workspace hours, and catching up with friends over high-grade teas.',
+    menu: [
+      { name: 'Special Butter Momos 🥟', price: '₹180', description: 'Freshly steamed veg momos tossed in savory local melting butter.' },
+      { name: 'Chilli Garlic Noodles 🍜', price: '₹150', description: 'Wok-tossed noodles in hot garlic chilli oils and spring greens.' },
+      { name: 'Steamed Veg Momos 🥟', price: '₹120', description: 'Healthy garden vegetable stuffed dumplings with spicy chutney.' }
+    ]
+  },
+  {
+    id: 'rest_2',
+    name: 'The Royal Biryani',
+    emoji: '🍛',
+    cuisine: 'Mughlai & Slow Biryani',
+    distance: '1.2 km',
+    rating: 4.8,
+    reviews: 340,
+    coinReward: 25,
+    availableSeats: 8,
+    bio: 'Authentic Hyderabadi handi biryani cooked over slow wood fire using traditional recipe spices. Famous for tender chicken, long basmati grains, and grand royal hospitality.',
+    menu: [
+      { name: 'Hyderabadi Chicken Biryani 🍛', price: '₹290', description: 'Classic slow-cooked chicken and basmati rice with boiled egg.' },
+      { name: 'Double Ka Meetha 🍞', price: '₹90', description: 'Crispy fried bread slices soaked in saffron milk and rich dry fruits.' },
+      { name: 'Chicken Seekh Kebab 🍢', price: '₹220', description: 'Spiced minced chicken skewered and grilled over open embers.' }
+    ]
+  },
+  {
+    id: 'rest_3',
+    name: 'Anna South Cafe',
+    emoji: '🥞',
+    cuisine: 'South Indian Delights & Coffee',
+    distance: '0.8 km',
+    rating: 4.7,
+    reviews: 215,
+    coinReward: 10,
+    availableSeats: 3,
+    bio: 'Traditional South Indian diner serving paper-thin crispy dosas, fluffy steaming idlis, and robust signature filter coffee brewed fresh in authentic metal tumblers.',
+    menu: [
+      { name: 'Crispy Butter Masala Dosa 🥞', price: '₹140', description: 'Large crispy rice crepe filled with spiced potato and butter.' },
+      { name: 'Idli Sambar Combo ⚪', price: '₹80', description: 'Two soft, fluffy rice cakes served with hot lentil soup and chutneys.' },
+      { name: 'Filter Coffee ☕', price: '₹50', description: 'Chicory-blended milk coffee frothed traditionally in a brass tumbler.' }
+    ]
+  },
+  {
+    id: 'rest_4',
+    name: 'Sugar Dust Bakers',
+    emoji: '🍰',
+    cuisine: 'Bakery & Sizzling Desserts',
+    distance: '1.5 km',
+    rating: 4.9,
+    reviews: 95,
+    coinReward: 20,
+    availableSeats: 4,
+    bio: 'A charming sweet boutique preparing delicious customized celebration cakes, fresh morning croissants, and molten hot lava chocolate sizzlers from scratch daily.',
+    menu: [
+      { name: 'Choco Lava Sizzler 🍫', price: '₹160', description: 'Hot chocolate lava cake served with vanilla bean ice cream scoop.' },
+      { name: 'Red Velvet Pastry 🍰', price: '₹110', description: 'Delicate cocoa pastry layered with velvety cream cheese frosting.' },
+      { name: 'Mango Milkshake 🥭', price: '₹130', description: 'Thick, creamy Alphonso mango pulp blended with rich fresh cream.' }
+    ]
+  }
 ];

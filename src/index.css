@@ -43,6 +43,9 @@ html, body {
 }
 
 /* ========== SLIDE ANIMATIONS ========== */
+.ease-out-expo {
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
 @keyframes slide-up {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
@@ -198,6 +201,11 @@ html, body {
   box-shadow: 0 4px 15px -3px rgba(16, 185, 129, 0.4);
 }
 
+/* ========== MAP DARK MODE FILTER ========== */
+.dark-map-tiles {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
 /* ========== CARD HOVER LIFT ========== */
 .card-lift {
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
@@ -237,11 +245,14 @@ html, body {
 
 /* ========== MAP STYLES ========== */
 
-/* Local map - warm, detailed neighborhood feel */
+/* Local map - clean white neighborhood layout */
 .map-local {
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 30%, #f0f9ff 60%, #eff6ff 100%);
+  background: #ffffff;
   position: relative;
   overflow: hidden;
+}
+.dark .map-local {
+  background: #0f172a;
 }
 .map-local::before {
   content: '';

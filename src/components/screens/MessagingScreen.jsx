@@ -1,34 +1,101 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { CONVERSATIONS } from '../../data/constants';
+import { useLocation } from 'react-router-dom';
 
 const AVATAR_GRADIENTS = { '⚡': 'from-amber-400 to-orange-500', '🧹': 'from-emerald-400 to-teal-500', '💄': 'from-pink-400 to-rose-500' };
+const DEFAULT_GRADIENT = 'from-indigo-400 to-purple-500';
 
-const MessagingScreen = ({ isDarkMode, onClose }) => {
-  const [activeConv, setActiveConv] = useState(null);
+const MessagingScreen = ({ isDarkMode, onClose, conversations = [], setConversations }) => {
+  const [activeConvId, setActiveConvId] = useState(null);
   const [newMsg, setNewMsg] = useState('');
-  const [messages, setMessages] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef(null);
+  const location = useLocation();
 
-  useEffect(() => { if (activeConv) setMessages(activeConv.messages); }, [activeConv]);
-  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  // Initialization: check if provider passed via navigation state
+  useEffect(() => {
+    const targetProvider = location.state?.provider;
+    if (targetProvider && conversations.length > 0) {
+      const existingConv = conversations.find(c => c.provider.toLowerCase() === targetProvider.name.toLowerCase());
+      if (existingConv) {
+        setActiveConvId(existingConv.id);
+      } else {
+        // Create new conversation dynamically
+        const newId = `conv_${Date.now()}`;
+        const newConv = {
+          id: newId,
+          provider: targetProvider.name,
+          avatar: targetProvider.avatar || '👋',
+          lastMessage: 'Chat started',
+          time: 'Just now',
+          unread: 0,
+          online: true,
+          service: targetProvider.category || 'Service',
+          messages: [{ id: 'm0', sender: 'provider', text: `Hi! I'm ${targetProvider.name}. How can I help you today?`, time: 'Now' }]
+        };
+        if (setConversations) {
+          setConversations(prev => [newConv, ...prev]);
+        }
+        setActiveConvId(newId);
+      }
+    }
+  }, [location.state, conversations.length, setConversations]);
+
+  const activeConv = conversations.find(c => c.id === activeConvId);
+
+  useEffect(() => { 
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); 
+  }, [activeConv?.messages, isTyping]);
 
   const handleSend = () => {
-    if (!newMsg.trim()) return;
-    setMessages(prev => [...prev, { id: `m${Date.now()}`, sender: 'user', text: newMsg, time: 'Now' }]);
+    if (!newMsg.trim() || !activeConv) return;
+    const userText = newMsg;
     setNewMsg('');
+
+    const userMsg = { id: `m${Date.now()}`, sender: 'user', text: userText, time: 'Now' };
+    
+    // Update conversation with user message
+    if (setConversations) {
+      setConversations(prev => prev.map(c => 
+        c.id === activeConvId 
+          ? { ...c, messages: [...c.messages, userMsg], lastMessage: userText, time: 'Just now' } 
+          : c
+      ));
+    }
+
+    // Real-time reply simulation
+    setIsTyping(true);
+    
     setTimeout(() => {
-      const replies = ['Okay, noted! 👍', "I'll be there soon!", 'Sure, no problem.', 'Thanks for letting me know!', 'Got it! See you then.'];
-      setMessages(prev => [...prev, { id: `m${Date.now() + 1}`, sender: 'provider', text: replies[Math.floor(Math.random() * replies.length)], time: 'Now' }]);
-    }, 1500);
+      let replyText = "Okay, noted! 👍 I'll check my schedule.";
+      const lower = userText.toLowerCase();
+      if (lower.includes('when') || lower.includes('time')) replyText = "I can be there in about 30-45 minutes. Does that work for you?";
+      else if (lower.includes('price') || lower.includes('cost') || lower.includes('how much')) replyText = "My standard rate applies, but I can give you an exact quote once I see the job.";
+      else if (lower.includes('address') || lower.includes('location')) replyText = "Great, please share your complete address and landmark.";
+      else if (lower.includes('hello') || lower.includes('hi')) replyText = `Hello! Thanks for reaching out. What exactly do you need help with?`;
+
+      const replyMsg = { id: `m${Date.now() + 1}`, sender: 'provider', text: replyText, time: 'Now' };
+      
+      if (setConversations) {
+        setConversations(prev => prev.map(c => 
+          c.id === activeConvId 
+            ? { ...c, messages: [...c.messages, replyMsg], lastMessage: replyText, time: 'Just now' } 
+            : c
+        ));
+      }
+      setIsTyping(false);
+    }, 1500 + Math.random() * 1000); // Realistic 1.5 - 2.5s delay
   };
 
   // Chat Thread View
   if (activeConv) {
-    const grad = AVATAR_GRADIENTS[activeConv.avatar] || 'from-gray-500 to-gray-700';
+    const grad = AVATAR_GRADIENTS[activeConv.avatar] || DEFAULT_GRADIENT;
     return (
       <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white z-50 flex flex-col animate-slide-up">
-        <div className="px-5 pt-12 pb-3 flex items-center space-x-3 border-b border-gray-100/50">
-          <button onClick={() => setActiveConv(null)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 active:scale-90 transition-transform text-sm font-bold">←</button>
+        <div className="px-5 pt-12 pb-3 flex items-center space-x-3 border-b border-gray-100/50 relative z-10 bg-white/80 backdrop-blur-md">
+          <button onClick={() => {
+            if (location.state?.provider) onClose();
+            else setActiveConvId(null);
+          }} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 active:scale-90 transition-transform text-sm font-bold">←</button>
           <div className={`w-10 h-10 bg-gradient-to-br ${grad} rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm`}>
             {activeConv.provider.split(' ').map(n => n[0]).join('').slice(0, 2)}
           </div>
@@ -51,7 +118,7 @@ const MessagingScreen = ({ isDarkMode, onClose }) => {
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3 hide-scrollbar">
           <div className="text-center text-[9px] font-bold text-gray-300 my-2 uppercase tracking-wider">Today</div>
-          {messages.map(msg => (
+          {activeConv.messages.map(msg => (
             <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
               <div className={`max-w-[75%] rounded-2xl p-3 shadow-sm ${
                 msg.sender === 'user' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-tr-sm' : 'bg-white border border-gray-100/50 text-gray-800 rounded-tl-sm shadow-premium'
@@ -61,14 +128,23 @@ const MessagingScreen = ({ isDarkMode, onClose }) => {
               </div>
             </div>
           ))}
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="bg-white border border-gray-100/50 rounded-2xl rounded-tl-sm p-4 shadow-premium flex space-x-1.5 w-16">
+                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          )}
           <div ref={chatEndRef} />
         </div>
 
-        <div className="glass p-3 border-t border-gray-100/50 flex items-center pb-8">
+        <div className="glass p-3 border-t border-gray-100/50 flex items-center pb-8 z-20">
           <button className="text-gray-400 mr-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
           </button>
-          <div className="flex-1 bg-gray-100 rounded-full px-4 py-2.5 flex items-center border border-gray-200/50">
+          <div className="flex-1 bg-gray-100 rounded-full px-4 py-2.5 flex items-center border border-gray-200/50 focus-within:ring-2 focus-within:ring-indigo-100 transition-shadow">
             <input type="text" value={newMsg} onChange={e => setNewMsg(e.target.value)}
               onKeyPress={e => e.key === 'Enter' && handleSend()}
               placeholder="Type a message..." className="flex-1 bg-transparent outline-none text-sm font-medium" />
@@ -97,16 +173,16 @@ const MessagingScreen = ({ isDarkMode, onClose }) => {
             <h1 className="text-xl font-extrabold text-gray-900">Messages</h1>
           </div>
           <span className="text-[9px] font-bold bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full">
-            {CONVERSATIONS.filter(c => c.unread > 0).length} new
+            {(conversations || []).filter(c => c.unread > 0).length} new
           </span>
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto hide-scrollbar pb-8">
-        {CONVERSATIONS.map((conv, i) => {
-          const grad = AVATAR_GRADIENTS[conv.avatar] || 'from-gray-500 to-gray-700';
+        {(conversations || []).map((conv, i) => {
+          const grad = AVATAR_GRADIENTS[conv.avatar] || DEFAULT_GRADIENT;
           return (
-            <button key={conv.id} onClick={() => setActiveConv(conv)}
+            <button key={conv.id} onClick={() => setActiveConvId(conv.id)}
               className="w-full px-5 py-3.5 flex items-center space-x-3 border-b border-gray-50 active:bg-gray-50 transition-colors text-left animate-fade-in"
               style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}>
               <div className="relative">

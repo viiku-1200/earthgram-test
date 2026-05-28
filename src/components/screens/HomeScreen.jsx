@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Zap, Wrench, Sparkles, Users, GraduationCap, PartyPopper, 
   Briefcase, Leaf, ShoppingBag, Tractor, Truck, Mountain, 
   ChevronRight, Search, Bell, MapPin, Menu, Star, Play
 } from 'lucide-react';
-import { CATEGORIES, PROVIDERS, NATIONAL_PROVIDERS, GLOBAL_PROVIDERS, TOP_EXPERTS, HERO_BANNERS, COUNTRIES, SCOPES } from '../../data/constants';
+import { CATEGORIES, PROVIDERS, NATIONAL_PROVIDERS, GLOBAL_PROVIDERS, TOP_EXPERTS, HERO_BANNERS, COUNTRIES, SCOPES, FAMOUS_LOCAL_FOOD, LOCAL_RESTAURANTS } from '../../data/constants';
 import ScopeMap from '../maps/ScopeMap';
 
 const LucideIcon = ({ name, className, size = 24 }) => {
@@ -17,7 +17,7 @@ const LucideIcon = ({ name, className, size = 24 }) => {
   return <Icon className={className} size={size} strokeWidth={2.5} />;
 };
 
-const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, selectedCountry, setSelectedCountry, qualityPosts = [] }) => {
+const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, selectedCountry, setSelectedCountry, qualityPosts = [], customProviders = [], adCoins = 0, setAdCoins }) => {
   const navigate = useNavigate();
   const [activeBanner, setActiveBanner] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -32,9 +32,83 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
   const [activeEmpowerBanner, setActiveEmpowerBanner] = useState(0);
   const [homeUIVersion, setHomeUIVersion] = useState('v3'); // 'v2' or 'v3' for live A/B testing
   const empowerScrollRef = React.useRef(null);
+  const foodRef = useRef(null);
+
+  // Interactive Food Dine-In & Ordering States
+  const [selectedFoodItem, setSelectedFoodItem] = useState(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showOrderingModal, setShowOrderingModal] = useState(false);
+  const [bookingSuccessData, setBookingSuccessData] = useState(null);
+  const [orderingSuccessData, setOrderingSuccessData] = useState(null);
+  const [isProcessingBooking, setIsProcessingBooking] = useState(false);
+  const [isProcessingOrdering, setIsProcessingOrdering] = useState(false);
+
+  // Unified Restaurant Bottom Sheet States
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [showRestaurantSheet, setShowRestaurantSheet] = useState(false);
+  const [restaurantTab, setRestaurantTab] = useState('reserve'); // 'reserve' or 'menu'
+  const [selectedTable, setSelectedTable] = useState('Table 3');
+  const [restBookingDate, setRestBookingDate] = useState('Today');
+  const [restBookingTime, setRestBookingTime] = useState('7:00 PM');
+  const [restBookingGuests, setRestBookingGuests] = useState('2 Guests');
+  const [restaurantCart, setRestaurantCart] = useState({}); // { itemName: qty }
+  const [isProcessingRestBooking, setIsProcessingRestBooking] = useState(false);
+  const [restBookingSuccess, setRestBookingSuccess] = useState(null);
+  const [isProcessingRestOrder, setIsProcessingRestOrder] = useState(false);
+  const [restOrderSuccess, setRestOrderSuccess] = useState(null);
 
   // Custom States for Unified Service Radar UI
   const [searchPlaceholderIdx, setSearchPlaceholderIdx] = useState(0);
+
+  // Search States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef(null);
+
+  // Close search suggestions on click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Compute search suggestions
+  const searchSuggestions = useMemo(() => {
+    if (!searchQuery.trim()) return { categories: [], subCategories: [], providers: [] };
+    const query = searchQuery.toLowerCase();
+    
+    // 1. Categories
+    const categories = CATEGORIES.filter(c => c.name.toLowerCase().includes(query)).slice(0, 2);
+    
+    // 2. Sub-categories
+    let subCategories = [];
+    CATEGORIES.forEach(cat => {
+      if (cat.subTabs) {
+        cat.subTabs.forEach(sub => {
+          if (sub.name !== 'All' && sub.name.toLowerCase().includes(query)) {
+            subCategories.push({ ...sub, parentId: cat.id, parentName: cat.name, color: cat.color });
+          }
+        });
+      }
+    });
+    subCategories = subCategories.slice(0, 3);
+    
+    // 3. Providers (from all lists + customProviders)
+    const allProviders = [...customProviders, ...PROVIDERS, ...NATIONAL_PROVIDERS, ...GLOBAL_PROVIDERS];
+    // Deduplicate by ID
+    const uniqueProviders = Array.from(new Map(allProviders.map(p => [p.id, p])).values());
+    const providers = uniqueProviders.filter(p => 
+      p.name.toLowerCase().includes(query) || 
+      (p.sub && p.sub.toLowerCase().includes(query)) ||
+      (p.category && p.category.toLowerCase().includes(query))
+    ).slice(0, 4);
+
+    return { categories, subCategories, providers };
+  }, [searchQuery]);
   const [activeZone, setActiveZone] = useState('daily');
 
   const searchPlaceholders = [
@@ -79,9 +153,9 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
   const filteredBanners = HERO_BANNERS.filter(b => b.country === 'all' || b.country === selectedCountry);
 
   useEffect(() => {
-    const timer = setInterval(() => setActiveBanner(b => (b + 1) % filteredBanners.length), 4000);
+    const timer = setInterval(() => setActiveBanner(b => (b + 1) % 4), 4000);
     return () => clearInterval(timer);
-  }, [filteredBanners.length]);
+  }, []);
 
   // Auto-scroll for Empower Banners (DSA Logic for smooth UI)
   useEffect(() => {
@@ -116,9 +190,13 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
 
   const getFilteredProviders = () => {
     if (!currentCategory) return [];
-    const providers = currentCategory.providers || [];
+    
+    // Add custom providers matching this category
+    const matchingCustom = customProviders.filter(p => p.category === currentCategory.name);
+    
+    const providers = [...matchingCustom, ...(currentCategory.providers || [])];
     if (!selectedSubCategory || selectedSubCategory === '__ALL__') return providers;
-    return providers.filter(p => p.sub === selectedSubCategory);
+    return providers.filter(p => p.sub === selectedSubCategory || p.subCategory === selectedSubCategory);
   };
 
   // Get providers based on active scope
@@ -135,111 +213,117 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
   };
 
   // ============== LEVEL 3: PROVIDER LIST (after sub-category click) ==============
+  let level3Content = null;
   if (selectedCategory && selectedSubCategory) {
     const cat = currentCategory;
     const filteredProviders = getFilteredProviders();
-    return (
-      <div className={`h-full flex flex-col pt-8 pb-20 overflow-y-auto hide-scrollbar transition-all duration-500 ${
-        isDarkMode ? 'bg-[#0f172a] text-white' : 'bg-gray-50 text-gray-900'
-      }`}>
+    level3Content = (
+      <div className="h-full flex flex-col pt-8 pb-4 animate-fade-in relative">
         {/* Header */}
-        <div className={`px-5 pt-2 pb-4 flex items-center space-x-4 transition-all duration-300 ${
-          isDarkMode ? 'bg-[#0f172a]/95 backdrop-blur-md border-b border-slate-800' : 'glass'
-        }`}>
-          <button onClick={() => setSelectedSubCategory(null)}
-            className={`w-8 h-8 rounded-full flex items-center justify-center active:scale-90 transition-transform text-sm font-bold ${
-              isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-gray-100 text-gray-600'
-            }`}>←</button>
-          <div className="flex items-center space-x-2">
-            <h1 className={`text-lg font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              {selectedSubCategory === '__ALL__' ? 'All Providers' : selectedSubCategory}
-            </h1>
-            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-              isDarkMode ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600'
-            }`}>{cat.name}</span>
+        <div className="px-5 pt-2 pb-4 flex justify-between items-center mb-2">
+          <div className="flex items-center space-x-3">
+            <button onClick={() => setSelectedSubCategory(null)}
+              className={`w-9 h-9 rounded-2xl flex items-center justify-center active:scale-90 transition-all text-sm font-black shadow-sm border ${
+                isDarkMode ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+              }`}>←</button>
+            <div className="flex flex-col">
+              <h1 className={`text-xl font-black tracking-tight leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                {selectedSubCategory === '__ALL__' ? 'All Providers' : selectedSubCategory}
+              </h1>
+              <span className={`text-[9px] font-black uppercase tracking-widest mt-0.5 ${
+                isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
+              }`}>{cat.name}</span>
+            </div>
           </div>
-        </div>
-
-        {/* Results count */}
-        <div className="px-5 mt-4 mb-2">
-          <p className={`text-xs font-medium ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
-            {filteredProviders.length} Virtual {filteredProviders.length === 1 ? 'Company' : 'Companies'} found
-          </p>
+          <div className={`px-3 py-1.5 rounded-xl border ${isDarkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-gray-100'} shadow-sm text-center`}>
+            <span className={`block text-[12px] font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{filteredProviders.length}</span>
+            <span className={`block text-[8px] font-black uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>Pros</span>
+          </div>
         </div>
 
         {/* Provider Cards */}
-        <div className="px-5 space-y-3">
+        <div className="px-5 space-y-4 pb-10">
           {/* NEW: Instant Match Banner for Sub-category */}
-          <div className={`mb-5 p-5 rounded-[2rem] border-2 relative overflow-hidden group active:scale-[0.98] transition-all ${
-            isDarkMode ? 'bg-slate-900 border-indigo-500/30 shadow-indigo-500/10 shadow-lg' : 'bg-white border-indigo-100 shadow-premium'
+          <div className={`mb-4 p-5 rounded-[2rem] border relative overflow-hidden group active:scale-[0.98] transition-all cursor-pointer ${
+            isDarkMode ? 'bg-slate-900 border-indigo-500/30 shadow-indigo-500/10' : 'bg-indigo-600 border-indigo-500 shadow-indigo-200 shadow-xl'
           }`}
           onClick={() => navigate('/book', { state: { category: cat, subCategory: selectedSubCategory, mode: 'instant' } })}>
-            <div className="absolute top-0 right-0 p-4 opacity-10 scale-150">⚡</div>
-            <div className="flex items-center space-x-3 mb-2">
-              <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center text-white text-xl shadow-glow-indigo">⚡</div>
+            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white/10 to-transparent skew-x-12 transform translate-x-8"></div>
+            <div className="flex items-center space-x-3 mb-2 relative z-10">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-inner ${isDarkMode ? 'bg-indigo-500/20 text-indigo-400' : 'bg-white/20 text-white backdrop-blur-md'}`}>⚡</div>
               <div>
-                <h3 className="font-black text-sm">Instant Match</h3>
-                <p className="text-[8px] font-black text-indigo-500 uppercase tracking-widest">Find best {selectedSubCategory} expert</p>
+                <h3 className={`font-black text-sm tracking-tight ${isDarkMode ? 'text-white' : 'text-white'}`}>Instant Match</h3>
+                <p className={`text-[8px] font-black uppercase tracking-widest ${isDarkMode ? 'text-indigo-400' : 'text-indigo-200'}`}>Find best {selectedSubCategory} expert</p>
               </div>
             </div>
-            <p className={`text-[10px] leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
-              Too many options? We'll match you with the highest-rated <span className="font-bold text-indigo-500">{selectedSubCategory}</span> company instantly.
+            <p className={`text-[10px] leading-relaxed font-medium relative z-10 pr-4 ${isDarkMode ? 'text-slate-400' : 'text-indigo-100'}`}>
+              Too many options? We'll match you with the highest-rated <span className={`font-black ${isDarkMode ? 'text-indigo-400' : 'text-white'}`}>{selectedSubCategory}</span> company instantly.
             </p>
           </div>
 
-          <h2 className={`text-sm font-bold uppercase tracking-wider mb-2 px-1 ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>Browse {selectedSubCategory} companies</h2>
+          <div className="flex items-center space-x-2 mb-2 px-1">
+            <div className={`w-1 h-3 rounded-full bg-gradient-to-b ${cat.color}`}></div>
+            <h2 className={`text-[10px] font-black uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-gray-500'}`}>Browse {selectedSubCategory} companies</h2>
+          </div>
 
           {filteredProviders.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-gray-400 animate-fade-in">
-              <span className="text-5xl mb-4">🔍</span>
-              <p className="text-base font-bold">No providers yet</p>
-              <p className="text-xs mt-1">Be the first to register in this category!</p>
+              <span className="text-5xl mb-4 grayscale opacity-50">🔍</span>
+              <p className={`text-base font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>No providers yet</p>
+              <p className="text-xs mt-1 font-medium">Be the first to register in this category!</p>
               <button onClick={() => navigate('/register')}
-                className="mt-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-transform shadow-glow-indigo">
-                Start Your Virtual Company
+                className={`mt-6 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest active:scale-95 transition-transform shadow-premium ${isDarkMode ? 'bg-indigo-500 text-white' : 'bg-gray-900 text-white'}`}>
+                Start Virtual Company
               </button>
             </div>
           ) : (
             filteredProviders.map((provider, i) => (
               <div key={provider.id}
                 onClick={() => navigate('/provider', { state: { profile: provider } })}
-                className={`p-4 rounded-2xl shadow-premium border cursor-pointer card-lift animate-fade-in gradient-border ${
-                  isDarkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-gray-100/50'
+                className={`relative p-5 rounded-3xl shadow-premium border cursor-pointer group active:scale-[0.98] transition-all duration-300 overflow-hidden ${
+                  isDarkMode ? 'bg-slate-900/80 border-slate-700/50 hover:bg-slate-800' : 'bg-white border-gray-100 hover:bg-gray-50/50'
                 }`}
                 style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
-                <div className="flex justify-between items-start mb-2 pl-2">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-11 h-11 bg-gradient-to-br ${cat.color} rounded-xl flex items-center justify-center text-xl shadow-sm`}>
+                {/* Background Glow */}
+                <div className={`absolute -right-10 -top-10 w-32 h-32 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity bg-gradient-to-br ${cat.color}`}></div>
+                
+                <div className="flex justify-between items-start mb-3 relative z-10">
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-14 h-14 bg-gradient-to-br ${cat.color} rounded-[1.2rem] flex items-center justify-center text-2xl shadow-lg border border-white/20 transform group-hover:rotate-6 transition-transform duration-300`}>
                       {cat.icon}
                     </div>
                     <div>
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full inline-block mb-0.5 ${
-                        isDarkMode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
-                      }`}>{provider.tag}</span>
-                      <h3 className={`text-sm font-bold ${isDarkMode ? 'text-slate-100' : 'text-gray-900'}`}>{provider.name}</h3>
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
+                          isDarkMode ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                        }`}>{provider.tag || 'Verified'}</span>
+                        {provider.available && <span className="flex items-center space-x-1 animate-pulse"><span className="w-1.5 h-1.5 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.8)]"></span><span className="text-[8px] font-black text-green-600 uppercase tracking-widest">Online</span></span>}
+                      </div>
+                      <h3 className={`text-base font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{provider.name}</h3>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end">
-                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                      isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-gray-100 text-gray-600'
-                    }`}>📍 {provider.distance}</span>
-                    {provider.available && <span className="flex items-center space-x-1 mt-1"><span className="w-1.5 h-1.5 bg-green-500 rounded-full online-dot"></span><span className="text-[8px] font-bold text-green-600">Online</span></span>}
+                  <div className={`px-2.5 py-1 rounded-xl flex items-center space-x-1 shadow-sm border ${isDarkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-gray-100'}`}>
+                    <span className="text-yellow-500 text-[10px]">★</span>
+                    <span className={`font-black text-[11px] ${isDarkMode ? 'text-slate-200' : 'text-gray-800'}`}>{provider.rating}</span>
                   </div>
                 </div>
-                <div className="flex items-center text-sm mb-3 pl-2">
-                  <span className="text-yellow-500 mr-1">⭐</span>
-                  <span className={`font-bold mr-1 ${isDarkMode ? 'text-slate-200' : 'text-gray-700'}`}>{provider.rating}</span>
-                  <span className="text-slate-500">({provider.reviews})</span>
-                  <span className={`mx-2 ${isDarkMode ? 'text-slate-800' : 'text-gray-200'}`}>•</span>
-                  <span className={`text-[10px] ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>Used by neighbors recently</span>
+
+                <div className="flex items-center text-[10px] font-bold mb-4 relative z-10 pl-1">
+                  <span className={`px-2 py-0.5 rounded-md ${isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-gray-100 text-gray-500'}`}>📍 {provider.distance}</span>
+                  <span className={`mx-2 ${isDarkMode ? 'text-slate-700' : 'text-gray-300'}`}>•</span>
+                  <span className={`${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{provider.reviews} neighbors booked recently</span>
                 </div>
-                <div className={`flex justify-between items-center border-t pt-3 pl-2 ${
-                  isDarkMode ? 'border-slate-800' : 'border-gray-50'
+
+                <div className={`flex justify-between items-center pt-3 border-t relative z-10 ${
+                  isDarkMode ? 'border-slate-800/80' : 'border-gray-100'
                 }`}>
-                  <span className={`font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{provider.price}</span>
+                  <div>
+                    <span className={`text-[9px] font-black uppercase tracking-widest block mb-0.5 ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>Starting at</span>
+                    <span className={`text-sm font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{provider.price}</span>
+                  </div>
                   <button onClick={(e) => { e.stopPropagation(); navigate('/provider', { state: { profile: provider } }); }}
-                    className={`px-5 py-2 rounded-xl font-bold text-xs active:scale-95 transition-transform shadow-sm ${
-                      isDarkMode ? 'bg-slate-800 text-white border border-slate-700' : 'bg-gradient-to-r from-gray-900 to-gray-700 text-white'
+                    className={`px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-sm ${
+                      isDarkMode ? 'bg-white text-gray-900 hover:bg-gray-200' : 'bg-gray-900 text-white hover:bg-gray-800'
                     }`}>
                     View Profile
                   </button>
@@ -253,80 +337,91 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
   }
 
   // ============== LEVEL 2: SUB-CATEGORY ICON GRID (after category click) ==============
+  let level2Content = null;
   if (selectedCategory) {
     const cat = currentCategory;
-    return (
-      <div className={`h-full flex flex-col pt-8 pb-20 overflow-y-auto hide-scrollbar transition-all duration-500 ${
-        isDarkMode ? 'bg-[#0f172a] text-white' : 'bg-gray-50 text-gray-900'
-      }`}>
+    level2Content = (
+      <div className="h-full flex flex-col pt-8 pb-4 animate-fade-in relative overflow-hidden">
+        {/* Decorative Background Blur */}
+        <div className={`absolute top-0 left-0 right-0 h-64 blur-[100px] opacity-20 pointer-events-none bg-gradient-to-br ${cat.color}`}></div>
+        
         {/* Header */}
-        <div className={`px-5 pt-2 pb-4 flex items-center space-x-4 transition-all duration-300 ${
-          isDarkMode ? 'bg-[#0f172a]/95 backdrop-blur-md border-b border-slate-800' : 'glass'
-        }`}>
-          <button onClick={() => { setSelectedCategory(null); setSelectedSubCategory(null); }}
-            className={`w-8 h-8 rounded-full flex items-center justify-center active:scale-90 transition-transform text-sm font-bold ${
-              isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-gray-100 text-gray-600'
-            }`}>←</button>
-          <h1 className={`text-lg font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{cat.name}</h1>
-          {cat.badge && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">{cat.badge}</span>}
-          {cat.comingSoon && <span className="text-[9px] font-bold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Coming Soon</span>}
+        <div className="px-5 pt-2 pb-6 flex justify-between items-center relative z-10">
+          <div className="flex items-center space-x-4">
+            <button onClick={() => { setSelectedCategory(null); setSelectedSubCategory(null); }}
+              className={`w-9 h-9 rounded-2xl flex items-center justify-center active:scale-90 transition-all text-sm font-black shadow-sm border ${
+                isDarkMode ? 'bg-slate-800/80 text-slate-300 border-slate-700/50 hover:bg-slate-700' : 'bg-white/80 backdrop-blur-md text-gray-700 border-gray-200 hover:bg-gray-50'
+              }`}>←</button>
+            <div className="flex flex-col">
+              <h1 className={`text-2xl font-black tracking-tight leading-none ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{cat.name}</h1>
+              {cat.badge ? (
+                <span className={`text-[9px] font-black uppercase tracking-widest mt-1 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>{cat.badge}</span>
+              ) : (
+                <span className={`text-[9px] font-black uppercase tracking-widest mt-1 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>Select a service</span>
+              )}
+            </div>
+          </div>
+          <div className={`w-12 h-12 bg-gradient-to-br ${cat.color} rounded-2xl flex items-center justify-center text-2xl shadow-premium border border-white/20 transform rotate-3`}>
+            {cat.icon}
+          </div>
         </div>
 
         {/* ItzRunner Special View */}
         {cat.label === 'Chotu' && cat.services ? (
-          <div className="px-5 mt-6 space-y-4 animate-fade-in">
-            <div className="text-center mb-4">
-              <span className="text-5xl block mb-2">🏃</span>
-              <h2 className={`text-lg font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>ItzRunner <span className="text-orange-500">(Chotu)</span></h2>
-              <p className="text-xs text-gray-500">Your local delivery & task buddy</p>
+          <div className="px-5 mt-4 space-y-4 animate-fade-in relative z-10">
+            <div className="text-center mb-6">
+              <span className="text-6xl block mb-2 animate-bounce" style={{animationDuration: '2s'}}>🏃</span>
+              <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>ItzRunner <span className="text-orange-500">(Chotu)</span></h2>
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Your local delivery & task buddy</p>
             </div>
             {cat.services.map((service, i) => (
-              <div key={service.id} className={`p-5 rounded-2xl shadow-premium border flex items-center space-x-4 card-lift animate-fade-in ${
-                isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100/50'
+              <div key={service.id} className={`p-5 rounded-3xl shadow-premium-lg border flex items-center space-x-4 cursor-pointer active:scale-[0.98] transition-all group ${
+                isDarkMode ? 'bg-slate-900/80 border-slate-700/50 hover:bg-slate-800' : 'bg-white border-gray-100 hover:bg-gray-50/50'
               }`}
                 style={{ animationDelay: `${i * 0.08}s`, opacity: 0 }}>
-                <div className="w-14 h-14 bg-gradient-to-br from-orange-100 to-amber-50 rounded-2xl flex items-center justify-center text-3xl">{service.icon}</div>
+                <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-amber-500 rounded-2xl flex items-center justify-center text-3xl shadow-md border border-white/20 group-hover:scale-110 transition-transform">{service.icon}</div>
                 <div className="flex-1">
-                  <h3 className={`text-base font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{service.name}</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">{service.desc}</p>
-                  <span className="text-xs font-bold text-orange-600 mt-1 inline-block">{service.price}</span>
+                  <h3 className={`text-base font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{service.name}</h3>
+                  <p className="text-[10px] text-gray-500 mt-0.5 font-medium leading-tight">{service.desc}</p>
+                  <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest mt-2 inline-block">{service.price}</span>
                 </div>
-                <button className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-transform shadow-sm">Go</button>
+                <button className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md">Go</button>
               </div>
             ))}
           </div>
         ) : cat.comingSoon ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-fade-in">
-            <span className="text-5xl mb-4">🔒</span>
-            <p className="text-lg font-bold">Coming Soon</p>
-            <p className="text-xs">Business services launching next update</p>
+          <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-fade-in relative z-10">
+            <span className="text-6xl mb-4 grayscale opacity-40">🔒</span>
+            <p className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Coming Soon</p>
+            <p className="text-xs font-bold uppercase tracking-widest mt-1">Business services launching next update</p>
           </div>
         ) : (
-          /* Sub-Category Icon Grid — 3 columns like ItzQuk */
-          <div className="px-5 mt-6 animate-fade-in">
-            <h2 className={`text-sm font-bold uppercase tracking-wider mb-4 ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>Choose a service type</h2>
+          /* Sub-Category Icon Grid */
+          <div className="px-5 mt-2 animate-fade-in relative z-10">
             <div className="grid grid-cols-3 gap-4">
               {cat.subTabs && cat.subTabs.length > 0 ? (
                 cat.subTabs.filter(tab => tab.name !== 'All').map((tab, i) => {
-                  const providerCount = (cat.providers || []).filter(p => p.sub === tab.name).length;
+                  const customCount = customProviders.filter(p => p.category === cat.name && (p.sub === tab.name || p.subCategory === tab.name)).length;
+                  const providerCount = (cat.providers || []).filter(p => p.sub === tab.name).length + customCount;
                   return (
                     <button key={tab.name}
                       onClick={() => setSelectedSubCategory(tab.name)}
-                      className="flex flex-col items-center active:scale-90 transition-all duration-200 group animate-fade-in"
-                      style={{ animationDelay: `${i * 0.06}s`, opacity: 0 }}>
-                      <div className={`w-[72px] h-[72px] ${tab.bg || 'bg-indigo-50'} rounded-2xl flex items-center justify-center text-3xl shadow-premium border border-white/80 group-hover:shadow-premium-lg transition-shadow`}>
-                        {tab.icon}
+                      className="flex flex-col items-center active:scale-95 transition-all duration-300 group animate-fade-in"
+                      style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}>
+                      <div className={`w-20 h-20 ${tab.bg || 'bg-indigo-50 dark:bg-slate-800'} rounded-[1.5rem] flex items-center justify-center text-4xl shadow-sm border border-gray-100 dark:border-slate-700 group-hover:shadow-premium-lg group-hover:scale-105 transition-all duration-300 relative overflow-hidden`}>
+                        <div className="absolute inset-0 bg-white/40 dark:bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <span className="relative z-10 transform group-hover:-translate-y-1 transition-transform">{tab.icon}</span>
                       </div>
-                      <span className={`text-[11px] font-bold mt-2 text-center leading-tight ${isDarkMode ? 'text-slate-200' : 'text-gray-700'}`}>{tab.name}</span>
+                      <span className={`text-[11px] font-black mt-3 text-center leading-tight tracking-tight ${isDarkMode ? 'text-slate-200 group-hover:text-white' : 'text-gray-700 group-hover:text-gray-900'}`}>{tab.name}</span>
                       {providerCount > 0 && (
-                        <span className="text-[9px] font-medium text-gray-400 mt-0.5">{providerCount} {providerCount === 1 ? 'company' : 'companies'}</span>
+                        <span className={`text-[9px] font-bold uppercase tracking-widest mt-1 ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>{providerCount} Pros</span>
                       )}
                     </button>
                   );
                 })
               ) : (
                 <div className="col-span-3 py-10 text-center text-gray-400">
-                  <p className="text-xs font-bold">No sub-categories available</p>
+                  <p className="text-xs font-bold uppercase tracking-widest">No sub-categories available</p>
                 </div>
               )}
             </div>
@@ -334,12 +429,12 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
             {/* "View All" button at the bottom */}
             <button
               onClick={() => setSelectedSubCategory(null) || setSelectedSubCategory('__ALL__')}
-              className={`w-full mt-6 py-3 rounded-2xl text-sm font-bold active:scale-[0.98] transition-transform flex items-center justify-center space-x-2 shadow-premium border ${
-                isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-gray-200 text-gray-700'
+              className={`w-full mt-8 py-4 rounded-2xl text-[11px] uppercase tracking-widest font-black active:scale-[0.98] transition-all flex items-center justify-center space-x-2 shadow-premium border group ${
+                isDarkMode ? 'bg-slate-900 border-slate-700 text-white hover:bg-slate-800' : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50'
               }`}>
-              <span>📋</span>
-              <span>View All {cat.name} Providers</span>
-              <span className="text-gray-400">→</span>
+              <span className="text-sm">📋</span>
+              <span>View All {cat.name}</span>
+              <span className="text-gray-400 group-hover:translate-x-1 transition-transform">→</span>
             </button>
           </div>
         )}
@@ -363,7 +458,194 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
         </span>
       </div>
       <div className="relative h-64 w-full rounded-[2.5rem] overflow-hidden shadow-premium-lg border border-gray-100/50 dark:border-slate-800/50">
-        <ScopeMap scope={currentScopeId} isDarkMode={isDarkMode} selectedCountry={selectedCountry} />
+        <ScopeMap scope={currentScopeId} isDarkMode={isDarkMode} selectedCountry={selectedCountry} customProviders={customProviders} />
+      </div>
+    </div>
+  );
+
+  const renderFamousLocalFood = () => (
+    <div ref={foodRef} className="px-5 mt-8 animate-fade-in">
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h2 className={`text-lg font-black text-transparent bg-clip-text bg-gradient-to-r ${isDarkMode ? 'from-orange-400 to-amber-300' : 'from-orange-600 to-amber-500'}`}>
+            🍲 Famous Local Tastes
+          </h2>
+          <p className={`text-[10px] font-bold uppercase tracking-widest mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-400'}`}>
+            Dine In • Sponsor Coin Rewards 🪙
+          </p>
+        </div>
+        <span className="text-[9px] font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full animate-pulse uppercase tracking-wider">
+          Dine & Earn
+        </span>
+      </div>
+
+      <div className="flex overflow-x-auto space-x-4 hide-scrollbar pb-4 -mx-5 px-5">
+        {FAMOUS_LOCAL_FOOD.map((item) => (
+          <div key={item.id}
+            className={`flex-shrink-0 w-80 p-5 rounded-[2.5rem] shadow-premium-lg border flex flex-col relative overflow-hidden group ${
+              isDarkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-gray-100/50 text-gray-900'
+            }`}>
+            
+            {/* Top Row: Dish Name & Emoji */}
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex items-center space-x-3.5">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-inner border transition-transform duration-500 group-hover:rotate-6 ${
+                  isDarkMode ? 'bg-slate-800 border-slate-705 text-white' : 'bg-orange-50 border-orange-100 text-gray-900'
+                }`}>
+                  {item.dishName.split(' ').pop()}
+                </div>
+                <div>
+                  <div className="flex items-center space-x-1.5 mb-1">
+                    <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
+                    <span className="text-[9px] font-black text-orange-500 uppercase tracking-widest leading-none">{item.tag}</span>
+                  </div>
+                  <h3 className={`text-base font-black leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {item.dishName.split(' ').slice(0, -1).join(' ')}
+                  </h3>
+                  <p 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const rest = LOCAL_RESTAURANTS.find(r => r.name === item.restaurantName);
+                      if (rest) {
+                        setSelectedRestaurant(rest);
+                        setRestaurantTab('reserve');
+                        setRestBookingSuccess(null);
+                        setRestOrderSuccess(null);
+                        setRestaurantCart({});
+                        setShowRestaurantSheet(true);
+                      }
+                    }}
+                    className="text-[10px] text-indigo-500 font-black mt-0.5 hover:underline cursor-pointer flex items-center space-x-1"
+                  >
+                    <span>🏛️ {item.restaurantName}</span>
+                  </p>
+                </div>
+              </div>
+              
+              <div className={`px-2.5 py-1 rounded-xl border flex items-center space-x-1 shadow-sm ${
+                isDarkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-gray-50 border-gray-100'
+              }`}>
+                <span className="text-yellow-500 text-[10px]">★</span>
+                <span className={`text-[11px] font-black ${isDarkMode ? 'text-slate-200' : 'text-gray-800'}`}>{item.rating}</span>
+              </div>
+            </div>
+
+            {/* Middle Row: Distance, Seats & Coins Sponsoring */}
+            <div className={`flex items-center justify-between mb-4 p-3 rounded-2xl border text-[10px] font-bold ${
+              isDarkMode ? 'bg-slate-950/40 border-slate-800/80 text-slate-300' : 'bg-gray-50/50 border-gray-100/50 text-gray-600'
+            }`}>
+              <div className="flex items-center space-x-1">
+                <span>📍 {item.distance}</span>
+              </div>
+              <div className={`h-3 w-[1px] ${isDarkMode ? 'bg-slate-800' : 'bg-gray-200'}`}></div>
+              <div className="flex items-center space-x-1">
+                <span>🪑 {item.availableSeats} tables left</span>
+              </div>
+              <div className={`h-3 w-[1px] ${isDarkMode ? 'bg-slate-800' : 'bg-gray-200'}`}></div>
+              <div className="flex items-center space-x-1.5 font-black text-yellow-500">
+                <span>🪙 +{item.coinReward} Coins</span>
+              </div>
+            </div>
+
+            {/* Bottom Row: Price & Dine-In/Order Actions */}
+            <div className="flex justify-between items-center mt-auto">
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Starting from</span>
+                <span className={`text-lg font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.price}</span>
+              </div>
+              <div className="flex space-x-2">
+                <button onClick={(e) => { e.stopPropagation(); setSelectedFoodItem(item); setShowBookingModal(true); }}
+                  className={`px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-sm ${
+                    isDarkMode ? 'bg-slate-800 text-white border border-slate-700 hover:bg-slate-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}>
+                  🪑 Book Table
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); setSelectedFoodItem(item); setShowOrderingModal(true); }}
+                  className={`px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-premium bg-gradient-to-r from-orange-500 to-amber-500 text-white`}>
+                  🍽️ Order
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderTopRestaurants = () => (
+    <div className="px-5 mt-8 animate-fade-in">
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h2 className={`text-lg font-black text-transparent bg-clip-text bg-gradient-to-r ${isDarkMode ? 'from-amber-400 to-orange-400' : 'from-indigo-600 to-indigo-850'}`}>
+            🏛️ Top Local Restaurants
+          </h2>
+          <p className={`text-[10px] font-bold uppercase tracking-widest mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-400'}`}>
+            Dine In • Table Reserves & Menus 🪙
+          </p>
+        </div>
+        <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full animate-pulse uppercase tracking-wider">
+          Premium Lounges
+        </span>
+      </div>
+
+      <div className="flex overflow-x-auto space-x-4 hide-scrollbar pb-4 -mx-5 px-5">
+        {LOCAL_RESTAURANTS.map((restaurant) => (
+          <div key={restaurant.id}
+            onClick={() => {
+              setSelectedRestaurant(restaurant);
+              setRestaurantTab('reserve');
+              setRestBookingSuccess(null);
+              setRestOrderSuccess(null);
+              setRestaurantCart({});
+              setShowRestaurantSheet(true);
+            }}
+            className={`flex-shrink-0 w-72 p-5 rounded-[2.5rem] shadow-premium-lg border flex flex-col relative overflow-hidden group cursor-pointer active:scale-[0.98] transition-all duration-300 ${
+              isDarkMode ? 'bg-slate-900 border-slate-800 text-white hover:bg-slate-850' : 'bg-white border-gray-100 text-gray-900 hover:bg-gray-50'
+            }`}>
+            
+            {/* Top row: Emoji & rating */}
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex items-center space-x-3.5">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-inner border transition-transform duration-500 group-hover:scale-110 ${
+                  isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-indigo-50 border-indigo-100 text-gray-900'
+                }`}>
+                  {restaurant.emoji}
+                </div>
+                <div>
+                  <h3 className={`text-sm font-black leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {restaurant.name}
+                  </h3>
+                  <p className="text-[9px] text-gray-450 font-bold mt-0.5">{restaurant.cuisine}</p>
+                </div>
+              </div>
+
+              <div className={`px-2 py-0.5 rounded-lg border flex items-center space-x-1 shadow-sm ${
+                isDarkMode ? 'bg-slate-800/85 border-slate-700' : 'bg-gray-50 border-gray-100'
+              }`}>
+                <span className="text-yellow-500 text-[9px]">★</span>
+                <span className={`text-[10px] font-black ${isDarkMode ? 'text-slate-200' : 'text-gray-800'}`}>{restaurant.rating}</span>
+              </div>
+            </div>
+
+            {/* Quick stats: Distance, Available seats, and Reward */}
+            <div className={`flex items-center justify-between mb-4 p-2.5 rounded-xl border text-[9px] font-bold ${
+              isDarkMode ? 'bg-slate-950/40 border-slate-800/80 text-slate-350' : 'bg-gray-50/50 border-gray-100/50 text-gray-600'
+            }`}>
+              <span>📍 {restaurant.distance}</span>
+              <div className={`h-2.5 w-[1px] ${isDarkMode ? 'bg-slate-800' : 'bg-gray-200'}`}></div>
+              <span>🪑 {restaurant.availableSeats} tables left</span>
+              <div className={`h-2.5 w-[1px] ${isDarkMode ? 'bg-slate-800' : 'bg-gray-200'}`}></div>
+              <span className="font-black text-yellow-500">🪙 Up to +{restaurant.coinReward} Coins</span>
+            </div>
+
+            {/* Bottom Row */}
+            <div className="flex justify-between items-center mt-auto pt-2">
+              <span className={`text-[9px] font-black uppercase tracking-widest text-indigo-500 group-hover:translate-x-1 transition-transform`}>
+                View Details & Book →
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -623,10 +905,23 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
   );
 
   return (
-    <div className={`h-full flex flex-col pb-20 overflow-y-auto hide-scrollbar transition-all duration-500 ${
+    <div className={`h-full w-full overflow-hidden relative ${
       isDarkMode ? 'bg-[#0f172a] text-white' : 'bg-gradient-to-b from-white to-gray-50/80 text-gray-900'
     }`}>
-      {/* Header — Single Row Industry Professional Style */}
+      {/* Dynamic Slide Deck Viewport */}
+      <div 
+        className="flex w-[300%] h-full transition-transform duration-500 ease-out-expo"
+        style={{
+          transform: selectedCategory && selectedSubCategory 
+            ? 'translateX(-66.666%)' 
+            : selectedCategory 
+              ? 'translateX(-33.333%)' 
+              : 'translateX(0%)'
+        }}
+      >
+        {/* PANEL 1: MAIN HOMEPAGE DASHBOARD */}
+        <div className="w-[33.333%] h-full flex flex-col overflow-y-auto hide-scrollbar pb-20">
+          {/* Header — Single Row Industry Professional Style */}
       <div className={`z-50 px-5 pt-14 pb-4 flex justify-between items-center transition-all duration-300 border-b ${
         isDarkMode ? 'bg-[#0f172a]/95 backdrop-blur-md border-slate-800' : 'bg-white border-gray-100/50'
       }`}>
@@ -815,8 +1110,8 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
 
       
       {/* ====== PREMIUM SCOPE TABS WITH COUNTRY SELECTOR INTEGRATED ====== */}
-      <div className="px-5 mt-6 relative">
-        <div className={`flex rounded-2xl p-1.5 relative z-40 shadow-inner-lg ${isDarkMode ? 'bg-slate-800/50' : 'bg-gray-100/80'}`}>
+      <div className="px-5 mt-6 relative z-[80]">
+        <div className={`flex rounded-2xl p-1.5 relative z-[70] shadow-inner-lg ${isDarkMode ? 'bg-slate-800/50' : 'bg-gray-100/80'}`}>
           {/* Animated Background Slider */}
           <div 
             className={`absolute top-1.5 bottom-1.5 rounded-xl transition-all duration-500 ease-out shadow-premium ${
@@ -848,7 +1143,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
 
             {/* Dropdown Menu for Local Modes */}
             {showLocationDropdown && currentScopeId === 'local' && (
-              <div className={`absolute top-[120%] left-0 mt-2 w-48 rounded-3xl shadow-premium-2xl border overflow-hidden animate-slide-up z-50 ${
+              <div className={`absolute top-[120%] left-0 mt-2 w-48 rounded-3xl shadow-premium-2xl border overflow-hidden animate-slide-up z-[100] ${
                 isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100'
               }`}>
                 {[
@@ -919,32 +1214,166 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
       </div>
 
       {/* ====== SECTION 2: UNIVERSAL SERVICE SEARCH ====== */}
-      <div className="px-5 mt-5">
-        <button 
-          onClick={() => navigate('/search')}
-          className={`w-full flex items-center space-x-3 px-5 py-4 rounded-[2rem] border-2 shadow-premium text-left active:scale-[0.99] transition-all relative overflow-hidden group ${
-            isDarkMode ? 'bg-slate-900 border-indigo-500/10 shadow-indigo-500/5' : 'bg-white border-indigo-50/60 shadow-premium'
-          }`}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      <div className="px-5 mt-5 relative z-50" ref={searchContainerRef}>
+        <div className={`flex items-center space-x-3 px-5 py-1 rounded-[2rem] border-2 shadow-premium transition-all relative overflow-hidden group ${
+          isDarkMode ? 'bg-slate-900 border-indigo-500/20 shadow-indigo-500/10' : 'bg-white border-indigo-100 shadow-premium'
+        }`}>
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 opacity-50"></div>
           
-          <span className="text-lg text-indigo-500 relative z-10 animate-pulse">🔍</span>
-          <span className={`text-xs font-bold relative z-10 transition-all ${
-            isDarkMode ? 'text-slate-400' : 'text-gray-400'
+          <span className="text-lg text-indigo-500 relative z-10">🔍</span>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') navigate('/search', { state: { query: searchQuery } });
+            }}
+            placeholder={searchPlaceholders[searchPlaceholderIdx]}
+            className={`flex-1 py-3 bg-transparent outline-none text-xs font-bold relative z-10 transition-all ${
+              isDarkMode ? 'text-white placeholder-slate-400' : 'text-gray-900 placeholder-gray-400'
+            }`}
+          />
+          
+          {/* New Microphone Button on Homepage Search Bar! */}
+          <button 
+            onClick={() => navigate('/search', { state: { autoStartVoice: true } })}
+            className={`relative z-10 w-8 h-8 mr-1 flex items-center justify-center rounded-full active:scale-95 transition-all shadow-sm ${
+              isDarkMode ? 'bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'
+            }`}
+            title="Search with voice"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+            </svg>
+          </button>
+
+          {searchQuery ? (
+            <button 
+              onClick={() => { setSearchQuery(''); setShowSuggestions(false); }}
+              className="relative z-10 w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 text-[10px] hover:bg-gray-200 dark:hover:bg-slate-700"
+            >
+              ✕
+            </button>
+          ) : (
+            <button onClick={() => navigate('/search')} className="relative z-10 bg-indigo-50 dark:bg-indigo-500/20 px-3 py-1.5 rounded-xl text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider shadow-inner active:scale-95 transition-transform">
+              ASK AI
+            </button>
+          )}
+        </div>
+
+        {/* Dynamic Suggestions Dropdown */}
+        {showSuggestions && searchQuery.trim() && (
+          <div className={`absolute top-[calc(100%+8px)] left-5 right-5 rounded-3xl shadow-premium-2xl border overflow-hidden animate-slide-up z-50 max-h-[60vh] overflow-y-auto hide-scrollbar ${
+            isDarkMode ? 'bg-slate-900/95 backdrop-blur-xl border-slate-800' : 'bg-white/95 backdrop-blur-xl border-gray-100'
           }`}>
-            {searchPlaceholders[searchPlaceholderIdx]}
-          </span>
-          <div className="absolute right-5 bg-indigo-50 px-3 py-1 rounded-xl text-[9px] font-black text-indigo-600 uppercase tracking-wider shadow-inner">
-            ASK AI
+            
+            {/* 1. Categories Match */}
+            {searchSuggestions.categories.length > 0 && (
+              <div className="p-3">
+                <h4 className={`text-[9px] font-black uppercase tracking-widest px-2 mb-2 ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>Categories</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {searchSuggestions.categories.map(cat => (
+                    <button key={cat.id} 
+                      onClick={() => { setSelectedCategory(cat.id); setSelectedSubCategory(null); setShowSuggestions(false); setSearchQuery(''); }}
+                      className={`flex items-center space-x-2 p-2 rounded-2xl border active:scale-95 transition-all ${
+                        isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-gray-50 border-gray-100'
+                      }`}>
+                      <div className="w-8 h-8 rounded-xl bg-white/50 dark:bg-black/20 flex items-center justify-center text-lg shadow-sm border border-black/5 dark:border-white/5">{cat.icon}</div>
+                      <span className={`text-[10px] font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{cat.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 2. Sub-categories Match */}
+            {searchSuggestions.subCategories.length > 0 && (
+              <div className={`p-3 ${searchSuggestions.categories.length > 0 ? (isDarkMode ? 'border-t border-slate-800' : 'border-t border-gray-50') : ''}`}>
+                <h4 className={`text-[9px] font-black uppercase tracking-widest px-2 mb-2 ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>Specific Services</h4>
+                <div className="flex flex-col space-y-1.5">
+                  {searchSuggestions.subCategories.map((sub, i) => (
+                    <button key={i}
+                      onClick={() => { setSelectedCategory(sub.parentId); setSelectedSubCategory(sub.name); setShowSuggestions(false); setSearchQuery(''); }}
+                      className={`flex items-center justify-between p-3 rounded-2xl active:scale-[0.98] transition-all group ${
+                        isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-gray-50'
+                      }`}>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-lg">{sub.icon}</div>
+                        <div className="flex flex-col items-start">
+                          <span className={`text-[11px] font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{sub.name}</span>
+                          <span className={`text-[9px] font-medium ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>in {sub.parentName}</span>
+                        </div>
+                      </div>
+                      <span className={`text-xs opacity-0 group-hover:opacity-100 transition-opacity ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>↗</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 3. Providers Match */}
+            {searchSuggestions.providers.length > 0 && (
+              <div className={`p-3 ${searchSuggestions.categories.length > 0 || searchSuggestions.subCategories.length > 0 ? (isDarkMode ? 'border-t border-slate-800' : 'border-t border-gray-50') : ''}`}>
+                <h4 className={`text-[9px] font-black uppercase tracking-widest px-2 mb-2 ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>Virtual Companies</h4>
+                <div className="flex flex-col space-y-2">
+                  {searchSuggestions.providers.map((provider) => (
+                    <button key={provider.id}
+                      onClick={() => { navigate('/provider', { state: { profile: provider } }); setShowSuggestions(false); }}
+                      className={`flex items-center justify-between p-3 rounded-2xl border active:scale-[0.98] transition-all hover:shadow-premium-sm ${
+                        isDarkMode ? 'bg-slate-950/50 border-slate-800 hover:bg-slate-800' : 'bg-white border-gray-100 hover:bg-gray-50'
+                      }`}>
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-inner border ${
+                          isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-indigo-50 border-indigo-100'
+                        }`}>{provider.avatar}</div>
+                        <div className="flex flex-col items-start">
+                          <div className="flex items-center space-x-1">
+                            <span className={`text-[11px] font-black leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{provider.name}</span>
+                            {provider.available && <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>}
+                          </div>
+                          <span className={`text-[9px] font-bold uppercase tracking-wider mt-0.5 ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>{provider.sub || provider.category}</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className={`text-[10px] font-black ${isDarkMode ? 'text-slate-300' : 'text-gray-600'}`}>📍 {provider.distance}</span>
+                        <div className="flex items-center space-x-0.5">
+                          <span className="text-yellow-500 text-[9px]">★</span>
+                          <span className={`text-[9px] font-black ${isDarkMode ? 'text-yellow-500' : 'text-yellow-600'}`}>{provider.rating}</span>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* No matches */}
+            {searchSuggestions.categories.length === 0 && searchSuggestions.subCategories.length === 0 && searchSuggestions.providers.length === 0 && (
+              <div className="p-8 text-center flex flex-col items-center">
+                <span className="text-3xl mb-2 opacity-50 grayscale">🔭</span>
+                <p className={`text-[11px] font-black uppercase tracking-widest ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>No direct matches</p>
+                <p className={`text-[10px] mt-1 mb-4 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>Press Enter to ask AI or search globally.</p>
+                <button 
+                  onClick={() => navigate('/search', { state: { query: searchQuery } })}
+                  className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-transform shadow-md shadow-indigo-500/20"
+                >
+                  Global Search
+                </button>
+              </div>
+            )}
           </div>
-        </button>
+        )}
       </div>
 
       {/* ====== SECTION 3: PREMIUM BILLBOARD CAROUSEL ====== */}
       <div className="px-5 mt-5">
         <div className="relative overflow-hidden rounded-[2.5rem] shadow-premium-lg border border-white/5 h-28 bg-gradient-to-br from-indigo-900 via-purple-900 to-black p-5 flex items-center justify-between">
           {/* Slide 1: 20-Min Emergency */}
-          {activeBanner % 3 === 0 && (
+          {activeBanner % 4 === 0 && (
             <div className="absolute inset-0 bg-gradient-to-br from-red-950 via-red-900 to-black p-5 flex items-center justify-between animate-fade-in">
               <div className="flex-1 pr-2 relative z-10">
                 <span className="text-[8px] font-black text-red-300 uppercase tracking-widest mb-1 block">⚡ FASTEST RESPONSE</span>
@@ -958,7 +1387,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
           )}
 
           {/* Slide 2: Start Virtual Company */}
-          {activeBanner % 3 === 1 && (
+          {activeBanner % 4 === 1 && (
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-950 to-black p-5 flex items-center justify-between animate-fade-in">
               <div className="flex-1 pr-2 relative z-10">
                 <span className="text-[8px] font-black text-indigo-300 uppercase tracking-widest mb-1 block">🚀 EMPOWER YOUR SKILL</span>
@@ -972,7 +1401,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
           )}
 
           {/* Slide 3: Mandi Direct */}
-          {activeBanner % 3 === 2 && (
+          {activeBanner % 4 === 2 && (
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-teal-950 to-black p-5 flex items-center justify-between animate-fade-in">
               <div className="flex-1 pr-2 relative z-10">
                 <span className="text-[8px] font-black text-emerald-300 uppercase tracking-widest mb-1 block">🌾 DIRECT FROM FARMERS</span>
@@ -985,13 +1414,30 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
             </div>
           )}
 
+          {/* Slide 4: Dine-In & Earn Coins (NEW) */}
+          {activeBanner % 4 === 3 && (
+            <div 
+              onClick={() => foodRef.current?.scrollIntoView({ behavior: 'smooth' })}
+              className="absolute inset-0 bg-gradient-to-br from-rose-950 via-orange-900 to-black p-5 flex items-center justify-between animate-fade-in cursor-pointer"
+            >
+              <div className="flex-1 pr-2 relative z-10">
+                <span className="text-[8px] font-black text-amber-300 uppercase tracking-widest mb-1 block">🍽️ DINE-IN & EARN</span>
+                <h2 className="text-base font-black text-white leading-tight font-outfit">Book Tables & Dine<br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500">Claim Mega Coins 🪙</span></h2>
+                <p className="text-[8px] text-gray-200 mt-1 opacity-90">Reserve seats or order at your table to earn coins from restaurants!</p>
+              </div>
+              <div className="flex-shrink-0 w-16 h-16 bg-white/5 rounded-full flex items-center justify-center relative animate-pulse">
+                <span className="text-4xl animate-float">🍕</span>
+              </div>
+            </div>
+          )}
+
           {/* Indicator dots inside the card bottom-right */}
           <div className="absolute bottom-3 right-4 flex space-x-1 z-20">
-            {[0, 1, 2].map((i) => (
+            {[0, 1, 2, 3].map((i) => (
               <button 
                 key={i} 
                 onClick={() => setActiveBanner(i)}
-                className={`h-1 rounded-full transition-all duration-300 ${i === (activeBanner % 3) ? 'w-4 bg-white' : 'w-1 bg-white/30'}`} 
+                className={`h-1 rounded-full transition-all duration-300 ${i === (activeBanner % 4) ? 'w-4 bg-white' : 'w-1 bg-white/30'}`} 
               />
             ))}
           </div>
@@ -1268,6 +1714,8 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
         <div className="animate-fade-in">
           {renderRadarMap('City Radar', 'bg-indigo-505')}
           {renderServicesAroundYou()}
+          {renderFamousLocalFood()}
+          {renderTopRestaurants()}
           {renderLiveReels()}
           {renderProfessionalExpertise()}
           {renderTopExperts()}
@@ -1311,6 +1759,8 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
           {renderLocalProduceAndCrafts()}
           {selectedCountry === 'in' && renderFarmersAndPros()}
           {renderServicesAroundYou()}
+          {renderFamousLocalFood()}
+          {renderTopRestaurants()}
         </div>
       )}
 
@@ -1318,6 +1768,8 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
         <div className="animate-fade-in">
           {renderRadarMap('Live Radar', 'bg-emerald-500')}
           {renderServicesAroundYou()}
+          {renderFamousLocalFood()}
+          {renderTopRestaurants()}
           {selectedCountry === 'in' && renderFarmersAndPros()}
           {renderLiveReels()}
           {renderProfessionalExpertise()}
@@ -1395,6 +1847,784 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
           )}
           
           {renderTopExperts()}
+        </div>
+      )}
+        </div>
+
+        {/* PANEL 2: SUB-CATEGORY ICON GRID */}
+        <div className={`w-[33.333%] h-full flex flex-col overflow-y-auto hide-scrollbar pb-20 border-l ${
+          isDarkMode ? 'bg-[#0f172a] border-slate-800' : 'bg-gray-50 border-gray-100'
+        }`}>
+          {level2Content}
+        </div>
+
+        {/* PANEL 3: PROVIDER LISTINGS */}
+        <div className={`w-[33.333%] h-full flex flex-col overflow-y-auto hide-scrollbar pb-20 border-l ${
+          isDarkMode ? 'bg-[#0f172a] border-slate-800' : 'bg-gray-50 border-gray-100'
+        }`}>
+          {level3Content}
+        </div>
+
+
+      </div>
+      {/* ====== TABLE BOOKING MODAL ====== */}
+      {showBookingModal && selectedFoodItem && (
+        <div className="fixed inset-0 z-[110] flex items-end justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className={`w-full max-w-[500px] max-h-[85vh] rounded-t-[3rem] p-6 pb-10 flex flex-col overflow-y-auto hide-scrollbar shadow-premium-2xl animate-slide-up border-t ${
+            isDarkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-gray-100 text-gray-900'
+          }`}>
+            {/* Header */}
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-black tracking-tight font-outfit">🪑 Reserve Table</h3>
+              <button 
+                onClick={() => { setShowBookingModal(false); setBookingSuccessData(null); }}
+                className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-bold"
+              >✕</button>
+            </div>
+
+            {!bookingSuccessData ? (
+              <div className="space-y-5">
+                {/* Dish Info Card */}
+                <div className={`p-4 rounded-3xl border flex items-center space-x-3.5 ${
+                  isDarkMode ? 'bg-slate-950/40 border-slate-800/80' : 'bg-orange-50/30 border-orange-100/50'
+                }`}>
+                  <span className="text-3xl">{selectedFoodItem.dishName.split(' ').pop()}</span>
+                  <div>
+                    <h4 className="font-black text-sm">{selectedFoodItem.dishName.split(' ').slice(0, -1).join(' ')}</h4>
+                    <p className="text-[10px] text-gray-400 font-bold mt-0.5">{selectedFoodItem.restaurantName}</p>
+                  </div>
+                </div>
+
+                {/* Date Selection */}
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Select Date</label>
+                  <div className="flex space-x-3">
+                    {['Today', 'Tomorrow', 'Day After'].map((d, idx) => (
+                      <button key={d} className={`flex-1 py-3 rounded-2xl text-xs font-black uppercase tracking-wider border transition-all ${
+                        idx === 0 
+                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-transparent' 
+                          : isDarkMode ? 'bg-slate-800 border-slate-707 text-slate-300' : 'bg-gray-50 border-gray-100 text-gray-600'
+                      }`}>
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Time Selection */}
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Select Time Slot</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {['12:30 PM', '1:30 PM', '7:00 PM', '8:00 PM', '9:30 PM'].map((t, idx) => (
+                      <button key={t} className={`py-3 rounded-2xl text-xs font-black uppercase tracking-wider border transition-all ${
+                        idx === 2 
+                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-transparent' 
+                          : isDarkMode ? 'bg-slate-800 border-slate-707 text-slate-300' : 'bg-gray-50 border-gray-100 text-gray-600'
+                      }`}>
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Guests Selection */}
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Number of Guests</label>
+                  <div className="flex space-x-2">
+                    {['1 Guest', '2 Guests', '4 Guests', '6+ Guests'].map((g, idx) => (
+                      <button key={g} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all ${
+                        idx === 1 
+                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-transparent' 
+                          : isDarkMode ? 'bg-slate-800 border-slate-707 text-slate-300' : 'bg-gray-50 border-gray-100 text-gray-600'
+                      }`}>
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Info Note */}
+                <div className={`p-4 rounded-2xl border flex items-start space-x-2.5 text-[10px] font-medium leading-relaxed ${
+                  isDarkMode ? 'bg-slate-850 border-slate-800 text-slate-400' : 'bg-gray-50 border-gray-100 text-gray-500'
+                }`}>
+                  <span className="text-xs">💡</span>
+                  <span>
+                    Table reservations are held for 15 minutes. To prevent coin fraud, your booking coins will be active once you scan the table QR code at the restaurant!
+                  </span>
+                </div>
+
+                {/* Action button */}
+                <button 
+                  disabled={isProcessingBooking}
+                  onClick={() => {
+                    setIsProcessingBooking(true);
+                    setTimeout(() => {
+                      const code = `EB-${Math.floor(1000 + Math.random() * 9000)}`;
+                      setBookingSuccessData({ code });
+                      setIsProcessingBooking(false);
+                    }, 1500);
+                  }}
+                  className={`w-full py-4 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium active:scale-95 transition-all mt-4 flex justify-center items-center space-x-2 ${
+                    isProcessingBooking ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-orange-500 to-amber-500'
+                  }`}
+                >
+                  {isProcessingBooking ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <span>Confirm Table Reservation</span>
+                  )}
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center text-center py-6 space-y-5 animate-fade-in">
+                <span className="text-6xl animate-bounce" style={{ animationDuration: '2s' }}>🎉</span>
+                <div>
+                  <h4 className="text-xl font-black font-outfit">Table Reserved!</h4>
+                  <p className="text-xs text-gray-500 mt-1">Confirmed at {selectedFoodItem.restaurantName}</p>
+                </div>
+
+                {/* Ticket Details */}
+                <div className={`w-full p-5 rounded-3xl border border-dashed relative ${
+                  isDarkMode ? 'bg-slate-950/60 border-slate-800' : 'bg-gray-50 border-gray-250'
+                }`}>
+                  <div className="flex justify-between items-center text-left border-b pb-3 mb-3 border-dashed border-gray-700">
+                    <div>
+                      <span className="text-[8px] font-black text-gray-505 uppercase tracking-widest block leading-none mb-1">Booking Code</span>
+                      <span className="text-base font-black text-orange-500 tracking-wider font-outfit">{bookingSuccessData.code}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[8px] font-black text-gray-505 uppercase tracking-widest block leading-none mb-1">Table Type</span>
+                      <span className={`text-xs font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>2 Guests</span>
+                    </div>
+                  </div>
+
+                  <div className="text-left space-y-2">
+                    <p className={`text-[10px] leading-relaxed font-medium ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                      Show this ticket to the restaurant host on arrival. Once seated, scan the table QR code to claim your coin reward.
+                    </p>
+                    <div className="flex justify-between items-center bg-yellow-500/10 border border-yellow-500/20 px-3 py-2.5 rounded-xl mt-2">
+                      <span className="text-[9px] font-black text-yellow-600 uppercase tracking-widest">Sponsor coins</span>
+                      <span className="text-xs font-black text-yellow-500">🪙 +{selectedFoodItem.coinReward} Coins</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Direct QR Simulation check-in */}
+                <div className="w-full pt-4 space-y-3">
+                  <div className="flex items-center space-x-2 justify-center mb-1">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
+                    <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Simulate GPS Arrival</span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      if (setAdCoins) {
+                        setAdCoins(prev => prev + selectedFoodItem.coinReward);
+                      }
+                      alert(`🎉 Success! You arrived at ${selectedFoodItem.restaurantName} & scanned the table QR. +${selectedFoodItem.coinReward} Coins added to your Wallet!`);
+                      setShowBookingModal(false);
+                      setBookingSuccessData(null);
+                    }}
+                    className="w-full py-4 bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium active:scale-95 transition-all flex items-center justify-center space-x-2"
+                  >
+                    <span>📱 Scan Table QR (Claim Coins)</span>
+                  </button>
+                  <button 
+                    onClick={() => { setShowBookingModal(false); setBookingSuccessData(null); }}
+                    className={`w-full py-3.5 text-xs font-black uppercase tracking-widest rounded-2xl border transition-all ${
+                      isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700' : 'bg-gray-100 border-gray-200 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Close & Go to Restaurant Later
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ====== IN-RESTAURANT ORDER AT TABLE MODAL ====== */}
+      {showOrderingModal && selectedFoodItem && (
+        <div className="fixed inset-0 z-[110] flex items-end justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className={`w-full max-w-[500px] max-h-[85vh] rounded-t-[3rem] p-6 pb-10 flex flex-col overflow-y-auto hide-scrollbar shadow-premium-2xl animate-slide-up border-t ${
+            isDarkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-gray-100 text-gray-900'
+          }`}>
+            {/* Header */}
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-black tracking-tight font-outfit">🍽️ Order at Table</h3>
+              <button 
+                onClick={() => { setShowOrderingModal(false); setOrderingSuccessData(null); }}
+                className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-bold"
+              >✕</button>
+            </div>
+
+            {!orderingSuccessData ? (
+              <div className="space-y-5">
+                {/* Intro Card */}
+                <div className={`p-4 rounded-3xl border ${
+                  isDarkMode ? 'bg-slate-950/40 border-slate-800/80' : 'bg-gray-50/50 border-gray-100/50'
+                }`}>
+                  <p className={`text-[10px] font-black uppercase tracking-widest text-orange-500 mb-1`}>Dine-In Digital Menu</p>
+                  <h4 className={`text-sm font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{selectedFoodItem.restaurantName}</h4>
+                  <p className="text-[9px] text-gray-500 mt-0.5">Place an order directly from your table using Earthgram to unlock coins!</p>
+                </div>
+
+                {/* Table Number Selector */}
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Select Your Table Number</label>
+                  <div className="flex space-x-2.5">
+                    {[1, 2, 3, 5, 8].map((tbl) => (
+                      <button key={tbl} className={`flex-1 py-3 rounded-2xl text-xs font-black uppercase border transition-all ${
+                        tbl === 3 
+                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-transparent shadow-sm' 
+                          : isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-350' : 'bg-gray-50 border-gray-100 text-gray-655'
+                      }`}>
+                        Table {tbl}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Digital Menu Items */}
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-3">Famous Dishes & Menu</label>
+                  <div className="space-y-3">
+                    {selectedFoodItem.menu.map((menuItem, idx) => (
+                      <div key={idx} className={`p-4 rounded-2xl border flex items-center justify-between transition-all ${
+                        isDarkMode ? 'bg-slate-850 border-slate-800' : 'bg-white border-gray-100 shadow-sm'
+                      }`}>
+                        <div className="flex items-center space-x-3">
+                          <span className="text-2xl">{menuItem.name.split(' ').pop()}</span>
+                          <div>
+                            <span className={`text-[11px] font-black block ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                              {menuItem.name.split(' ').slice(0, -1).join(' ')}
+                            </span>
+                            <span className="text-[10px] text-gray-450 font-bold block mt-0.5">{menuItem.price}</span>
+                          </div>
+                        </div>
+
+                        {/* Add to order simulator check */}
+                        <div className="flex items-center space-x-2">
+                          <span className="text-[8px] font-black text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">Famous</span>
+                          <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">✓</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pay-Per-Sale Coin Badge */}
+                <div className="flex justify-between items-center bg-yellow-500/10 border border-yellow-500/20 px-4 py-3 rounded-2xl mt-4">
+                  <div>
+                    <span className="text-[8px] font-black text-yellow-600 uppercase tracking-widest block mb-0.5">Fulfillment coins</span>
+                    <span className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-350' : 'text-gray-655'}`}>Issued by restaurant upon placing order</span>
+                  </div>
+                  <span className="text-xs font-black text-yellow-500 whitespace-nowrap">🪙 +{selectedFoodItem.coinReward} Coins</span>
+                </div>
+
+                {/* Order placement button */}
+                <button 
+                  disabled={isProcessingOrdering}
+                  onClick={() => {
+                    setIsProcessingOrdering(true);
+                    setTimeout(() => {
+                      if (setAdCoins) {
+                        setAdCoins(prev => prev + selectedFoodItem.coinReward);
+                      }
+                      setOrderingSuccessData({ orderId: `FD-${Math.floor(1000 + Math.random() * 9000)}` });
+                      setIsProcessingOrdering(false);
+                    }, 2000);
+                  }}
+                  className={`w-full py-4 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium active:scale-95 transition-all mt-4 flex justify-center items-center space-x-2 ${
+                    isProcessingOrdering ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-orange-500 to-amber-500'
+                  }`}
+                >
+                  {isProcessingOrdering ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                      <span>Sending to Kitchen...</span>
+                    </>
+                  ) : (
+                    <span>Place Table Order & Claim Coins</span>
+                  )}
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center text-center py-8 space-y-6 animate-fade-in">
+                <span className="text-6xl animate-bounce" style={{ animationDuration: '1.8s' }}>🍲</span>
+                <div>
+                  <h4 className="text-xl font-black font-outfit">Order Sent to Kitchen!</h4>
+                  <p className="text-xs text-gray-500 mt-1">Confirmed at {selectedFoodItem.restaurantName} • Table #3</p>
+                </div>
+
+                {/* Coin payout notification card */}
+                <div className="w-full p-5 bg-gradient-to-br from-yellow-500/20 via-amber-500/10 to-transparent border border-yellow-500/30 rounded-3xl relative overflow-hidden">
+                  <div className="absolute right-0 top-0 w-24 h-24 bg-yellow-500/10 rounded-full blur-xl pointer-events-none"></div>
+                  <span className="text-3xl block mb-2">🪙</span>
+                  <h5 className="text-sm font-black text-yellow-500 font-outfit">+{selectedFoodItem.coinReward} Coins Deposited!</h5>
+                  <p className={`text-[10px] leading-relaxed font-medium mt-1.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                    Thank you for using Earthgram! The restaurant has successfully verified your dine-in table presence. Your reward has been credited to your active wallet balance.
+                  </p>
+                </div>
+
+                {/* Action button */}
+                <button 
+                  onClick={() => { setShowOrderingModal(false); setOrderingSuccessData(null); }}
+                  className="w-full py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium active:scale-95 transition-all"
+                >
+                  Awesome, Thank You!
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ====== UNIFIED DINE-IN RESTAURANT DETAIL MODAL ====== */}
+      {showRestaurantSheet && selectedRestaurant && (
+        <div className="fixed inset-0 z-[110] flex items-end justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className={`w-full max-w-[500px] max-h-[85vh] rounded-t-[3rem] flex flex-col overflow-hidden shadow-premium-2xl animate-slide-up border-t ${
+            isDarkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-gray-100 text-gray-900'
+          }`}>
+            
+            {/* Header Area */}
+            <div className="p-6 pb-2 flex justify-between items-start shrink-0">
+              <div className="flex items-center space-x-3.5 pr-2">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-inner border shrink-0 ${
+                  isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-indigo-50 border-indigo-100'
+                }`}>
+                  {selectedRestaurant.emoji}
+                </div>
+                <div>
+                  <div className="flex items-center space-x-1.5 mb-1">
+                    <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></span>
+                    <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">{selectedRestaurant.cuisine}</span>
+                  </div>
+                  <h3 className="text-lg font-black tracking-tight leading-tight font-outfit">{selectedRestaurant.name}</h3>
+                  <div className="flex items-center space-x-2 mt-0.5">
+                    <span className="text-[10px] text-gray-400 font-medium">📍 {selectedRestaurant.distance} away</span>
+                    <span className="text-gray-300">•</span>
+                    <div className="flex items-center space-x-0.5">
+                      <span className="text-yellow-500 text-[10px]">★</span>
+                      <span className="text-[10px] font-black">{selectedRestaurant.rating}</span>
+                      <span className="text-[9px] text-gray-450 font-bold">({selectedRestaurant.reviews})</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={() => { setShowRestaurantSheet(false); setRestBookingSuccess(null); setRestOrderSuccess(null); }}
+                className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-bold hover:scale-105 active:scale-95 transition-all shrink-0"
+              >✕</button>
+            </div>
+
+            {/* Restaurant Bio Section */}
+            <div className="px-6 pb-4 shrink-0">
+              <p className={`text-[10px] leading-relaxed font-medium ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                {selectedRestaurant.bio}
+              </p>
+            </div>
+
+            {/* Navigation Tabs (Only if not in success screens) */}
+            {!restBookingSuccess && !restOrderSuccess && (
+              <div className="px-6 pb-2 flex space-x-2 border-b dark:border-slate-800 shrink-0">
+                <button
+                  onClick={() => setRestaurantTab('reserve')}
+                  className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center space-x-1.5 border ${
+                    restaurantTab === 'reserve'
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-transparent shadow-sm'
+                      : isDarkMode ? 'bg-slate-850 border-slate-800 text-slate-400 hover:bg-slate-800' : 'bg-gray-50 border-gray-150 text-gray-500 hover:bg-gray-100'
+                  }`}
+                >
+                  <span>🪑</span>
+                  <span>Reserve Table</span>
+                </button>
+                <button
+                  onClick={() => setRestaurantTab('menu')}
+                  className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center space-x-1.5 border ${
+                    restaurantTab === 'menu'
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-transparent shadow-sm'
+                      : isDarkMode ? 'bg-slate-850 border-slate-800 text-slate-400 hover:bg-slate-800' : 'bg-gray-50 border-gray-150 text-gray-500 hover:bg-gray-100'
+                  }`}
+                >
+                  <span>🍽️</span>
+                  <span>Dine-In Menu</span>
+                </button>
+              </div>
+            )}
+
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 hide-scrollbar">
+              
+              {/* SUCCESS STATE A: TABLE BOOKED */}
+              {restBookingSuccess ? (
+                <div className="flex flex-col items-center text-center py-4 space-y-5 animate-fade-in">
+                  <span className="text-6xl animate-bounce" style={{ animationDuration: '2s' }}>🎉</span>
+                  <div>
+                    <h4 className="text-xl font-black font-outfit">Table Reserved Successfully!</h4>
+                    <p className="text-xs text-gray-505 mt-1">Confirmed at {selectedRestaurant.name} • {selectedTable}</p>
+                  </div>
+
+                  <div className={`w-full p-5 rounded-3xl border border-dashed relative ${
+                    isDarkMode ? 'bg-slate-950/60 border-slate-800' : 'bg-gray-50 border-gray-200'
+                  }`}>
+                    <div className="flex justify-between items-center text-left border-b pb-3 mb-3 border-dashed border-gray-700">
+                      <div>
+                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest block leading-none mb-1">Reservation Code</span>
+                        <span className="text-base font-black text-orange-500 tracking-wider font-outfit">{restBookingSuccess.code}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest block leading-none mb-1">Reserved Table</span>
+                        <span className={`text-xs font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{selectedTable}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-left space-y-2 text-[10px] leading-relaxed font-medium">
+                      <p className={isDarkMode ? 'text-slate-400' : 'text-gray-500'}>
+                        Show this digital ticket to the restaurant host on arrival. Once seated, simply scan the table QR code to claim your coin rewards!
+                      </p>
+                      <div className="flex justify-between items-center bg-yellow-500/10 border border-yellow-500/20 px-3 py-2.5 rounded-xl mt-2">
+                        <span className="text-[9px] font-black text-yellow-600 uppercase tracking-widest">Dine-In Coin Reward</span>
+                        <span className="text-xs font-black text-yellow-500">🪙 +{selectedRestaurant.coinReward} Coins</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Simulate Table QR Scanning */}
+                  <div className="w-full pt-4 space-y-3">
+                    <div className="flex items-center space-x-2 justify-center mb-1">
+                      <span className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
+                      <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Simulating Dining Room Arrival</span>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        if (setAdCoins) {
+                          setAdCoins(prev => prev + selectedRestaurant.coinReward);
+                        }
+                        alert(`🎉 Table Check-in Verified! You arrived at ${selectedRestaurant.name} and scanned the QR on ${selectedTable}. +${selectedRestaurant.coinReward} Coins added to your Wallet balance!`);
+                        setShowRestaurantSheet(false);
+                        setRestBookingSuccess(null);
+                      }}
+                      className="w-full py-4 bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium active:scale-95 transition-all flex items-center justify-center space-x-2"
+                    >
+                      <span>📱 Arrive & Scan QR at Table</span>
+                    </button>
+                    <button 
+                      onClick={() => { setShowRestaurantSheet(false); setRestBookingSuccess(null); }}
+                      className={`w-full py-3 text-xs font-black uppercase tracking-widest rounded-2xl border transition-all ${
+                        isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-350 hover:bg-slate-700' : 'bg-gray-150 border-gray-200 text-gray-650 hover:bg-gray-205'
+                      }`}
+                    >
+                      Go to Restaurant Later
+                    </button>
+                  </div>
+                </div>
+              ) : restOrderSuccess ? (
+                /* SUCCESS STATE B: FOOD ORDERED AT TABLE */
+                <div className="flex flex-col items-center text-center py-4 space-y-6 animate-fade-in">
+                  <span className="text-6xl animate-bounce" style={{ animationDuration: '1.8s' }}>🍲</span>
+                  <div>
+                    <h4 className="text-xl font-black font-outfit">Order Placed Successfully!</h4>
+                    <p className="text-xs text-gray-500 mt-1">Confirmed at {selectedRestaurant.name} • {selectedTable}</p>
+                  </div>
+
+                  <div className="w-full p-5 bg-gradient-to-br from-yellow-500/20 via-amber-500/10 to-transparent border border-yellow-500/30 rounded-3xl relative overflow-hidden">
+                    <div className="absolute right-0 top-0 w-24 h-24 bg-yellow-500/10 rounded-full blur-xl pointer-events-none"></div>
+                    <span className="text-3xl block mb-2">🪙</span>
+                    <h5 className="text-sm font-black text-yellow-500 font-outfit">+{selectedRestaurant.coinReward} Coins Deposited!</h5>
+                    <p className={`text-[10px] leading-relaxed font-medium mt-1.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                      Excellent! The kitchen is preparing your dine-in table order. Your golden +{selectedRestaurant.coinReward} coins have been successfully authorized by the merchant and deposited into your active Earthgram Wallet!
+                    </p>
+                  </div>
+
+                  <button 
+                    onClick={() => { setShowRestaurantSheet(false); setRestOrderSuccess(null); setRestaurantCart({}); }}
+                    className="w-full py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium active:scale-95 transition-all"
+                  >
+                    Awesome, Thank You!
+                  </button>
+                </div>
+              ) : restaurantTab === 'reserve' ? (
+                /* TAB 1 CONTENT: RESERVE TABLE */
+                <div className="space-y-6 animate-fade-in">
+                  
+                  {/* Visual Table Layout Map */}
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-3">Select a Table Layout</label>
+                    <div className={`p-4 rounded-3xl border ${isDarkMode ? 'bg-slate-950/40 border-slate-800/80' : 'bg-gray-50/50 border-gray-150'}`}>
+                      
+                      {/* Visual Grid representing Dining Room */}
+                      <div className="grid grid-cols-3 gap-4 justify-items-center py-2 relative">
+                        
+                        {/* Interactive Table Pins */}
+                        {[
+                          { id: 'Table 1', type: '2 Seats', booked: false, position: 'Standard' },
+                          { id: 'Table 2', type: '4 Seats', booked: true, position: 'Booth' },
+                          { id: 'Table 3', type: '2 Seats', booked: false, position: 'Window' },
+                          { id: 'Table 5', type: '6 Seats', booked: false, position: 'Family' },
+                          { id: 'Table 8', type: '2 Seats', booked: false, position: 'VIP Lounge' }
+                        ].map((tbl) => {
+                          const isSelected = selectedTable === tbl.id;
+                          return (
+                            <button
+                              key={tbl.id}
+                              disabled={tbl.booked}
+                              onClick={() => setSelectedTable(tbl.id)}
+                              className={`w-20 h-20 rounded-2xl border flex flex-col items-center justify-center p-2 transition-all relative ${
+                                tbl.booked
+                                  ? 'bg-gray-100 dark:bg-slate-850 border-transparent text-gray-400 dark:text-slate-600 cursor-not-allowed opacity-50'
+                                  : isSelected
+                                    ? 'bg-gradient-to-br from-orange-500 to-amber-500 text-white border-transparent ring-4 ring-orange-500/20 scale-105 shadow-md shadow-orange-500/20'
+                                    : isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                              }`}
+                            >
+                              <span className="text-xl mb-0.5">{tbl.booked ? '🔒' : isSelected ? '👑' : '🪑'}</span>
+                              <span className="text-[9px] font-black leading-none">{tbl.id}</span>
+                              <span className={`text-[7px] font-bold mt-1 opacity-70`}>{tbl.booked ? 'Occupied' : tbl.position}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Map Legends */}
+                      <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest mt-4 pt-3 border-t dark:border-slate-800 text-gray-400">
+                        <div className="flex items-center space-x-1">
+                          <span className="w-2.5 h-2.5 rounded-md bg-orange-500"></span>
+                          <span>Selected</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <span className="w-2.5 h-2.5 rounded-md bg-gray-200 dark:bg-slate-800"></span>
+                          <span>Occupied</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <span className="w-2.5 h-2.5 rounded-md bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700"></span>
+                          <span>Available</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Date & Time Selectors */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Select Date</label>
+                      <div className="flex space-x-1.5">
+                        {['Today', 'Tomorrow'].map((d) => (
+                          <button
+                            key={d}
+                            onClick={() => setRestBookingDate(d)}
+                            className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${
+                              restBookingDate === d
+                                ? 'bg-indigo-600 border-indigo-500 text-white shadow-sm'
+                                : isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-350' : 'bg-gray-50 border-gray-150 text-gray-605'
+                            }`}
+                          >
+                            {d}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Select Time</label>
+                      <div className="flex space-x-1.5">
+                        {['7:00 PM', '8:30 PM'].map((t) => (
+                          <button
+                            key={t}
+                            onClick={() => setRestBookingTime(t)}
+                            className={`flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${
+                              restBookingTime === t
+                                ? 'bg-indigo-600 border-indigo-500 text-white shadow-sm'
+                                : isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-350' : 'bg-gray-50 border-gray-150 text-gray-605'
+                            }`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Number of Guests */}
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Number of Guests</label>
+                    <div className="flex space-x-2">
+                      {['1 Guest', '2 Guests', '4 Guests', '6+ Guests'].map((g) => (
+                        <button 
+                          key={g}
+                          onClick={() => setRestBookingGuests(g)}
+                          className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-all ${
+                            restBookingGuests === g
+                              ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-transparent'
+                              : isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-gray-50 border-gray-100 text-gray-600'
+                          }`}
+                        >
+                          {g}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Info Tip */}
+                  <div className={`p-4 rounded-2xl border flex items-start space-x-2.5 text-[9px] font-medium leading-relaxed ${
+                    isDarkMode ? 'bg-slate-850 border-slate-800 text-slate-400' : 'bg-gray-50/50 border-gray-100 text-gray-500'
+                  }`}>
+                    <span className="text-xs">💡</span>
+                    <span>
+                      Table reservations are held for 15 minutes max. Scan the QR code located directly on {selectedTable} at {selectedRestaurant.name} to release your coin reward.
+                    </span>
+                  </div>
+
+                  {/* Booking CTA Button */}
+                  <button
+                    disabled={isProcessingRestBooking}
+                    onClick={() => {
+                      setIsProcessingRestBooking(true);
+                      setTimeout(() => {
+                        setIsProcessingRestBooking(false);
+                        setRestBookingSuccess({ code: `RES-${Math.floor(1000 + Math.random() * 9000)}` });
+                      }, 1200);
+                    }}
+                    className={`w-full py-4 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium active:scale-95 transition-all flex justify-center items-center space-x-2 ${
+                      isProcessingRestBooking ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-orange-500 to-amber-500'
+                    }`}
+                  >
+                    {isProcessingRestBooking ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <span>Processing Reservation...</span>
+                      </>
+                    ) : (
+                      <span>Reserve {selectedTable} Instantly</span>
+                    )}
+                  </button>
+                </div>
+              ) : (
+                /* TAB 2 CONTENT: DINE-IN MENU & DIGITAL CART ORDERING */
+                <div className="space-y-5 animate-fade-in">
+                  
+                  <div className={`p-4 rounded-3xl border ${isDarkMode ? 'bg-slate-950/40 border-slate-800/80' : 'bg-gray-50/50 border-gray-150'}`}>
+                    <span className="text-[8px] font-black text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">Active Table Check-In</span>
+                    <p className={`text-[10px] font-medium leading-relaxed mt-2 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                      Dining at restaurant? Place an order directly from your smartphone to Table 3 using Earthgram to unlock immediate coin payouts.
+                    </p>
+                  </div>
+
+                  {/* Digital Menu Dishes List */}
+                  <div className="space-y-3.5">
+                    {selectedRestaurant.menu.map((dish, idx) => {
+                      const cartQty = restaurantCart[dish.name] || 0;
+                      return (
+                        <div key={idx} className={`p-4 rounded-2xl border flex items-center justify-between transition-all ${
+                          isDarkMode ? 'bg-slate-850 border-slate-800' : 'bg-white border-gray-100 shadow-sm'
+                        }`}>
+                          <div className="flex items-center space-x-3.5 pr-2 flex-1">
+                            <div className="text-2xl w-10 h-10 rounded-xl bg-gray-50 dark:bg-slate-900 border flex items-center justify-center shrink-0">
+                              {dish.name.split(' ').pop()}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className={`text-[11px] font-black leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                {dish.name.split(' ').slice(0, -1).join(' ')}
+                              </span>
+                              <span className={`text-[8px] leading-relaxed mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-400'}`}>
+                                {dish.description || 'Special signature neighborhood recipe.'}
+                              </span>
+                              <span className="text-[10px] font-black text-indigo-500 mt-1">{dish.price}</span>
+                            </div>
+                          </div>
+
+                          {/* Circular Counter Widget */}
+                          <div className="flex items-center space-x-3 border dark:border-slate-700 rounded-xl p-1 shrink-0">
+                            <button
+                              onClick={() => {
+                                if (cartQty > 0) {
+                                  setRestaurantCart(prev => ({ ...prev, [dish.name]: cartQty - 1 }));
+                                }
+                              }}
+                              className={`w-6 h-6 rounded-lg font-bold flex items-center justify-center active:scale-90 transition-all ${
+                                cartQty > 0 
+                                  ? 'bg-indigo-600 text-white border-transparent' 
+                                  : isDarkMode ? 'bg-slate-800 text-slate-500 border-transparent' : 'bg-gray-100 text-gray-400 border-transparent'
+                              }`}
+                            >
+                              -
+                            </button>
+                            <span className="text-[11px] font-black w-3 text-center">{cartQty}</span>
+                            <button
+                              onClick={() => {
+                                setRestaurantCart(prev => ({ ...prev, [dish.name]: cartQty + 1 }));
+                              }}
+                              className="w-6 h-6 rounded-lg bg-indigo-600 text-white font-bold flex items-center justify-center active:scale-95 transition-all"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Coin Sponsor Bonus Note */}
+                  <div className="flex justify-between items-center bg-yellow-500/10 border border-yellow-500/20 px-4 py-3.5 rounded-2xl mt-4">
+                    <div>
+                      <span className="text-[8px] font-black text-yellow-600 uppercase tracking-widest block mb-0.5">Sponsor Coins Payout</span>
+                      <span className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-350' : 'text-gray-600'}`}>Credited instantly to your Earthgram Wallet</span>
+                    </div>
+                    <span className="text-xs font-black text-yellow-500 whitespace-nowrap">🪙 +{selectedRestaurant.coinReward} Coins</span>
+                  </div>
+
+                  {/* Cart Active Checkout Bar */}
+                  {(() => {
+                    const totalQty = Object.values(restaurantCart).reduce((a, b) => a + b, 0);
+                    if (totalQty === 0) return null;
+
+                    const totalCost = selectedRestaurant.menu.reduce((sum, dish) => {
+                      const qty = restaurantCart[dish.name] || 0;
+                      const numericPrice = parseInt(dish.price.replace(/[^\d]/g, '')) || 0;
+                      return sum + (numericPrice * qty);
+                    }, 0);
+
+                    return (
+                      <div className={`p-4 rounded-3xl border flex flex-col space-y-3 animate-fade-in ${
+                        isDarkMode ? 'bg-slate-950/80 border-slate-800' : 'bg-gray-50 border-gray-150 shadow-inner'
+                      }`}>
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                          <span className="text-gray-400">{totalQty} items selected</span>
+                          <span className={isDarkMode ? 'text-white' : 'text-gray-900'}>Subtotal: ₹{totalCost}</span>
+                        </div>
+                        <button
+                          disabled={isProcessingRestOrder}
+                          onClick={() => {
+                            setIsProcessingRestOrder(true);
+                            setTimeout(() => {
+                              setIsProcessingRestOrder(false);
+                              if (setAdCoins) {
+                                setAdCoins(prev => prev + selectedRestaurant.coinReward);
+                              }
+                              setRestOrderSuccess(true);
+                            }, 1800);
+                          }}
+                          className="w-full py-4 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium bg-gradient-to-r from-orange-500 to-amber-500 active:scale-95 transition-all flex justify-center items-center space-x-2"
+                        >
+                          {isProcessingRestOrder ? (
+                            <>
+                              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                              <span>Placing Table Order...</span>
+                            </>
+                          ) : (
+                            <span>Place Table Order & Claim 🪙 +{selectedRestaurant.coinReward} Coins</span>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

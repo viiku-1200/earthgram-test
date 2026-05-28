@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import { REGISTRATION_PLANS, SERVICE_CATEGORY_OPTIONS, LAUNCH_SCALE_OPTIONS, REVENUE_MODELS, SUBCATEGORIES_MAP } from '../../data/constants';
 
 const RegisterScreen = ({ isDarkMode, onClose, onRegisterSuccess }) => {
@@ -23,6 +24,7 @@ const RegisterScreen = ({ isDarkMode, onClose, onRegisterSuccess }) => {
     createGroup: false,
     enableGroupDiscussion: false,
     teamMembers: [],
+    location: null,
   });
   const [showAddMember, setShowAddMember] = useState(false);
   const [newMember, setNewMember] = useState({ name: '', domain: '', rate: '', description: '' });
@@ -41,6 +43,16 @@ const RegisterScreen = ({ isDarkMode, onClose, onRegisterSuccess }) => {
     (!SUBCATEGORIES_MAP[formData.category] || formData.subCategory) && 
     ((formData.category !== 'Other' && formData.subCategory !== 'Other') || (formData.customCategory && formData.customCategory.trim()));
   const canProceedStep4 = formData.aadharNumber.trim().length >= 12 && formData.address.trim();
+
+  // Map Marker Component
+  const LocationMarker = ({ position, setPosition }) => {
+    useMapEvents({
+      click(e) {
+        setPosition([e.latlng.lat, e.latlng.lng]);
+      },
+    });
+    return position ? <Marker position={position} /> : null;
+  };
 
   // ============== STEP 1: PLAN SELECTION ==============
   const PlanSelection = () => (
@@ -381,8 +393,37 @@ const RegisterScreen = ({ isDarkMode, onClose, onRegisterSuccess }) => {
         <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
       </div>
 
-      <InputField label="Business Operating Area *" value={formData.address}
+      <InputField label="Business Operating Area (Text) *" value={formData.address}
         onChange={v => updateField('address', v)} placeholder="e.g., Gaur City 2, Noida" />
+
+      {/* NEW: Interactive Leaflet Map for Shop Location */}
+      <div className="bg-white p-3 rounded-2xl border border-gray-200 shadow-sm relative z-0">
+        <div className="flex justify-between items-center mb-2">
+          <label className="text-xs font-bold text-gray-700">Set Map Location *</label>
+          {formData.location && <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Pinned ✓</span>}
+        </div>
+        <div className="h-48 w-full rounded-xl overflow-hidden shadow-inner border border-gray-100 relative">
+          <MapContainer center={[28.6273, 77.4363]} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
+            <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+            <LocationMarker position={formData.location} setPosition={(pos) => updateField('location', pos)} />
+          </MapContainer>
+        </div>
+        <div className="flex justify-between items-center mt-2">
+          <p className="text-[9px] text-gray-400 font-bold">👆 Tap map to drop pin</p>
+          <button 
+            onClick={() => {
+              if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => updateField('location', [pos.coords.latitude, pos.coords.longitude]),
+                  () => alert("Please allow location access or tap the map manually.")
+                );
+              }
+            }}
+            className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-2.5 py-1.5 rounded-lg shadow-sm active:scale-95 transition-transform">
+            📍 USE MY GPS
+          </button>
+        </div>
+      </div>
 
       <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3">
         <p className="text-[10px] text-indigo-700 font-medium leading-relaxed">
@@ -483,7 +524,25 @@ const RegisterScreen = ({ isDarkMode, onClose, onRegisterSuccess }) => {
 
   const handleNext = () => {
     if (step === totalSteps) {
-      onRegisterSuccess?.(formData);
+      // Build Provider Object to inject into global search
+      const newProvider = {
+        id: `custom_${Date.now()}`,
+        name: formData.brandName,
+        category: formData.category === 'Other' ? formData.customCategory : formData.category,
+        sub: formData.subCategory,
+        subCategory: formData.subCategory,
+        rating: 5.0, // Give new shops a perfect 5.0 to start
+        reviews: 0,
+        price: '₹' + (formData.revenueModel === 'Fixed Price' ? '150' : '200/hr'),
+        distance: '0.1 km', // Treat as nearby since they just registered here
+        tag: 'NEW PRO',
+        avatar: formData.category === 'Other' ? '✨' : '💼',
+        available: true,
+        address: formData.address,
+        location: formData.location
+      };
+
+      onRegisterSuccess?.({ ...formData, providerObj: newProvider });
       onClose();
       return;
     }
