@@ -219,26 +219,49 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
     const filteredProviders = getFilteredProviders();
     level3Content = (
       <div className="h-full flex flex-col pt-8 pb-4 animate-fade-in relative">
-        {/* Header */}
-        <div className="px-5 pt-2 pb-4 flex justify-between items-center mb-2">
-          <div className="flex items-center space-x-3">
-            <button onClick={() => setSelectedSubCategory(null)}
-              className={`w-9 h-9 rounded-2xl flex items-center justify-center active:scale-90 transition-all text-sm font-black shadow-sm border ${
-                isDarkMode ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
-              }`}>←</button>
-            <div className="flex flex-col">
-              <h1 className={`text-xl font-black tracking-tight leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                {selectedSubCategory === '__ALL__' ? 'All Providers' : selectedSubCategory}
-              </h1>
-              <span className={`text-[9px] font-black uppercase tracking-widest mt-0.5 ${
-                isDarkMode ? 'text-indigo-400' : 'text-indigo-600'
-              }`}>{cat.name}</span>
+        {/* Header with Sub-Tabs */}
+        <div className="px-5 pt-2 pb-4 flex flex-col space-y-4 mb-2">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <button onClick={() => { setSelectedCategory(null); setSelectedSubCategory(null); }}
+                className={`w-9 h-9 rounded-2xl flex items-center justify-center active:scale-90 transition-all text-sm font-black shadow-sm border ${
+                  isDarkMode ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                }`}>←</button>
+              <div className="flex flex-col">
+                <h1 className={`text-xl font-black tracking-tight leading-tight flex items-center space-x-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <span>{cat.icon}</span>
+                  <span>{cat.name}</span>
+                </h1>
+              </div>
+            </div>
+            <div className={`px-3 py-1.5 rounded-xl border ${isDarkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-gray-100'} shadow-sm text-center`}>
+              <span className={`block text-[12px] font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{filteredProviders.length}</span>
+              <span className={`block text-[8px] font-black uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>Pros</span>
             </div>
           </div>
-          <div className={`px-3 py-1.5 rounded-xl border ${isDarkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-white border-gray-100'} shadow-sm text-center`}>
-            <span className={`block text-[12px] font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{filteredProviders.length}</span>
-            <span className={`block text-[8px] font-black uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>Pros</span>
-          </div>
+          
+          {/* Horizontal Sub-Category Tabs */}
+          {cat.subTabs && cat.subTabs.length > 0 && (
+            <div className="flex overflow-x-auto hide-scrollbar space-x-2 pb-1 -mx-5 px-5">
+              {cat.subTabs.map((tab) => {
+                const isActive = selectedSubCategory === tab.name || (selectedSubCategory === '__ALL__' && tab.name === 'All');
+                return (
+                  <button key={tab.name}
+                    onClick={() => setSelectedSubCategory(tab.name === 'All' ? '__ALL__' : tab.name)}
+                    className={`flex-shrink-0 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center space-x-1.5 ${
+                      isActive 
+                        ? 'bg-blue-600 text-white border border-blue-500' 
+                        : isDarkMode 
+                          ? 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700' 
+                          : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                    }`}>
+                    <span className="text-sm">{tab.icon}</span>
+                    <span>{tab.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Provider Cards */}
@@ -657,44 +680,61 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
           {currentScopeId === 'local' ? 'Services Around You' : currentScopeId === 'national' ? 'Top National Services' : 'Global Services'}
         </h2>
         <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center space-x-1">
-          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full online-dot"></span>
+          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
           <span>{currentScopeId === 'local' ? 'AVAILABLE NOW' : currentScopeId === 'national' ? 'PAN INDIA' : 'WORLDWIDE'}</span>
         </span>
       </div>
 
-      <div className="flex overflow-x-auto px-5 space-x-5 hide-scrollbar pb-6">
+      <div className="flex overflow-x-auto px-5 space-x-5 hide-scrollbar pb-6 pt-2">
         {scopeProviders.map((provider, i) => (
           <div key={provider.id} onClick={() => navigate('/provider', { state: { profile: provider } })}
-            className={`flex-shrink-0 w-80 p-5 rounded-[32px] shadow-premium-lg border cursor-pointer card-lift flex flex-col group relative overflow-hidden ${
-              isDarkMode ? 'bg-slate-900 border-slate-800/80 text-white' : 'bg-white border-gray-100/30 text-gray-900'
+            className={`flex-shrink-0 w-80 p-5 rounded-[32px] shadow-premium-lg border cursor-pointer card-lift flex flex-col group relative overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-indigo-500/20 ${
+              isDarkMode ? 'bg-slate-900 border-slate-700/50 text-white' : 'bg-white border-gray-100 text-gray-900'
             }`}
             style={{ animationDelay: `${i * 0.1}s` }}>
             
+            {/* Glowing Animated Border for premium feel */}
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[32px] pointer-events-none"></div>
+
+            {/* Top Badges (High Demand / Fast Responder) */}
+            <div className="absolute top-4 right-4 z-10 flex flex-col items-end space-y-1">
+               {i % 2 === 0 ? (
+                 <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full shadow-sm animate-pulse ${isDarkMode ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-orange-50 text-orange-600 border border-orange-200'}`}>
+                   🔥 High Demand
+                 </span>
+               ) : (
+                 <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full shadow-sm ${isDarkMode ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-blue-50 text-blue-600 border border-blue-200'}`}>
+                   ⚡ Fast Responder
+                 </span>
+               )}
+            </div>
+
             {/* Top Section: Avatar & Info */}
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center space-x-4">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-inner border transition-all duration-500 group-hover:rotate-6 ${
-                  isDarkMode ? 'bg-slate-800 border-slate-750 text-white' : 'bg-indigo-50 border-indigo-100 text-gray-900'
-                }`}>
-                  {provider.avatar}
-                </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center space-x-1.5 mb-1">
-                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                    <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">{provider.tag}</span>
-                  </div>
-                  <h3 className={`text-base font-black leading-none ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{provider.name}</h3>
-                  <p className={`text-[10px] font-bold mt-1 uppercase tracking-tight ${isDarkMode ? 'text-slate-400' : 'text-gray-400'}`}>{provider.category}</p>
-                </div>
+            <div className="flex items-start space-x-4 mb-4 relative z-10">
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-inner border transition-all duration-500 group-hover:rotate-6 ${
+                isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-indigo-50 border-indigo-100 text-gray-900'
+              }`}>
+                {provider.avatar}
               </div>
-              <div className={`px-2.5 py-1 rounded-xl border ${isDarkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-gray-50 border-gray-100'}`}>
-                <span className={`text-[10px] font-black whitespace-nowrap ${isDarkMode ? 'text-slate-300' : 'text-gray-600'}`}>📍 {provider.distance}</span>
+              <div className="flex flex-col pr-16">
+                <div className="flex items-center space-x-1.5 mb-1">
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+                  <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Online</span>
+                </div>
+                <h3 className={`text-base font-black leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{provider.name}</h3>
+                <p className={`text-[10px] font-bold mt-0.5 uppercase tracking-tight ${isDarkMode ? 'text-slate-400' : 'text-gray-400'}`}>{provider.category}</p>
+                
+                {/* Data Pills / Skills */}
+                <div className="flex flex-wrap gap-1 mt-2">
+                  <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-bold ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-gray-100 text-gray-600'}`}>24/7 Service</span>
+                  <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-bold ${isDarkMode ? 'bg-slate-800 text-slate-300' : 'bg-gray-100 text-gray-600'}`}>Top Rated</span>
+                </div>
               </div>
             </div>
 
             {/* Middle Section: Stats */}
-            <div className={`flex items-center justify-between mb-5 p-3 rounded-2xl border ${
-              isDarkMode ? 'bg-slate-950/40 border-slate-800/80' : 'bg-gray-50/50 border-gray-100/50'
+            <div className={`flex items-center justify-between mb-4 p-3 rounded-2xl border relative z-10 ${
+              isDarkMode ? 'bg-slate-950/60 border-slate-800/80 shadow-inner' : 'bg-gray-50/80 border-gray-100 shadow-inner'
             }`}>
               <div className="flex items-center space-x-1">
                 <span className="text-amber-500 text-xs">★</span>
@@ -703,40 +743,35 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
               </div>
               <div className={`h-4 w-[1px] ${isDarkMode ? 'bg-slate-800' : 'bg-gray-200'}`}></div>
               <div className="flex items-center space-x-1">
-                <span className={`text-[10px] font-bold uppercase tracking-tighter ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
-                  {currentScopeId === 'local' ? 'Neighbor Rec.' : provider.city}
-                </span>
+                <span className={`text-[10px] font-bold whitespace-nowrap ${isDarkMode ? 'text-slate-300' : 'text-gray-600'}`}>📍 {provider.distance}</span>
               </div>
             </div>
 
             {/* Bottom Section: Price & CTA */}
-            <div className="flex justify-between items-center mt-auto">
+            <div className="flex justify-between items-center mt-auto relative z-10">
               <div className="flex flex-col">
                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Starting from</span>
                 <span className={`text-lg font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{provider.price.replace('₹', currency).replace('₨', currency)}</span>
               </div>
               <button onClick={(e) => { e.stopPropagation(); navigate('/provider', { state: { profile: provider } }); }}
-                className={`px-8 py-3.5 rounded-2xl font-black text-xs active:scale-95 transition-all shadow-premium hover:shadow-indigo-500/20 flex items-center space-x-2 ${
-                  isDarkMode ? 'bg-slate-800 text-white border border-slate-700' : 'bg-black text-white'
+                className={`px-6 py-3 rounded-2xl font-black text-xs active:scale-95 transition-all shadow-premium hover:shadow-indigo-500/30 flex items-center space-x-2 bg-gradient-to-r ${
+                  isDarkMode ? 'from-indigo-600 to-purple-600 text-white border-0' : 'from-indigo-500 to-indigo-600 text-white border-0'
                 }`}>
                 <span>{currentScopeId === 'local' ? 'Book Now' : 'Connect'}</span>
-                <span className="opacity-50 text-[10px]">→</span>
+                <span className="opacity-70 text-[10px]">→</span>
               </button>
             </div>
-
-            {/* Decorative accent */}
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-indigo-500/5 to-transparent rounded-bl-full pointer-events-none"></div>
           </div>
         ))}
         
         {/* "View More" Card */}
-        <div className="flex-shrink-0 w-20 flex flex-col items-center justify-center space-y-3 cursor-pointer group">
-          <div className={`w-14 h-14 rounded-full shadow-premium flex items-center justify-center border transition-all ${
-            isDarkMode ? 'bg-slate-900 border-slate-800 text-white group-hover:bg-white group-hover:text-black' : 'bg-white border-gray-100 text-gray-500 group-hover:bg-black group-hover:text-white'
+        <div className="flex-shrink-0 w-24 flex flex-col items-center justify-center space-y-3 cursor-pointer group">
+          <div className={`w-16 h-16 rounded-full shadow-premium flex items-center justify-center border transition-all duration-300 group-hover:scale-110 ${
+            isDarkMode ? 'bg-slate-900 border-slate-800 text-white group-hover:bg-indigo-600 group-hover:border-indigo-500 group-hover:text-white' : 'bg-white border-gray-100 text-gray-500 group-hover:bg-indigo-600 group-hover:border-indigo-500 group-hover:text-white'
           }`}>
             <span className="text-xl">→</span>
           </div>
-          <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">More</span>
+          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-indigo-500 transition-colors">See All</span>
         </div>
       </div>
     </div>
@@ -762,13 +797,19 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
           if (cat.id === '20') bgGradient = 'from-indigo-800 to-blue-950';
 
           return (
-            <button key={cat.id} onClick={() => { setSelectedCategory(cat.id); setSelectedSubCategory(null); }}
-              className={`relative overflow-hidden aspect-square rounded-2xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-sm group bg-gradient-to-br ${bgGradient}`}
+            <button key={cat.id} onClick={() => { 
+              setSelectedCategory(cat.id); 
+              const firstSub = cat.subTabs && cat.subTabs.length > 0 ? cat.subTabs[0].name : '__ALL__';
+              setSelectedSubCategory(firstSub === 'All' ? '__ALL__' : firstSub);
+            }}
+              className={`relative overflow-hidden aspect-square rounded-3xl flex flex-col items-center justify-center text-center active:scale-95 transition-all duration-300 shadow-premium group bg-gradient-to-br ${bgGradient} border border-white/10`}
               style={{ animationDelay: `${i * 0.06}s` }}>
-              <div className="w-9 h-9 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mb-1.5 shadow-inner border border-white/20">
-                <span className="text-lg">{cat.icon}</span>
+              <div className="absolute inset-0 bg-white/5 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="w-11 h-11 bg-white/20 backdrop-blur-md rounded-[1.2rem] flex items-center justify-center mb-2 shadow-inner border border-white/30 group-hover:-translate-y-1 transition-transform">
+                <span className="text-2xl">{cat.icon}</span>
               </div>
-              <span className="text-[9px] font-black text-white leading-tight uppercase tracking-wide">{cat.name}</span>
+              <span className="text-[10px] font-black text-white leading-tight uppercase tracking-widest z-10">{cat.name}</span>
+              <span className="absolute bottom-2 text-[7px] font-bold text-white/70 uppercase tracking-widest bg-black/20 px-2 py-0.5 rounded-full">{cat.subTabs?.length || 0} Types</span>
             </button>
           );
         })}
@@ -922,7 +963,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
         {/* PANEL 1: MAIN HOMEPAGE DASHBOARD */}
         <div className="w-[33.333%] h-full flex flex-col overflow-y-auto hide-scrollbar pb-20">
           {/* Header — Single Row Industry Professional Style */}
-      <div className={`z-50 px-5 pt-14 pb-4 flex justify-between items-center transition-all duration-300 border-b ${
+      <div className={`relative z-[90] px-5 pt-14 pb-4 flex justify-between items-center transition-all duration-300 border-b ${
         isDarkMode ? 'bg-[#0f172a]/95 backdrop-blur-md border-slate-800' : 'bg-white border-gray-100/50'
       }`}>
         {/* Left: Brand & Country Pill */}
@@ -1110,7 +1151,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
 
       
       {/* ====== PREMIUM SCOPE TABS WITH COUNTRY SELECTOR INTEGRATED ====== */}
-      <div className="px-5 mt-6 relative z-[80]">
+      <div className="px-5 mt-6 relative z-[60]">
         <div className={`flex rounded-2xl p-1.5 relative z-[70] shadow-inner-lg ${isDarkMode ? 'bg-slate-800/50' : 'bg-gray-100/80'}`}>
           {/* Animated Background Slider */}
           <div 
@@ -1278,7 +1319,13 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
                 <div className="grid grid-cols-2 gap-2">
                   {searchSuggestions.categories.map(cat => (
                     <button key={cat.id} 
-                      onClick={() => { setSelectedCategory(cat.id); setSelectedSubCategory(null); setShowSuggestions(false); setSearchQuery(''); }}
+                      onClick={() => { 
+                        setSelectedCategory(cat.id); 
+                        const firstSub = cat.subTabs && cat.subTabs.length > 0 ? cat.subTabs[0].name : '__ALL__';
+                        setSelectedSubCategory(firstSub === 'All' ? '__ALL__' : firstSub);
+                        setShowSuggestions(false); 
+                        setSearchQuery(''); 
+                      }}
                       className={`flex items-center space-x-2 p-2 rounded-2xl border active:scale-95 transition-all ${
                         isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-gray-50 border-gray-100'
                       }`}>
@@ -1464,7 +1511,11 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
                   return (
                     <button
                       key={cat.id}
-                      onClick={() => { setSplitPaneCategory(cat.id); setSplitPaneSubCategory(null); }}
+                      onClick={() => { 
+                        setSplitPaneCategory(cat.id); 
+                        const firstSub = cat.subTabs && cat.subTabs.length > 0 ? cat.subTabs[0].name : null;
+                        setSplitPaneSubCategory(firstSub === 'All' ? null : firstSub);
+                      }}
                       className={`relative flex flex-col items-center justify-center p-2 rounded-[1.5rem] transition-all duration-300 active:scale-95 border ${
                         isActive 
                           ? (isDarkMode ? 'bg-indigo-600 border-indigo-500 shadow-[0_0_15px_rgba(79,70,229,0.3)]' : 'bg-indigo-600 border-indigo-500 shadow-lg shadow-indigo-200')
@@ -1686,7 +1737,11 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
                 return (
                   <button
                     key={cat.id}
-                    onClick={() => { setSelectedCategory(cat.id); setSelectedSubCategory(null); }}
+                    onClick={() => { 
+                      setSelectedCategory(cat.id); 
+                      const firstSub = cat.subTabs && cat.subTabs.length > 0 ? cat.subTabs[0].name : '__ALL__';
+                      setSelectedSubCategory(firstSub === 'All' ? '__ALL__' : firstSub);
+                    }}
                     className={`relative aspect-square rounded-[2rem] flex flex-col items-center justify-center p-2 text-center active:scale-95 transition-all duration-300 shadow-sm border border-gray-100/10 bg-gradient-to-br ${bgGlow} group`}
                   >
                     <div className={`w-11 h-11 rounded-2xl flex items-center justify-center text-xl mb-1.5 transition-all duration-300 group-hover:scale-110 shadow-md ${
