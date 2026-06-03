@@ -1165,3 +1165,67 @@ export const LOCAL_RESTAURANTS = [
     ]
   }
 ];
+
+export const LOCAL_HOSPITALS = [
+  {
+    id: 'hosp_1',
+    name: 'Metro Multi-Specialty Hospital 🏥',
+    type: 'General & Emergency Care',
+    rating: 4.8,
+    reviews: 420,
+    distance: '0.6 km',
+    icuBeds: 12,
+    totalBeds: 150,
+    coinReward: 30,
+    emergencyPhone: '+91 98765 43210',
+    tag: '24/7 ICU • 30 Coins 🪙',
+    status: 'Available Now',
+    specialties: ['Cardiology 🫀', 'Neurology 🧠', 'Orthopedics 🦴']
+  },
+  {
+    id: 'hosp_2',
+    name: 'Apollo Health Clinic ⚕️',
+    type: 'Pediatrics & OPD Consultations',
+    rating: 4.7,
+    reviews: 180,
+    distance: '1.2 km',
+    icuBeds: 0,
+    totalBeds: 25,
+    coinReward: 15,
+    emergencyPhone: '+91 98765 11111',
+    tag: 'OPD Active • 15 Coins 🪙',
+    status: 'Doctor Available',
+    specialties: ['Pediatrics 👶', 'Dermatology 🧪', 'General Medicine 🩺']
+  },
+  {
+    id: 'hosp_3',
+    name: 'City Dental Care Center 🦷',
+    type: 'Advanced Dental & Orthodontics',
+    rating: 4.9,
+    reviews: 95,
+    distance: '0.8 km',
+    icuBeds: 0,
+    totalBeds: 10,
+    coinReward: 20,
+    emergencyPhone: '+91 98765 22222',
+    tag: 'Appointment Only • 20 Coins 🪙',
+    status: 'Dentist Present',
+    specialties: ['Root Canal 🦷', 'Implants 🔩', 'Teeth Whitening ✨']
+  },
+  {
+    id: 'hosp_4',
+    name: 'Max Care Women & Child Hospital 👶',
+    type: 'Maternity & Childcare Specialist',
+    rating: 4.8,
+    reviews: 290,
+    distance: '1.8 km',
+    icuBeds: 6,
+    totalBeds: 80,
+    coinReward: 25,
+    emergencyPhone: '+91 98765 33333',
+    tag: '24/7 Maternity • 25 Coins 🪙',
+    status: 'Obstetrician Available',
+    specialties: ['Gynecology 🤰', 'Neonatology 🍼', 'Vaccination 💉']
+  }
+];
+

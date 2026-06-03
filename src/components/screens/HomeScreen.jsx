@@ -5,7 +5,7 @@ import {
   Briefcase, Leaf, ShoppingBag, Tractor, Truck, Mountain, 
   ChevronRight, Search, Bell, MapPin, Menu, Star, Play
 } from 'lucide-react';
-import { CATEGORIES, PROVIDERS, NATIONAL_PROVIDERS, GLOBAL_PROVIDERS, TOP_EXPERTS, HERO_BANNERS, COUNTRIES, SCOPES, FAMOUS_LOCAL_FOOD, LOCAL_RESTAURANTS } from '../../data/constants';
+import { CATEGORIES, PROVIDERS, NATIONAL_PROVIDERS, GLOBAL_PROVIDERS, TOP_EXPERTS, HERO_BANNERS, COUNTRIES, SCOPES, FAMOUS_LOCAL_FOOD, LOCAL_RESTAURANTS, LOCAL_HOSPITALS } from '../../data/constants';
 import ScopeMap from '../maps/ScopeMap';
 
 const LucideIcon = ({ name, className, size = 24 }) => {
@@ -487,7 +487,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
   );
 
   const renderFamousLocalFood = () => (
-    <div ref={foodRef} className="px-5 mt-8 animate-fade-in">
+    <div id="section-local-food" ref={foodRef} className="px-5 mt-8 animate-fade-in">
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className={`text-lg font-black text-transparent bg-clip-text bg-gradient-to-r ${isDarkMode ? 'from-orange-400 to-amber-300' : 'from-orange-600 to-amber-500'}`}>
@@ -666,6 +666,123 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
               <span className={`text-[9px] font-black uppercase tracking-widest text-indigo-500 group-hover:translate-x-1 transition-transform`}>
                 View Details & Book →
               </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderNearbyHospitals = () => (
+    <div id="section-hospitals" className="px-5 mt-8 animate-fade-in">
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h2 className={`text-lg font-black text-transparent bg-clip-text bg-gradient-to-r ${isDarkMode ? 'from-rose-400 to-red-300' : 'from-rose-600 to-red-500'}`}>
+            🏥 Nearby Hospitals & Clinics
+          </h2>
+          <p className={`text-[10px] font-bold uppercase tracking-widest mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-400'}`}>
+            Emergency • OPD • Specialist Care 🩺
+          </p>
+        </div>
+        <span className="text-[9px] font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full animate-pulse uppercase tracking-wider flex items-center space-x-1">
+          <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-ping"></span>
+          <span>24/7 Active</span>
+        </span>
+      </div>
+
+      <div className="flex overflow-x-auto space-x-4 hide-scrollbar pb-4 -mx-5 px-5">
+        {LOCAL_HOSPITALS.map((hospital) => (
+          <div key={hospital.id}
+            className={`flex-shrink-0 w-80 p-5 rounded-[2.5rem] shadow-premium-lg border flex flex-col relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 ${
+              isDarkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-gray-100/50 text-gray-900'
+            }`}>
+            
+            {/* Emergency Glow Effect */}
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-red-500/10 to-transparent rounded-bl-full pointer-events-none"></div>
+
+            {/* Top Row: Name & Status */}
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex items-center space-x-3.5 flex-1 pr-2">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-inner border transition-transform duration-500 group-hover:rotate-3 ${
+                  isDarkMode ? 'bg-rose-950/50 border-rose-900/50' : 'bg-rose-50 border-rose-100'
+                }`}>
+                  🏥
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-1.5 mb-1">
+                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+                    <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{hospital.status}</span>
+                  </div>
+                  <h3 className={`text-[13px] font-black leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {hospital.name}
+                  </h3>
+                  <p className={`text-[9px] font-bold mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-400'}`}>
+                    {hospital.type}
+                  </p>
+                </div>
+              </div>
+              
+              <div className={`px-2.5 py-1 rounded-xl border flex items-center space-x-1 shadow-sm shrink-0 ${
+                isDarkMode ? 'bg-slate-800/80 border-slate-700' : 'bg-gray-50 border-gray-100'
+              }`}>
+                <span className="text-yellow-500 text-[10px]">★</span>
+                <span className={`text-[11px] font-black ${isDarkMode ? 'text-slate-200' : 'text-gray-800'}`}>{hospital.rating}</span>
+              </div>
+            </div>
+
+            {/* Specialties Pills */}
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {hospital.specialties.map((spec, idx) => (
+                <span key={idx} className={`text-[8px] font-bold px-2 py-1 rounded-lg ${
+                  isDarkMode ? 'bg-slate-800 text-slate-300 border border-slate-700' : 'bg-indigo-50 text-indigo-700 border border-indigo-100'
+                }`}>
+                  {spec}
+                </span>
+              ))}
+            </div>
+
+            {/* Stats Row: Distance, Beds, ICU */}
+            <div className={`flex items-center justify-between mb-4 p-3 rounded-2xl border text-[10px] font-bold ${
+              isDarkMode ? 'bg-slate-950/40 border-slate-800/80 text-slate-300' : 'bg-gray-50/50 border-gray-100/50 text-gray-600'
+            }`}>
+              <div className="flex items-center space-x-1">
+                <span>📍 {hospital.distance}</span>
+              </div>
+              <div className={`h-3 w-[1px] ${isDarkMode ? 'bg-slate-800' : 'bg-gray-200'}`}></div>
+              <div className="flex items-center space-x-1">
+                <span>🛏️ {hospital.totalBeds} beds</span>
+              </div>
+              {hospital.icuBeds > 0 && (
+                <>
+                  <div className={`h-3 w-[1px] ${isDarkMode ? 'bg-slate-800' : 'bg-gray-200'}`}></div>
+                  <div className="flex items-center space-x-1 font-black text-red-500">
+                    <span>🚨 {hospital.icuBeds} ICU</span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Bottom Row: Coin Reward & Actions */}
+            <div className="flex justify-between items-center mt-auto">
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Coin Reward</span>
+                <span className="text-[10px] font-black text-yellow-500 flex items-center space-x-1">
+                  <span>🪙 +{hospital.coinReward} on check-in</span>
+                </span>
+              </div>
+              <div className="flex space-x-2">
+                <a href={`tel:${hospital.emergencyPhone}`}
+                  className="px-3 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-premium bg-gradient-to-r from-red-500 to-rose-600 text-white flex items-center space-x-1">
+                  <span>📞</span>
+                  <span>Call</span>
+                </a>
+                <button
+                  className={`px-3 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-sm ${
+                    isDarkMode ? 'bg-slate-800 text-white border border-slate-700 hover:bg-slate-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}>
+                  📋 Details
+                </button>
+              </div>
             </div>
           </div>
         ))}
@@ -1771,6 +1888,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
           {renderServicesAroundYou()}
           {renderFamousLocalFood()}
           {renderTopRestaurants()}
+          {renderNearbyHospitals()}
           {renderLiveReels()}
           {renderProfessionalExpertise()}
           {renderTopExperts()}
@@ -1816,6 +1934,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
           {renderServicesAroundYou()}
           {renderFamousLocalFood()}
           {renderTopRestaurants()}
+          {renderNearbyHospitals()}
         </div>
       )}
 
@@ -1825,6 +1944,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
           {renderServicesAroundYou()}
           {renderFamousLocalFood()}
           {renderTopRestaurants()}
+          {renderNearbyHospitals()}
           {selectedCountry === 'in' && renderFarmersAndPros()}
           {renderLiveReels()}
           {renderProfessionalExpertise()}

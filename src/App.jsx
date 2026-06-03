@@ -26,6 +26,7 @@ import ActivityScreen from './components/screens/ActivityScreen';
 // Layout Components
 import PhoneFrame from './components/layout/PhoneFrame';
 import BottomNav from './components/layout/BottomNav';
+import QuickAccessBar from './components/layout/QuickAccessBar';
 
 const AppContent = () => {
   const [activeScope, setActiveScope] = useState('local');
@@ -305,6 +306,7 @@ const AppContent = () => {
         </Routes>
       </div>
 
+      {!hideOverlays && <QuickAccessBar isDarkMode={isDarkMode} />}
       {!hideOverlays && <BottomNav isDarkMode={isDarkMode} />}
 
       {!hideOverlays && (
