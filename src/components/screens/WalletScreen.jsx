@@ -32,15 +32,34 @@ const LOCAL_COINS = [
   { id: 4, name: 'Fitness Coins', provider: 'Iron Gym', balance: 45, color: 'from-orange-500 to-red-600', icon: '💪' },
 ];
 
-const WalletScreen = ({ isDarkMode, onClose, adCoins = 0 }) => {
+const WalletScreen = ({ isDarkMode, onClose, adCoins = 0, userCoins, setUserCoins, allianceCoins, setAllianceCoins, userTransactions, setUserTransactions, userPassType, companyData }) => {
   const [showTopup, setShowTopup] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(null);
   const [customAmount, setCustomAmount] = useState('');
   const [topupSuccess, setTopupSuccess] = useState(false);
 
   const handleTopup = () => {
+    const amount = parseFloat(selectedAmount || customAmount || 0);
+    setUserCoins(prev => prev + amount);
+    
+    const newTxn = {
+      id: 'w_' + Date.now(),
+      type: 'credit',
+      title: 'Added Money',
+      amount: `+₹${amount.toLocaleString()}`,
+      date: 'Just now',
+      method: 'UPI',
+      icon: '💳'
+    };
+    setUserTransactions(prev => [newTxn, ...prev]);
+
     setTopupSuccess(true);
-    setTimeout(() => { setTopupSuccess(false); setShowTopup(false); setSelectedAmount(null); setCustomAmount(''); }, 2000);
+    setTimeout(() => { 
+      setTopupSuccess(false); 
+      setShowTopup(false); 
+      setSelectedAmount(null); 
+      setCustomAmount(''); 
+    }, 2000);
   };
 
   if (topupSuccess) {
@@ -131,7 +150,7 @@ const WalletScreen = ({ isDarkMode, onClose, adCoins = 0 }) => {
         </div>
         <div className="text-center relative z-10">
           <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest">Available Balance</p>
-          <p className="text-4xl font-extrabold text-white mt-2">₹450.00</p>
+          <p className="text-4xl font-extrabold text-white mt-2">₹{userCoins.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           <button onClick={() => setShowTopup(true)}
             className="mt-4 bg-white text-indigo-700 px-6 py-2.5 rounded-full text-sm font-bold shadow-lg active:scale-95 transition-transform">
             + Add Money
@@ -163,13 +182,13 @@ const WalletScreen = ({ isDarkMode, onClose, adCoins = 0 }) => {
                     <img src="/logo.png" alt="Official Logo" className="w-12 h-12 object-contain drop-shadow-md" />
                     <div className="h-8 w-[1px] bg-amber-500/30"></div>
                     <div>
-                      <h3 className="text-amber-500 text-[10px] font-black uppercase tracking-[0.4em]">Sovereign</h3>
-                      <p className="text-white text-[9px] font-bold uppercase tracking-widest opacity-60">Elite Member</p>
+                      <h3 className="text-amber-500 text-[10px] font-black uppercase tracking-[0.4em]">{userPassType ? userPassType : 'Sovereign'}</h3>
+                      <p className="text-white text-[9px] font-bold uppercase tracking-widest opacity-60">{userPassType ? `${userPassType.toUpperCase()} Member` : 'Free Member'}</p>
                     </div>
                   </div>
                   
                   {/* Premium Gold Chip */}
-                  <div className="w-12 h-9 bg-gradient-to-br from-amber-200 via-amber-500 to-amber-200 rounded-lg shadow-2xl relative overflow-hidden border border-amber-400/50">
+                  <div className="w-12 h-9 bg-gradient-to-br from-amber-200 via-amber-50 to-amber-200 rounded-lg shadow-2xl relative overflow-hidden border border-amber-400/50">
                     <div className="absolute inset-0 grid grid-cols-3 gap-0.5 opacity-30">
                       {[...Array(9)].map((_, i) => <div key={i} className="border-[0.5px] border-black/20"></div>)}
                     </div>
@@ -187,7 +206,7 @@ const WalletScreen = ({ isDarkMode, onClose, adCoins = 0 }) => {
                    <div className="space-y-1">
                       <p className="text-neutral-500 text-[8px] font-black uppercase tracking-[0.3em]">Authorized Sovereign</p>
                       <div className="flex items-center space-x-2">
-                         <p className="text-white text-base font-black tracking-widest drop-shadow-2xl uppercase">AMAN SHARMA</p>
+                         <p className="text-white text-base font-black tracking-widest drop-shadow-2xl uppercase">{companyData?.fullName || 'Aryan Singh'}</p>
                          <div className="w-3.5 h-3.5 rounded-full bg-blue-500 flex items-center justify-center scale-90 shadow-glow-blue border border-white/20">
                            <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.64.304 1.24.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" /></svg>
                          </div>
@@ -239,18 +258,18 @@ const WalletScreen = ({ isDarkMode, onClose, adCoins = 0 }) => {
                  <span className="text-[8px] font-bold text-amber-500 uppercase tracking-widest">Coins</span>
                </div>
              </div>
-             {LOCAL_COINS.map(coin => (
-               <div key={coin.id} className="min-w-[130px] bg-white rounded-2xl p-3 border border-gray-100 shadow-premium flex flex-col items-center card-lift">
-                 <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${coin.color} flex items-center justify-center text-lg shadow-lg mb-2`}>
-                   {coin.icon}
-                 </div>
-                 <p className="text-[10px] font-black text-gray-900 text-center leading-none">{coin.name}</p>
-                 <p className="text-[8px] text-gray-400 mt-1 uppercase font-bold tracking-tighter truncate w-full text-center">{coin.provider}</p>
-                 <div className="mt-3 w-full bg-gray-50 rounded-lg py-1 flex items-center justify-center space-x-1">
-                   <span className="text-xs font-black text-indigo-600">{coin.balance}</span>
-                   <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">Coins</span>
-                 </div>
-               </div>
+             {allianceCoins.map(coin => (
+                <div key={coin.id} className="min-w-[130px] bg-white rounded-2xl p-3 border border-gray-100 shadow-premium flex flex-col items-center card-lift">
+                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${coin.color} flex items-center justify-center text-lg shadow-lg mb-2`}>
+                    {coin.icon}
+                  </div>
+                  <p className="text-[10px] font-black text-gray-900 text-center leading-none">{coin.name}</p>
+                  <p className="text-[8px] text-gray-400 mt-1 uppercase font-bold tracking-tighter truncate w-full text-center">{coin.provider}</p>
+                  <div className="mt-3 w-full bg-gray-50 rounded-lg py-1 flex items-center justify-center space-x-1">
+                    <span className="text-xs font-black text-indigo-600">{coin.balance}</span>
+                    <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">Coins</span>
+                  </div>
+                </div>
              ))}
           </div>
         </div>
@@ -258,9 +277,9 @@ const WalletScreen = ({ isDarkMode, onClose, adCoins = 0 }) => {
         {/* Transactions */}
         <h3 className="text-sm font-extrabold text-gray-900 mb-3">Recent Transactions</h3>
         <div className="space-y-2">
-          {WALLET_TRANSACTIONS.map((txn, i) => (
+          {userTransactions.map((txn, i) => (
             <div key={txn.id} className="bg-white p-3.5 rounded-xl border border-gray-100/50 shadow-premium flex items-center space-x-3 card-lift animate-fade-in"
-              style={{ animationDelay: `${i * 0.04}s`, opacity: 0 }}>
+              style={{ animationDelay: `${i * 0.04}s`, opacity: 1 }}>
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${txn.type === 'credit' ? 'bg-emerald-50' : 'bg-red-50'}`}>
                 {TXN_ICONS[txn.icon] || <span className="text-lg">{txn.icon}</span>}
               </div>

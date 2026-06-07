@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TIME_SLOTS, BOOKING_DATES, MY_BOOKINGS } from '../../data/constants';
 
-const BookingScreen = ({ isDarkMode, onClose, userBookings = [], addBooking, cancelBooking: appCancelBooking }) => {
+const BookingScreen = ({ isDarkMode, onClose, userBookings = [], addBooking, cancelBooking: appCancelBooking, userCoins, setUserCoins, allianceCoins, setAllianceCoins, userTransactions, setUserTransactions }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const provider = location.state?.provider;
@@ -110,14 +110,35 @@ const BookingScreen = ({ isDarkMode, onClose, userBookings = [], addBooking, can
   const createBooking = (providerData, dateInfo, timeInfo) => {
     const selectedDateObj = BOOKING_DATES.find(d => d.id === (dateInfo || selectedDate));
     const selectedTimeObj = TIME_SLOTS.find(t => t.id === (timeInfo || selectedSlot));
+    const rawPrice = providerData?.price || service?.price || '₹249';
+    const priceNum = parseInt(rawPrice.replace('₹', '').replace(',', '')) || 249;
+
+    // Deduct coins from userCoins
+    setUserCoins(prev => {
+      const updatedBalance = prev - priceNum;
+      
+      // Log Transaction
+      const newTxn = {
+        id: 'w_' + Date.now(),
+        type: 'debit',
+        title: `Paid ${providerData?.name || 'Provider'}`,
+        amount: `-₹${priceNum}`,
+        date: 'Just now',
+        method: 'ItzWallet',
+        icon: '🔧'
+      };
+      setUserTransactions(prevTxns => [newTxn, ...prevTxns]);
+      return updatedBalance;
+    });
+
     const newBooking = {
       id: 'bk_' + Date.now(),
       provider: providerData?.name || 'Service Provider',
       service: selectedSubCat || service?.name || providerData?.category || 'Expert Service',
-      price: providerData?.price || service?.price || '\u20b9249',
+      price: rawPrice,
       date: `${selectedDateObj?.day || 'Today'}, ${selectedDateObj?.date || ''} ${selectedTimeObj?.time || ''}`.trim(),
       status: 'upcoming',
-      icon: providerData?.avatar || '\u26a1',
+      icon: providerData?.avatar || '⚡',
       address: address,
       rating: null,
     };

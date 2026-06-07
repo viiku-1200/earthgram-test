@@ -33,7 +33,7 @@ const MENU_ITEMS = [
   ), label: 'Settings', desc: 'Account, notifications', bg: 'bg-gray-100', color: 'text-gray-600', key: 'settings' },
 ];
 
-const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, bizBio, setBizBio, isGeneratingBio, setIsGeneratingBio, isRegistered, companyData, addQualityPost }) => {
+const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, bizBio, setBizBio, isGeneratingBio, setIsGeneratingBio, isRegistered, companyData, addQualityPost, userCoins, setUserCoins, allianceCoins, setAllianceCoins, userTransactions, setUserTransactions, userPassType, onLogout }) => {
   const navigate = useNavigate();
   const [gpsData, setGpsData] = useState(null);
   const [userAddress, setUserAddress] = useState(null);
@@ -42,6 +42,12 @@ const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, b
   const [qcForm, setQcForm] = useState({ provider: '', category: '', desc: '', beforeImage: null, afterImage: null });
   const beforeInputRef = useRef(null);
   const afterInputRef = useRef(null);
+
+  // States for Send Loyalty Coins Modal
+  const [showSendCoinsModal, setShowSendCoinsModal] = useState(false);
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [sendAmount, setSendAmount] = useState('');
+  const [selectedCoinId, setSelectedCoinId] = useState(1);
 
   const handlePhotoSelect = (file, type) => {
     if (!file) return;
@@ -95,11 +101,23 @@ const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, b
             </span>
           </div>
           <div className="text-white">
-            <h1 className="text-xl font-extrabold tracking-tight">{companyData?.fullName || 'Aryan Singh'}</h1>
-            <p className="text-sm opacity-70 font-medium">{companyData?.phone || '+91 98765 43210'}</p>
-            <span className="inline-block mt-1.5 bg-white/20 backdrop-blur-sm text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-              {isRegistered ? '✓ Verified Pro' : 'Free Member'}
-            </span>
+            <h1 className="text-xl font-extrabold tracking-tight">
+              {isRegistered && companyData?.brandName ? companyData.brandName : (companyData?.fullName || 'Aryan Singh')}
+            </h1>
+            {isRegistered && companyData?.brandName && (
+              <p className="text-xs opacity-90 font-medium">Owner: {companyData.fullName}</p>
+            )}
+            <p className="text-xs opacity-70 font-medium">{companyData?.phone || '+91 98765 43210'}</p>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              <span className="inline-block bg-white/20 backdrop-blur-sm text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                {isRegistered ? '✓ Verified Pro' : 'Free Member'}
+              </span>
+              {isRegistered && companyData?.category && (
+                <span className="inline-block bg-emerald-500/30 backdrop-blur-sm text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  💼 {companyData.category === 'Other' ? companyData.customCategory : (companyData.subCategory || companyData.category)}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -144,12 +162,25 @@ const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, b
           </button>
 
           {isBossMode && (
-            <button onClick={() => navigate('/catalog')} className="bg-white p-4 rounded-2xl shadow-premium border border-indigo-100 flex flex-col items-start active:scale-[0.98] transition-transform text-left relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-bl-lg">CORE</div>
-              <span className="text-2xl mb-2">📋</span>
-              <span className="text-sm font-bold text-gray-900">Service Catalog</span>
-              <span className="text-[10px] text-gray-500 mt-0.5">Manage pricing & items</span>
-            </button>
+            <>
+              <button onClick={() => navigate('/catalog')} className={`p-4 rounded-2xl shadow-premium border flex flex-col items-start active:scale-[0.98] transition-transform text-left relative overflow-hidden ${
+                isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-indigo-100 text-gray-900'
+              }`}>
+                <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-bl-lg">CORE</div>
+                <span className="text-2xl mb-2">📋</span>
+                <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Service Catalog</span>
+                <span className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>Manage pricing & items</span>
+              </button>
+              
+              <button onClick={() => setShowSendCoinsModal(true)} className={`p-4 rounded-2xl shadow-premium border flex flex-col items-start active:scale-[0.98] transition-transform text-left relative overflow-hidden ${
+                isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-emerald-100 text-gray-900'
+              }`}>
+                <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-bl-lg">LOYALTY</div>
+                <span className="text-2xl mb-2">🪙</span>
+                <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Send Coins</span>
+                <span className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>Reward loyal clients</span>
+              </button>
+            </>
           )}
 
           <button onClick={() => navigate('/upload-reel')} className="bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 p-4 rounded-2xl shadow-premium-lg flex flex-col items-start active:scale-[0.98] transition-transform text-left relative overflow-hidden text-white border-2 border-white/20">
@@ -322,6 +353,17 @@ const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, b
             <span className="text-[8px] font-black text-red-600 bg-white px-2 py-1 rounded-full border border-red-100 animate-pulse">HOT</span>
           </button>
         )}
+
+        {/* Log Out Button */}
+        {onLogout && (
+          <button onClick={onLogout}
+            className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-500 p-3.5 rounded-2xl border border-red-500/20 flex justify-center items-center font-bold active:scale-[0.98] mt-2 transition-all">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Log Out
+          </button>
+        )}
       </div>
 
       <p className="text-center text-[9px] text-gray-300 font-medium mt-2 mb-4">EarthGram v1.0.0 Beta</p>
@@ -425,6 +467,94 @@ const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, b
               className="w-full mt-6 bg-gradient-to-r from-rose-600 to-red-500 text-white py-4 rounded-2xl text-sm font-black uppercase tracking-widest active:scale-95 transition-all shadow-xl"
             >
               Submit Quality Check
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Send Coins Modal */}
+      {showSendCoinsModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end justify-center" onClick={() => setShowSendCoinsModal(false)}>
+          <div className={`w-full max-w-[480px] rounded-t-[2.5rem] p-6 pb-10 ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'}`} onClick={e => e.stopPropagation()}>
+            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6"></div>
+            <h2 className="text-lg font-black mb-6 flex items-center space-x-2">
+              <span>🪙</span>
+              <span>Send Loyalty Coins</span>
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 block">Customer Phone / Name</label>
+                <input 
+                  type="text"
+                  value={customerPhone} 
+                  onChange={e => setCustomerPhone(e.target.value)} 
+                  placeholder="e.g., +91 98765 43210 or Aman Sharma" 
+                  className={`w-full px-4 py-3 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isDarkMode ? 'bg-slate-800 text-white border-slate-700' : 'bg-slate-50 border border-slate-100'}`} 
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 block">Select Token Type</label>
+                <select 
+                  value={selectedCoinId} 
+                  onChange={e => setSelectedCoinId(parseInt(e.target.value))}
+                  className={`w-full px-4 py-3 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isDarkMode ? 'bg-slate-800 text-white border-slate-700' : 'bg-slate-50 border border-slate-100'}`}
+                >
+                  {allianceCoins.map(coin => (
+                    <option key={coin.id} value={coin.id}>
+                      {coin.icon} {coin.name} ({coin.provider})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 block">Amount of Coins</label>
+                <input 
+                  type="number"
+                  value={sendAmount} 
+                  onChange={e => setSendAmount(e.target.value)} 
+                  placeholder="e.g., 20" 
+                  className={`w-full px-4 py-3 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isDarkMode ? 'bg-slate-800 text-white border-slate-700' : 'bg-slate-50 border border-slate-100'}`} 
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                if (!customerPhone.trim() || !sendAmount || isNaN(sendAmount)) return;
+                const coinsToTransfer = parseInt(sendAmount);
+                const targetCoin = allianceCoins.find(c => c.id === selectedCoinId);
+                
+                if (!targetCoin) return;
+
+                // Update alliance balance
+                setAllianceCoins(prev => prev.map(c => 
+                  c.id === selectedCoinId ? { ...c, balance: c.balance + coinsToTransfer } : c
+                ));
+
+                // Add to transactions history
+                const newTxn = {
+                  id: 'w_' + Date.now(),
+                  type: 'credit',
+                  title: `Received ${targetCoin.name}`,
+                  amount: `+${coinsToTransfer} Coins`,
+                  date: 'Just now',
+                  method: companyData?.brandName || 'Business Transfer',
+                  icon: targetCoin.icon
+                };
+                setUserTransactions(prev => [newTxn, ...prev]);
+
+                // Reset and close
+                setCustomerPhone('');
+                setSendAmount('');
+                setShowSendCoinsModal(false);
+                alert(`Successfully transferred ${coinsToTransfer} ${targetCoin.name} to ${customerPhone}!`);
+              }}
+              className="w-full mt-6 bg-gradient-to-r from-emerald-500 to-green-600 text-white py-4 rounded-2xl text-sm font-black uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-emerald-500/10"
+            >
+              Transfer Coins
             </button>
           </div>
         </div>

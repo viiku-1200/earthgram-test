@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PROVIDER_PROFILES, generateFallbackProfile } from '../../data/constants';
+import { socket } from '../../utils/socket';
 
 const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
   const [activeTab, setActiveTab] = useState('services');
@@ -13,10 +14,17 @@ const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
   const [cameraOn, setCameraOn] = useState(true);
   const [screenShared, setScreenShared] = useState(false);
 
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const peerConnection = useRef(null);
+  const localStream = useRef(null);
   const location = useLocation();
+  const [isReceivingCall, setIsReceivingCall] = useState(!!location.state?.incomingCall);
   const navigate = useNavigate();
   const summaryProfile = location.state?.profile;
-  const profile = summaryProfile ? (PROVIDER_PROFILES[summaryProfile.id] || generateFallbackProfile(summaryProfile)) : null;
+  const profile = React.useMemo(() => {
+    return summaryProfile ? (PROVIDER_PROFILES[summaryProfile.id] || generateFallbackProfile(summaryProfile)) : null;
+  }, [summaryProfile]);
 
   // Find if this provider has any active/past quality check cases
   const juryCase = profile ? qualityPosts.find(p => p.provider.toLowerCase() === profile.name.toLowerCase()) : null;
@@ -40,33 +48,164 @@ const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
     )
   ) : false;
 
+  useEffect(() => {
+    if (isReceivingCall) {
+      setCallType('video');
+      setShowCallScreen(true);
+    }
+  }, [isReceivingCall]);
+
   // Connection timer effect
   useEffect(() => {
-    let statusTimer;
-    let progressTimer;
-    
-    if (showCallScreen) {
-      setCallTimer(0);
-      setCallConnected(false);
-      setCallStatus('Establishing secure peer-to-peer line...');
-      
-      // Step 1: Connecting
-      statusTimer = setTimeout(() => {
-        setCallStatus('🔒 Securing line via Aadhaar verification...');
-      }, 1500);
+    if (!showCallScreen) return;
 
-      // Step 2: KYC Matched & Connected
-      progressTimer = setTimeout(() => {
-        setCallConnected(true);
-        setCallStatus('📡 Connected. Aadhaar KYC Match: SUCCESS');
-      }, 3500);
-    }
+    setCallTimer(0);
+    setCallConnected(false);
+    setCallStatus('Requesting camera & microphone access...');
+
+    const setupMedia = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: callType === 'video', audio: true });
+        
+        // If user hung up while we were asking for permissions, stop the camera immediately
+        if (!showCallScreen) {
+          stream.getTracks().forEach(track => track.stop());
+          return;
+        }
+
+        localStream.current = stream;
+        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+        
+        setCallStatus('Establishing secure peer-to-peer line...');
+        
+        peerConnection.current = new RTCPeerConnection({
+          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        });
+
+        stream.getTracks().forEach(track => {
+          peerConnection.current.addTrack(track, stream);
+        });
+
+        peerConnection.current.ontrack = (event) => {
+          if (remoteVideoRef.current && !remoteVideoRef.current.srcObject) {
+            remoteVideoRef.current.srcObject = event.streams[0];
+          }
+          setCallConnected(true);
+          setCallStatus('📡 Connected. Real-Time WebRTC P2P Match: SUCCESS');
+        };
+
+        peerConnection.current.onicecandidate = (event) => {
+          if (event.candidate) {
+            socket.emit('ice_candidate', { to: profile.name, candidate: event.candidate });
+          }
+        };
+
+        const pendingCandidates = [];
+
+        // Socket Listeners for Signaling
+        socket.on('call_answered', async ({ answer }) => {
+          await peerConnection.current.setRemoteDescription(new RTCSessionDescription(answer));
+          // Apply any ICE candidates that arrived before the answer
+          for (const candidate of pendingCandidates) {
+            await peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
+          }
+        });
+
+        socket.on('ice_candidate', async ({ candidate }) => {
+          if (peerConnection.current && peerConnection.current.remoteDescription) {
+             await peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
+          } else {
+             pendingCandidates.push(candidate);
+          }
+        });
+
+        socket.on('user_offline', () => {
+          setCallStatus('User is currently offline. Call failed.');
+          setTimeout(() => endCall(), 3000);
+        });
+
+        socket.on('hangup', () => {
+          endCall();
+        });
+
+        if (isReceivingCall) {
+          // Answering incoming call
+          const { offer, from } = location.state.incomingCall;
+          await peerConnection.current.setRemoteDescription(new RTCSessionDescription(offer));
+          const answer = await peerConnection.current.createAnswer();
+          await peerConnection.current.setLocalDescription(answer);
+          socket.emit('answer_call', { to: from, answer });
+        } else {
+          // Initiating outgoing call
+          const offer = await peerConnection.current.createOffer();
+          await peerConnection.current.setLocalDescription(offer);
+          
+          const companyDataRaw = localStorage.getItem('earthgram_company_data');
+          const callerId = companyDataRaw ? JSON.parse(companyDataRaw).brandName : 'user_default';
+          
+          socket.emit('call_user', { to: profile.name, offer, from: callerId, callerInfo: { name: callerId } });
+        }
+
+      } catch (err) {
+        setCallStatus('Error accessing camera/mic: ' + err.message);
+        console.error(err);
+      }
+    };
+
+    setupMedia();
 
     return () => {
-      clearTimeout(statusTimer);
-      clearTimeout(progressTimer);
+      socket.off('call_answered');
+      socket.off('ice_candidate');
+      socket.off('user_offline');
+      socket.off('hangup');
+      
+      // Cleanup media if the component unmounts or effect re-runs
+      if (localStream.current) {
+        localStream.current.getTracks().forEach(track => track.stop());
+        localStream.current = null;
+      }
+      if (peerConnection.current) {
+        peerConnection.current.close();
+        peerConnection.current = null;
+      }
     };
-  }, [showCallScreen]);
+  }, [showCallScreen, isReceivingCall, callType, profile?.name]);
+
+  const endCall = () => {
+    if (peerConnection.current) {
+      peerConnection.current.close();
+      peerConnection.current = null;
+    }
+    if (localStream.current) {
+      localStream.current.getTracks().forEach(track => track.stop());
+      localStream.current = null;
+    }
+    if (localVideoRef.current) localVideoRef.current.srcObject = null;
+    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+    
+    setShowCallScreen(false);
+    setIsReceivingCall(false);
+    socket.emit('hangup', { to: profile.name });
+  };
+
+  const toggleMic = () => {
+    if (localStream.current) {
+      localStream.current.getAudioTracks().forEach(track => {
+        track.enabled = !track.enabled;
+      });
+    }
+    setMicMuted(!micMuted);
+  };
+
+  const toggleCamera = () => {
+    if (localStream.current) {
+      localStream.current.getVideoTracks().forEach(track => {
+        track.enabled = !track.enabled;
+      });
+    }
+    setCameraOn(!cameraOn);
+  };
 
   // Call timer counter
   useEffect(() => {
@@ -425,14 +564,18 @@ const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
               )}
               
               {/* Central Specialist Profile Photo Avatar */}
-              <div className="relative z-10 w-32 h-32 bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 rounded-full flex flex-col items-center justify-center shadow-2xl border-4 border-slate-800">
-                <span className="text-4xl font-extrabold tracking-tight">
-                  {profile.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                </span>
+              <div className="relative z-10 w-32 h-32 bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 rounded-full overflow-hidden flex flex-col items-center justify-center shadow-2xl border-4 border-slate-800">
+                {callType === 'video' && callConnected ? (
+                  <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-4xl font-extrabold tracking-tight">
+                    {profile.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  </span>
+                )}
                 
                 {/* Micro green indicator */}
                 {callConnected && (
-                  <span className="absolute bottom-1 right-1 w-6 h-6 bg-emerald-500 rounded-full border-4 border-slate-950 flex items-center justify-center">
+                  <span className="absolute bottom-1 right-1 w-6 h-6 bg-emerald-500 rounded-full border-4 border-slate-950 flex flex-col items-center justify-center">
                     <span className="w-2.5 h-2.5 bg-white rounded-full animate-pulse"></span>
                   </span>
                 )}
@@ -473,9 +616,8 @@ const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
                 <span className="text-[8px] font-black uppercase tracking-wider text-slate-400 bg-slate-950/80 px-2 py-0.5 rounded-full self-start">You</span>
                 
                 {cameraOn ? (
-                  <div className="flex-1 flex flex-col items-center justify-center">
-                    <span className="text-3xl animate-bounce">🧑‍💻</span>
-                    <span className="text-[8px] font-bold text-slate-500 mt-1 uppercase tracking-wider">Camera Active</span>
+                  <div className="flex-1 rounded-lg overflow-hidden border border-slate-700/50 mt-1 mb-1">
+                    <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
                   </div>
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center">
@@ -504,7 +646,7 @@ const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
             <div className="flex justify-around items-center">
               {/* Mic Control */}
               <button 
-                onClick={() => setMicMuted(!micMuted)}
+                onClick={toggleMic}
                 className={`w-12 h-12 rounded-full flex flex-col items-center justify-center transition-all ${
                   micMuted 
                     ? 'bg-rose-600/20 text-rose-500 border-2 border-rose-500/40 shadow-lg' 
@@ -518,7 +660,7 @@ const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
               {/* Camera Control (For Video Calls) */}
               {callType === 'video' && (
                 <button 
-                  onClick={() => setCameraOn(!cameraOn)}
+                  onClick={toggleCamera}
                   className={`w-12 h-12 rounded-full flex flex-col items-center justify-center transition-all ${
                     !cameraOn 
                       ? 'bg-rose-600/20 text-rose-500 border-2 border-rose-500/40 shadow-lg' 
@@ -547,7 +689,7 @@ const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
 
               {/* Hangup Control */}
               <button 
-                onClick={() => setShowCallScreen(false)}
+                onClick={endCall}
                 className="w-14 h-14 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center shadow-glow-rose active:scale-90 transition-transform"
               >
                 <span className="text-2xl transform rotate-135 inline-block">📞</span>

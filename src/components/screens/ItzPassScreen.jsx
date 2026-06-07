@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { ITZPASS_PLANS } from '../../data/constants';
 
-const ItzPassScreen = ({ isDarkMode, onClose }) => {
+const ItzPassScreen = ({ isDarkMode, onClose, userPassType, setUserPassType, userCoins, setUserCoins, userTransactions, setUserTransactions }) => {
   const [selectedPlan, setSelectedPlan] = useState(null);
-  const [step, setStep] = useState('plans');
+  const [step, setStep] = useState(userPassType ? 'success' : 'plans');
 
   if (step === 'success') {
-    const plan = ITZPASS_PLANS.find(p => p.id === selectedPlan);
+    const activeTier = selectedPlan || userPassType || 'gold';
+    const plan = ITZPASS_PLANS.find(p => p.id === activeTier);
     return (
       <div className="absolute inset-0 bg-white z-50 flex flex-col items-center justify-center p-8 animate-slide-up">
         <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-4xl mb-6 shadow-lg animate-bounce" style={{ animationDuration: '2s' }}>
-          {plan?.icon}
+          {plan?.icon || '👑'}
         </div>
-        <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Welcome to {plan?.name}!</h2>
+        <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Welcome to {plan?.name || 'ItzPass Gold'}!</h2>
         <p className="text-sm text-gray-500 text-center mb-6">Your membership is now active. Enjoy exclusive benefits!</p>
         <div className="w-full bg-gray-50 rounded-2xl p-5 space-y-2.5 border border-gray-100">
           {plan?.features.map((f, i) => (
@@ -126,7 +127,31 @@ const ItzPassScreen = ({ isDarkMode, onClose }) => {
 
       {/* Bottom CTA */}
       <div className="absolute bottom-0 left-0 right-0 glass border-t border-gray-100/50 px-5 py-3 pb-6">
-        <button onClick={() => selectedPlan && setStep('success')} disabled={!selectedPlan}
+        <button onClick={() => {
+          if (!selectedPlan) return;
+          const plan = ITZPASS_PLANS.find(p => p.id === selectedPlan);
+          const price = plan ? parseInt(plan.price.replace('₹', '')) : 0;
+          
+          if (userCoins < price) {
+            alert("Insufficient balance in ItzWallet. Please add money first!");
+            return;
+          }
+          
+          setUserCoins(prev => prev - price);
+          setUserPassType(selectedPlan);
+          
+          const newTxn = {
+            id: 'w_' + Date.now(),
+            type: 'debit',
+            title: `${plan.name} Purchased`,
+            amount: `-₹${price}`,
+            date: 'Just now',
+            method: 'Wallet',
+            icon: '👑'
+          };
+          setUserTransactions(prev => [newTxn, ...prev]);
+          setStep('success');
+        }} disabled={!selectedPlan}
           className={`w-full py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center space-x-2 ${
             selectedPlan ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white active:scale-[0.98] shadow-lg' : 'bg-gray-200 text-gray-400'
           }`}>
