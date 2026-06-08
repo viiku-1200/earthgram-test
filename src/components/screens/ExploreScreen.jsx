@@ -18,11 +18,11 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 const BUDDY_DATA = [
-  { name: 'Amit', initials: 'AS', gradient: 'from-blue-500 to-indigo-600', online: true },
-  { name: 'Priya', initials: 'PV', gradient: 'from-pink-500 to-rose-600', online: false },
-  { name: 'Rahul', initials: 'RG', gradient: 'from-emerald-500 to-teal-600', online: false },
-  { name: 'Neha', initials: 'NS', gradient: 'from-purple-500 to-violet-600', online: true },
-  { name: 'Kabir', initials: 'KP', gradient: 'from-amber-500 to-orange-600', online: false },
+  { name: 'Amit', initials: 'AS', gradient: 'from-blue-500 to-indigo-600', online: true, hobby: 'Tech' },
+  { name: 'Priya', initials: 'PV', gradient: 'from-pink-500 to-rose-600', online: false, hobby: 'Music' },
+  { name: 'Rahul', initials: 'RG', gradient: 'from-emerald-500 to-teal-600', online: false, hobby: 'Sports' },
+  { name: 'Neha', initials: 'NS', gradient: 'from-purple-500 to-violet-600', online: true, hobby: 'Fitness' },
+  { name: 'Kabir', initials: 'KP', gradient: 'from-amber-500 to-orange-600', online: false, hobby: 'Sports' },
 ];
 
 const SPOT_IMAGES = { 'Dance Studio': '🎶', 'Empty Room': '🏡', 'Local Food': '🍱', 'Gym': '💪' };
@@ -218,6 +218,111 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
   const [activeMiningAd, setActiveMiningAd] = useState(null);
   const [miningTimer, setMiningTimer] = useState(0);
   const [showBurst, setShowBurst] = useState(false);
+
+  // --- NEIGHBORHOOD FEATURES STATES ---
+  const [selectedHobby, setSelectedHobby] = useState('All');
+  
+  const [localPolls, setLocalPolls] = useState(() => {
+    const saved = localStorage.getItem('earthgram_local_polls');
+    if (saved) return JSON.parse(saved);
+    return [
+      {
+        id: 'poll-1',
+        question: 'Should we install solar street lights in the local park? 💡',
+        options: [
+          { label: 'Yes, definitely', votes: 142 },
+          { label: 'No, too expensive', votes: 38 }
+        ],
+        userVoted: null,
+        totalVotes: 180
+      },
+      {
+        id: 'poll-2',
+        question: 'Are you facing water pressure issues this morning? 🚰',
+        options: [
+          { label: 'Yes, very low pressure', votes: 76 },
+          { label: 'No, it is normal', votes: 121 }
+        ],
+        userVoted: null,
+        totalVotes: 197
+      }
+    ];
+  });
+
+  const [localEvents, setLocalEvents] = useState(() => {
+    const saved = localStorage.getItem('earthgram_local_events');
+    if (saved) return JSON.parse(saved);
+    return [
+      {
+        id: 'event-1',
+        title: 'Sector 4 Football Match ⚽',
+        time: 'Today, 5:30 PM',
+        location: 'Sector 4 Playground',
+        attendees: 14,
+        userJoined: false,
+        desc: 'Casual 7v7 friendly match. All skill levels welcome!'
+      },
+      {
+        id: 'event-2',
+        title: 'Yoga in Gaur City Park 🧘‍♀️',
+        time: 'Tomorrow, 6:00 AM',
+        location: 'GC-2 Central Park',
+        attendees: 32,
+        userJoined: false,
+        desc: 'Bring your own mat. Morning meditation & flow.'
+      },
+      {
+        id: 'event-3',
+        title: 'Tech Meetup & Chai 💻☕',
+        time: 'Saturday, 4:00 PM',
+        location: 'The Chai Club Café',
+        attendees: 8,
+        userJoined: false,
+        desc: 'Discuss web development, AI, and startups.'
+      }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('earthgram_local_polls', JSON.stringify(localPolls));
+  }, [localPolls]);
+
+  useEffect(() => {
+    localStorage.setItem('earthgram_local_events', JSON.stringify(localEvents));
+  }, [localEvents]);
+
+  // Handle Poll Voting
+  const handleVotePoll = (pollId, optionIndex) => {
+    setLocalPolls(prev => prev.map(p => {
+      if (p.id !== pollId) return p;
+      if (p.userVoted !== null) return p; // prevent double voting
+      const updatedOptions = p.options.map((opt, idx) => {
+        if (idx === optionIndex) {
+          return { ...opt, votes: opt.votes + 1 };
+        }
+        return opt;
+      });
+      return {
+        ...p,
+        options: updatedOptions,
+        userVoted: optionIndex,
+        totalVotes: p.totalVotes + 1
+      };
+    }));
+  };
+
+  // Handle Event RSVP
+  const handleToggleRSVP = (eventId) => {
+    setLocalEvents(prev => prev.map(ev => {
+      if (ev.id !== eventId) return ev;
+      const userJoined = !ev.userJoined;
+      return {
+        ...ev,
+        userJoined,
+        attendees: userJoined ? ev.attendees + 1 : ev.attendees - 1
+      };
+    }));
+  };
 
   // Get selected country's name for dynamic filtering
   const selectedCountryData = COUNTRIES.find(c => c.id === selectedCountry);
@@ -445,9 +550,9 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
           ))}
         </div>
 
-        {/* Buddies Nearby (Previous) */}
+        {/* Buddies Nearby (Hobby Matcher) */}
         <div className="px-5 mb-6">
-          <div className="flex justify-between items-center mb-3">
+          <div className="flex justify-between items-center mb-2">
             <h2 className={`text-sm font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Buddies Nearby</h2>
             <span className={`text-[9px] font-bold px-2.5 py-1 rounded-full flex items-center space-x-1 ${
               isDarkMode ? 'text-indigo-400 bg-indigo-500/10' : 'text-indigo-600 bg-indigo-50'
@@ -456,9 +561,38 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
               <span>Radar Active</span>
             </span>
           </div>
+
+          {/* Hobby filter tags */}
+          <div className="flex space-x-2 overflow-x-auto hide-scrollbar mb-3">
+            {['All', 'Sports', 'Music', 'Fitness', 'Tech'].map(hobby => (
+              <button
+                key={hobby}
+                onClick={() => setSelectedHobby(hobby)}
+                className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all flex-shrink-0 ${
+                  selectedHobby === hobby
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : isDarkMode 
+                      ? 'bg-slate-800 text-slate-400 hover:text-slate-200' 
+                      : 'bg-white border border-gray-100 text-gray-500 shadow-sm hover:text-gray-700'
+                }`}
+              >
+                {hobby === 'All' ? '🌐 All' : hobby === 'Sports' ? '⚽ Sports' : hobby === 'Music' ? '🎵 Music' : hobby === 'Fitness' ? '💪 Fitness' : '💻 Tech'}
+              </button>
+            ))}
+          </div>
+
+          {/* Buddies List */}
           <div className="flex space-x-4 overflow-x-auto hide-scrollbar pb-2">
-            {BUDDY_DATA.map((buddy, i) => (
-              <div key={i} className="flex flex-col items-center animate-fade-in" style={{ animationDelay: `${i * 0.06}s` }}>
+            {BUDDY_DATA.filter(b => selectedHobby === 'All' || b.hobby === selectedHobby).map((buddy, i) => (
+              <div 
+                key={i} 
+                className="flex flex-col items-center animate-fade-in cursor-pointer active:scale-95 transition-transform flex-shrink-0" 
+                style={{ animationDelay: `${i * 0.06}s` }}
+                onClick={() => {
+                  alert(`Opening Direct Message with ${buddy.name}...`);
+                  navigate('/messages');
+                }}
+              >
                 <div className="relative">
                   <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${buddy.gradient} flex items-center justify-center text-white text-sm font-bold shadow-premium ${buddy.online ? 'ring-2 ring-green-400 ring-offset-2' : ''}`}>
                     {buddy.initials}
@@ -466,6 +600,110 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
                   {buddy.online && <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full online-dot"></div>}
                 </div>
                 <span className={`text-[10px] font-bold mt-1.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-600'}`}>{buddy.name}</span>
+                <span className="text-[7px] font-black uppercase tracking-widest text-indigo-500 mt-0.5">{buddy.hobby}</span>
+              </div>
+            ))}
+            {BUDDY_DATA.filter(b => selectedHobby === 'All' || b.hobby === selectedHobby).length === 0 && (
+              <div className="text-[10px] font-bold text-gray-400 py-4 w-full text-center">No buddies found with this interest nearby.</div>
+            )}
+          </div>
+        </div>
+
+        {/* Neighborhood Polls Section */}
+        <div className="px-5 mb-6">
+          <h2 className={`text-sm font-extrabold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Local Opinion Polls</h2>
+          <div className="space-y-3">
+            {localPolls.map(poll => {
+              const hasVoted = poll.userVoted !== null;
+              return (
+                <div key={poll.id} className={`p-4 rounded-3xl border shadow-sm ${
+                  isDarkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-gray-100'
+                }`}>
+                  <p className={`text-xs font-bold mb-3 ${isDarkMode ? 'text-slate-200' : 'text-gray-800'}`}>{poll.question}</p>
+                  <div className="space-y-2">
+                    {poll.options.map((opt, idx) => {
+                      const percentage = poll.totalVotes > 0 ? Math.round((opt.votes / poll.totalVotes) * 100) : 0;
+                      const isOptionVoted = poll.userVoted === idx;
+                      return (
+                        <button
+                          key={idx}
+                          disabled={hasVoted}
+                          onClick={() => handleVotePoll(poll.id, idx)}
+                          className={`w-full relative h-10 rounded-xl overflow-hidden border text-left transition-all ${
+                            hasVoted 
+                              ? isOptionVoted 
+                                ? 'border-indigo-400 bg-indigo-50/50 text-indigo-700'
+                                : 'border-gray-100 bg-gray-50/30'
+                              : isDarkMode 
+                                ? 'border-slate-800 bg-slate-800/50 hover:bg-slate-800' 
+                                : 'border-gray-100 bg-gray-50 hover:bg-gray-100/60'
+                          }`}
+                        >
+                          {/* Progress bar fill */}
+                          {hasVoted && (
+                            <div 
+                              className="absolute top-0 left-0 bottom-0 bg-indigo-500/10 transition-all duration-700" 
+                              style={{ width: `${percentage}%` }}
+                            ></div>
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-between px-3 text-[10px] font-black uppercase tracking-wider">
+                            <span className={isOptionVoted ? 'text-indigo-600 font-extrabold' : isDarkMode ? 'text-slate-300' : 'text-slate-700'}>
+                              {opt.label} {isOptionVoted && '✓'}
+                            </span>
+                            {hasVoted && (
+                              <span className="text-indigo-600 font-extrabold">{percentage}% ({opt.votes})</span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex justify-between items-center mt-3 text-[8px] font-black uppercase tracking-widest text-slate-400">
+                    <span>{poll.totalVotes} Votes Cast</span>
+                    {hasVoted && <span className="text-indigo-500 font-bold animate-fade-in">Vote Recorded!</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Local Events & Meetups Section */}
+        <div className="px-5 mb-6">
+          <div className="flex justify-between items-center mb-3">
+            <h2 className={`text-sm font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Local Meetups & Events</h2>
+            <span className="text-[9px] font-black uppercase tracking-widest text-indigo-500">Active Board</span>
+          </div>
+          <div className="space-y-3">
+            {localEvents.map(ev => (
+              <div key={ev.id} className={`p-4 rounded-3xl border shadow-sm ${
+                isDarkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-gray-100'
+              }`}>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className={`text-xs font-black uppercase tracking-wide ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{ev.title}</h3>
+                    <p className="text-[9px] text-indigo-500 font-bold mt-0.5">{ev.time} · {ev.location}</p>
+                  </div>
+                  <button
+                    onClick={() => handleToggleRSVP(ev.id)}
+                    className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                      ev.userJoined
+                        ? 'bg-emerald-500 text-white shadow-md'
+                        : 'bg-indigo-600 text-white shadow-md active:scale-95'
+                    }`}
+                  >
+                    {ev.userJoined ? '✓ Joined' : 'RSVP'}
+                  </button>
+                </div>
+                <p className={`text-[10px] font-medium leading-relaxed mb-3 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{ev.desc}</p>
+                <div className="flex items-center space-x-2 pt-2 border-t border-slate-100/50">
+                  <div className="flex -space-x-1.5">
+                    {[1, 2, 3].map(n => (
+                      <div key={n} className="w-5 h-5 rounded-full bg-slate-200 border border-white flex items-center justify-center text-[7px] font-bold">👤</div>
+                    ))}
+                  </div>
+                  <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">+{ev.attendees - 3} Neighbors attending</span>
+                </div>
               </div>
             ))}
           </div>
