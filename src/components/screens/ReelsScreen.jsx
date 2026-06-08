@@ -234,17 +234,24 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
     return () => clearInterval(timerRef.current);
   }, [currentIndex, currentItem, completedAds, onAdComplete]);
 
+  const lastScrollTopRef = useRef(0);
+
   const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const currentScrollTop = scrollRef.current.scrollTop;
+    
     if (setIsScrolling) {
-      setIsScrolling(true);
-      clearTimeout(scrollTimeoutRef.current);
-      scrollTimeoutRef.current = setTimeout(() => {
+      if (currentScrollTop > lastScrollTopRef.current + 10) {
+        // Scrolling down to next video (Swipe UP) -> Hide Footer
+        setIsScrolling(true);
+      } else if (currentScrollTop < lastScrollTopRef.current - 10) {
+        // Scrolling up to previous video (Swipe DOWN) -> Show Footer
         setIsScrolling(false);
-      }, 300); // Wait 300ms after scrolling stops to show nav again
+      }
+      lastScrollTopRef.current = currentScrollTop;
     }
 
-    if (!scrollRef.current) return;
-    const idx = Math.round(scrollRef.current.scrollTop / scrollRef.current.clientHeight);
+    const idx = Math.round(currentScrollTop / scrollRef.current.clientHeight);
     if (idx !== currentIndex) setCurrentIndex(idx);
   };
 
