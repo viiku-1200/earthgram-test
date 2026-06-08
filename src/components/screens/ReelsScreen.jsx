@@ -339,13 +339,14 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
                       <span>🔥</span><span>HYPED</span>
                     </div>
                   )}
-                  <div className="bg-black/40 backdrop-blur-md border border-white/20 text-[10px] font-bold px-2.5 py-1 rounded-full w-max flex items-center space-x-1">
-                    <span>🗣️</span><span>{item.data.language}</span>
-                  </div>
                 </div>
 
                 {/* Side actions */}
                 <div className="absolute right-3 bottom-48 flex flex-col items-center space-y-4 z-20">
+                  {/* Language Badge */}
+                  <div className="bg-black/50 backdrop-blur-md border border-white/20 text-[10px] font-bold px-2 py-1 rounded-full flex items-center justify-center mb-1 shadow-lg">
+                    <span>{item.data.language?.substring(0, 3).toUpperCase() || 'ALL'}</span>
+                  </div>
                   <button onClick={() => setLiked(p => ({ ...p, [item.data.id]: !p[item.data.id] }))} className="flex flex-col items-center">
                     <div className={`w-11 h-11 rounded-full flex items-center justify-center mb-1 transition-all ${liked[item.data.id] ? 'bg-red-500 scale-110' : 'bg-white/15 backdrop-blur-sm'}`}>
                       <svg className="w-5 h-5 text-white" fill={liked[item.data.id] ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
