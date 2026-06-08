@@ -186,7 +186,7 @@ const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, b
           <button onClick={() => navigate('/upload-reel')} className="bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 p-4 rounded-2xl shadow-premium-lg flex flex-col items-start active:scale-[0.98] transition-transform text-left relative overflow-hidden text-white border-2 border-white/20">
             <div className="absolute top-0 right-0 bg-white text-indigo-700 text-[8px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">NEW</div>
             <span className="text-2xl mb-2">📹</span>
-            <span className="text-sm font-bold text-white">Upload Reel</span>
+            <span className="text-sm font-bold text-white">Upload Video</span>
             <span className="text-[10px] text-white/80 mt-0.5">Share with customers</span>
           </button>
 

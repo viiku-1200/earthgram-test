@@ -2,7 +2,13 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { REELS_DATA, COUNTRIES } from '../../data/constants';
 
 const SCOPES = ['local', 'national', 'global'];
-const LANGUAGES = ['All', 'Hindi', 'English', 'Tamil', 'Italian'];
+const LANGUAGES = [
+  'All',
+  // Indian Languages
+  'Hindi', 'English', 'Tamil', 'Telugu', 'Kannada', 'Malayalam', 'Marathi', 'Gujarati', 'Bengali', 'Punjabi', 'Odia', 'Urdu',
+  // Global Languages
+  'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Russian', 'Japanese', 'Korean', 'Mandarin', 'Arabic', 'Turkish'
+];
 
 const ADS_DATA = [
   { id: 'ad1', brand: 'Green Harvest', tagline: 'Fresh organic produce delivered daily to your door', gradient: 'from-emerald-700 via-teal-800 to-emerald-900', icon: '🌾', cta: 'Shop Now', accent: '#10b981', videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
@@ -97,7 +103,8 @@ const ReelVideo = ({ src, isActive }) => {
   );
 };
 
-const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], activeScope = 'local', setActiveScope, selectedCountry = 'in', setIsScrolling }) => {
+const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], activeScope: externalScope, setActiveScope, selectedCountry = 'in', setIsScrolling }) => {
+  const activeScope = 'global';
   const [activeLang, setActiveLang] = useState('All');
   const [liked, setLiked] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -283,16 +290,6 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
             <span className="text-base">💎</span>
           </div>
         </div>
-
-        {/* Scope tabs */}
-        <div className="flex justify-center space-x-6 mt-3">
-          {SCOPES.map(s => (
-            <button key={s} onClick={() => setActiveScope(s)}
-              className={`text-sm font-bold capitalize transition-all ${activeScope === s ? 'text-white border-b-2 border-white pb-0.5' : 'text-white/50'}`}>
-              {s}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* FEED */}
@@ -301,9 +298,9 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
         {feed.length === 0 && (
           <div className="h-full w-full flex flex-col items-center justify-center bg-black text-white px-8 text-center">
             <div className="text-6xl mb-4 opacity-50">📭</div>
-            <h2 className="text-xl font-bold mb-2">No Reels Found</h2>
+            <h2 className="text-xl font-bold mb-2">No Videos Found</h2>
             <p className="text-white/60 text-sm mb-6">There are no videos matching your selected language or region.</p>
-            <button onClick={() => { setActiveLang('All'); setActiveScope('national'); }} className="bg-indigo-600 px-6 py-2 rounded-full font-bold active:scale-95 transition-transform">
+            <button onClick={() => { setActiveLang('All'); }} className="bg-indigo-600 px-6 py-2 rounded-full font-bold active:scale-95 transition-transform">
               Clear Filters
             </button>
           </div>
@@ -517,12 +514,13 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
       {/* LANGUAGE SELECTOR MENU OVERLAY */}
       {showLangMenu && (
         <div className="absolute inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-end justify-center" onClick={() => setShowLangMenu(false)}>
-          <div className="w-full bg-[#111] rounded-t-3xl border-t border-white/10 p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-6">
+          <div className="w-full max-h-[85vh] flex flex-col bg-[#111] rounded-t-3xl border-t border-white/10 p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4 shrink-0">
               <h3 className="text-white font-black text-xl">Select Language</h3>
               <button onClick={() => setShowLangMenu(false)} className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-white/70">✕</button>
             </div>
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="overflow-y-auto max-h-[60vh] overscroll-contain pb-6" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <div className="grid grid-cols-2 gap-3">
               {LANGUAGES.map(l => (
                 <button
                   key={l}
@@ -532,6 +530,7 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
                   {l}
                 </button>
               ))}
+              </div>
             </div>
           </div>
         </div>

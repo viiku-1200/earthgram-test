@@ -939,7 +939,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
       <div className="px-5 flex justify-between items-center mb-3">
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-          <h2 className={`text-sm font-black uppercase tracking-widest ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Live Work Reels</h2>
+          <h2 className={`text-sm font-black uppercase tracking-widest ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Live Videos</h2>
         </div>
         <button onClick={() => navigate('/reels')} className="text-indigo-600 text-[10px] font-black uppercase tracking-widest">Watch More</button>
       </div>

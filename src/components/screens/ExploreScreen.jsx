@@ -189,7 +189,8 @@ const MapTabView = ({ isDarkMode, qualityPosts = [], activeScope, userPos, count
   );
 };
 
-const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], userReels = [], activeScope = 'local', selectedCountry = 'in' }) => {
+const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], userReels = [], activeScope: propActiveScope = 'local', selectedCountry = 'in' }) => {
+  const activeScope = propActiveScope === 'global' ? 'national' : propActiveScope;
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('pulse');
   const [showHeader, setShowHeader] = useState(true);

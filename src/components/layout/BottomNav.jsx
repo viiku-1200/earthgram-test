@@ -35,16 +35,26 @@ const BottomNav = ({ isDarkMode }) => {
       <span className="text-[9px] font-bold">Explore</span>
     </button>
 
-    {/* Reels (center action) */}
+    {/* Watch (center action) */}
     <button onClick={() => navigate('/reels')} className="flex flex-col items-center justify-center -mt-5 z-40">
       <div className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg border-4 transition-all duration-300 ${
-        isDarkMode ? 'border-slate-800' : 'border-white'
-      } ${activeTab === 'reels' ? 'bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500 shadow-glow-indigo' : 'bg-gradient-to-tr from-gray-800 to-gray-900'}`}>
-        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+        isDarkMode ? 'border-slate-900' : 'border-white'
+      } ${
+        activeTab === 'reels' 
+          ? 'bg-indigo-600 text-white shadow-indigo-500/40 scale-105' 
+          : isDarkMode 
+            ? 'bg-slate-800 text-slate-400 border-slate-900' 
+            : 'bg-slate-100 text-slate-600 border-white'
+      }`}>
+        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
           <path d="M8 5v14l11-7z" />
         </svg>
       </div>
-      <span className={`text-[9px] font-bold mt-1 ${activeTab === 'reels' ? activeColor : isDarkMode ? 'text-slate-500' : 'text-gray-500'}`}>Reels</span>
+      <span className={`text-[9px] font-black mt-1.5 transition-colors duration-200 ${
+        activeTab === 'reels' 
+          ? 'text-indigo-500' 
+          : isDarkMode ? 'text-slate-500' : 'text-gray-500'
+      }`}>Watch</span>
     </button>
 
     {/* Groups */}

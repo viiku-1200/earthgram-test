@@ -110,7 +110,7 @@ const UploadReelScreen = ({ isDarkMode, onClose, addUserReel }) => {
       {/* Header */}
       <div className={`px-5 pt-12 pb-4 flex items-center justify-between border-b sticky top-0 z-10 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100'} shadow-sm`}>
         <button onClick={onClose} className={`w-9 h-9 rounded-full flex items-center justify-center active:scale-90 transition-transform ${isDarkMode ? 'bg-slate-800 text-white' : 'bg-gray-100 text-gray-600'}`}>✕</button>
-        <h2 className={`text-sm font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Upload Reel</h2>
+        <h2 className={`text-sm font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Upload Video</h2>
         <div className="w-9" />
       </div>
 
@@ -286,7 +286,7 @@ const UploadReelScreen = ({ isDarkMode, onClose, addUserReel }) => {
                     : isDarkMode ? 'bg-slate-800 text-slate-600 cursor-not-allowed' : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                 }`}
               >
-                🚀 Publish Reel Now
+                🚀 Publish Video Now
               </button>
             )}
           </div>
@@ -304,8 +304,8 @@ const UploadReelScreen = ({ isDarkMode, onClose, addUserReel }) => {
             )}
             <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center text-4xl shadow-xl shadow-emerald-500/30">🎉</div>
             <div>
-              <h2 className={`text-2xl font-black mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Reel Published!</h2>
-              <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Your reel is now live in the {formData.scope} feed. Customers can see and interact with it right now.</p>
+              <h2 className={`text-2xl font-black mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Video Published!</h2>
+              <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Your video is now live in the {formData.scope} feed. Customers can see and interact with it right now.</p>
             </div>
             <div className={`w-full p-4 rounded-2xl text-left space-y-2 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-50 border border-slate-100'}`}>
               <div className="flex justify-between">
@@ -323,7 +323,7 @@ const UploadReelScreen = ({ isDarkMode, onClose, addUserReel }) => {
             </div>
             <div className="flex space-x-3 w-full">
               <button onClick={() => { setStep(1); setFormData({ mediaFile: null, mediaUrl: null, mediaType: null, thumbnail: null, caption: '', category: 'Food & Tiffin', language: 'Hindi', scope: 'Local', ctaText: 'View Profile', ctaLink: '', tags: '', price: '', showPrice: false }); }} className={`flex-1 py-4 rounded-2xl text-xs font-black uppercase tracking-widest active:scale-95 transition-transform ${isDarkMode ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-800'}`}>Upload Another</button>
-              <button onClick={() => navigate('/reels')} className="flex-1 py-4 rounded-2xl text-xs font-black uppercase tracking-widest bg-gradient-to-r from-indigo-600 to-purple-600 text-white active:scale-95 transition-transform shadow-lg">View in Reels</button>
+              <button onClick={() => navigate('/reels')} className="flex-1 py-4 rounded-2xl text-xs font-black uppercase tracking-widest bg-gradient-to-r from-indigo-600 to-purple-600 text-white active:scale-95 transition-transform shadow-lg">View in Watch</button>
             </div>
           </div>
         )}
