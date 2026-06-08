@@ -106,6 +106,7 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
   const [adsWatched, setAdsWatched] = useState(0);
   const [showBurst, setShowBurst] = useState(false);
   const [showBonus, setShowBonus] = useState(false);
+  const [showLangMenu, setShowLangMenu] = useState(false);
   const scrollRef = useRef(null);
   const timerRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
@@ -171,7 +172,7 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
 
   // Stable feed — rebuilt only when filter changes, user reels always prepended
   const feed = useMemo(() => {
-    return [...userFeedItems, ...buildFeed(filtered.length > 0 ? filtered : REELS_DATA)];
+    return [...userFeedItems, ...buildFeed(filtered)];
   }, [userFeedItems, filtered]);
 
   // Reset scroll and currentIndex when filters or userReels change
@@ -292,21 +293,22 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
             </button>
           ))}
         </div>
-
-        {/* Language filter */}
-        <div className="flex justify-center mt-2 space-x-2 overflow-x-auto hide-scrollbar pb-1">
-          {LANGUAGES.map(l => (
-            <button key={l} onClick={() => setActiveLang(l)}
-              className={`text-[10px] font-black px-3 py-1 rounded-full transition-all flex-shrink-0 ${activeLang === l ? 'bg-white text-black' : 'bg-white/10 text-white/70'}`}>
-              {l}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* FEED */}
       <div ref={scrollRef} onScroll={handleScroll}
         className="h-full overflow-y-scroll snap-y snap-mandatory hide-scrollbar">
+        {feed.length === 0 && (
+          <div className="h-full w-full flex flex-col items-center justify-center bg-black text-white px-8 text-center">
+            <div className="text-6xl mb-4 opacity-50">📭</div>
+            <h2 className="text-xl font-bold mb-2">No Reels Found</h2>
+            <p className="text-white/60 text-sm mb-6">There are no videos matching your selected language or region.</p>
+            <button onClick={() => { setActiveLang('All'); setActiveScope('national'); }} className="bg-indigo-600 px-6 py-2 rounded-full font-bold active:scale-95 transition-transform">
+              Clear Filters
+            </button>
+          </div>
+        )}
+        
         {feed.map((item, idx) => (
           <div key={item.feedId} className="h-full w-full snap-start snap-always relative flex-shrink-0">
 
@@ -342,11 +344,13 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
                 </div>
 
                 {/* Side actions */}
-                <div className="absolute right-3 bottom-48 flex flex-col items-center space-y-4 z-20">
-                  {/* Language Badge */}
-                  <div className="bg-black/50 backdrop-blur-md border border-white/20 text-[10px] font-bold px-2 py-1 rounded-full flex items-center justify-center mb-1 shadow-lg">
-                    <span>{item.data.language?.substring(0, 3).toUpperCase() || 'ALL'}</span>
-                  </div>
+                <div className="absolute right-3 bottom-[220px] flex flex-col items-center space-y-4 z-20">
+                  {/* Language Selector Button */}
+                  <button onClick={() => setShowLangMenu(true)} className="flex flex-col items-center">
+                    <div className="w-11 h-11 bg-white/15 backdrop-blur-sm border border-white/30 rounded-full flex items-center justify-center mb-1 shadow-lg active:scale-95 transition-transform">
+                      <span className="text-[10px] font-black tracking-wider">{item.data.language?.substring(0, 3).toUpperCase() || 'ALL'}</span>
+                    </div>
+                  </button>
                   <button onClick={() => setLiked(p => ({ ...p, [item.data.id]: !p[item.data.id] }))} className="flex flex-col items-center">
                     <div className={`w-11 h-11 rounded-full flex items-center justify-center mb-1 transition-all ${liked[item.data.id] ? 'bg-red-500 scale-110' : 'bg-white/15 backdrop-blur-sm'}`}>
                       <svg className="w-5 h-5 text-white" fill={liked[item.data.id] ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -506,6 +510,29 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
               className="w-full bg-gradient-to-r from-amber-400 to-yellow-600 text-black py-4 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-transform shadow-lg">
               Secure My Wealth
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* LANGUAGE SELECTOR MENU OVERLAY */}
+      {showLangMenu && (
+        <div className="absolute inset-0 z-[110] bg-black/60 backdrop-blur-sm flex items-end justify-center" onClick={() => setShowLangMenu(false)}>
+          <div className="w-full bg-[#111] rounded-t-3xl border-t border-white/10 p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-white font-black text-xl">Select Language</h3>
+              <button onClick={() => setShowLangMenu(false)} className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center text-white/70">✕</button>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {LANGUAGES.map(l => (
+                <button
+                  key={l}
+                  onClick={() => { setActiveLang(l); setShowLangMenu(false); }}
+                  className={`py-4 rounded-2xl font-bold transition-all border ${activeLang === l ? 'bg-indigo-600 border-indigo-400 text-white shadow-[0_0_15px_rgba(79,70,229,0.5)]' : 'bg-white/5 border-white/10 text-white/80 active:bg-white/10'}`}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
