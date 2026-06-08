@@ -37,7 +37,10 @@ const AuthScreen = ({ isDarkMode, onLoginSuccess }) => {
       });
       const data = await res.json();
       
-      if (!res.ok) throw new Error(data.error || 'Signup failed');
+      if (!res.ok) {
+        const errorMsg = data.details ? `${data.error}: ${data.details}` : (data.error || 'Signup failed');
+        throw new Error(errorMsg);
+      }
       
       setMessage('OTP sent to your email! Please check your inbox.');
       setStep(2); // Move to OTP step
