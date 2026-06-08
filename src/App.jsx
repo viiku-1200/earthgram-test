@@ -489,7 +489,7 @@ const AppContent = () => {
       </div>
 
       {!hideOverlays && <QuickAccessBar isDarkMode={isDarkMode} />}
-      <div className={`fixed bottom-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${isReelsScrolling ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}>
+      <div className={`absolute bottom-0 w-full z-50 transition-transform duration-300 ease-in-out ${isReelsScrolling ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}>
         {!hideOverlays && <BottomNav isDarkMode={isDarkMode} />}
       </div>
 
