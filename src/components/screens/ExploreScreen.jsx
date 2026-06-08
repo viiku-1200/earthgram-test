@@ -358,10 +358,8 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
     return true;
   });
 
-  // Dynamic real-time feed: jury cases + user reels + static base content
+  // Dynamic real-time feed: user reels + static base content
   const FEED_DATA = [
-    // Real jury cases from community (Filtered)
-    ...filteredQualityPosts.map(post => ({ type: 'jury', data: post })),
     // User-uploaded reels (Filtered)
     ...filteredUserReels.map(reel => ({ type: 'userReel', data: reel })),
     // Static base content
@@ -780,43 +778,6 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
           {FEED_DATA.map((item, index) => (
             <div key={index} className={`rounded-3xl border overflow-hidden shadow-sm animate-slide-up ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100'}`} style={{ animationDelay: `${index * 0.1}s` }}>
               
-              {/* JURY VOTE CARD — real-time from qualityPosts */}
-              {item.type === 'jury' && (() => {
-                const post = item.data;
-                const forgivePct = post.votes.forgive;
-                const suspendPct = post.votes.suspend;
-                const isRed = forgivePct < 50;
-                return (
-                  <div className="p-4 relative overflow-hidden" onClick={() => navigate('/community')}>
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 rounded-bl-full"></div>
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner ${isRed ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>⚖️</div>
-                      <div>
-                        <h3 className={`text-xs font-black uppercase tracking-wider ${isRed ? 'text-rose-500' : 'text-emerald-600'}`}>Live Jury Vote</h3>
-                        <p className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{post.provider} • {post.providerCategory}</p>
-                      </div>
-                      <span className="ml-auto text-[8px] font-black bg-rose-500 text-white px-2 py-0.5 rounded-full uppercase animate-pulse">Live</span>
-                    </div>
-                    <h4 className={`text-sm font-black mb-3 leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{post.title}</h4>
-                    <div className="space-y-2">
-                      <div className="relative h-8 rounded-xl overflow-hidden border border-rose-200 bg-rose-50">
-                        <div className="absolute top-0 left-0 bottom-0 bg-rose-400 transition-all duration-500" style={{ width: `${suspendPct}%` }}></div>
-                        <div className="absolute inset-0 flex items-center justify-between px-3 text-[10px] font-black text-rose-900">
-                          <span>🔴 Suspend</span><span>{suspendPct}%</span>
-                        </div>
-                      </div>
-                      <div className="relative h-8 rounded-xl overflow-hidden border border-emerald-200 bg-emerald-50">
-                        <div className="absolute top-0 left-0 bottom-0 bg-emerald-400 transition-all duration-500" style={{ width: `${forgivePct}%` }}></div>
-                        <div className="absolute inset-0 flex items-center justify-between px-3 text-[10px] font-black text-emerald-900">
-                          <span>🟢 Forgive</span><span>{forgivePct}%</span>
-                        </div>
-                      </div>
-                    </div>
-                    <button className={`mt-3 w-full text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest shadow-lg ${isRed ? 'bg-rose-600' : 'bg-emerald-600'}`}>Cast Your Vote →</button>
-                  </div>
-                );
-              })()}
-
               {/* USER REEL CARD — real-time from userReels */}
               {item.type === 'userReel' && (
                 <div className="relative overflow-hidden cursor-pointer" onClick={() => openExploreVideo(item)}>
