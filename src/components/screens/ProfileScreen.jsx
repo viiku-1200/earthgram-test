@@ -51,8 +51,11 @@ const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, b
 
   const handlePhotoSelect = (file, type) => {
     if (!file) return;
-    const blobUrl = URL.createObjectURL(file);
-    setQcForm(p => ({ ...p, [type]: blobUrl }));
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setQcForm(p => ({ ...p, [type]: reader.result }));
+    };
+    reader.readAsDataURL(file);
   };
 
   useEffect(() => {

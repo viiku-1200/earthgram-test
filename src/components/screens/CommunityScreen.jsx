@@ -120,8 +120,8 @@ const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts, activ
             <div className="space-y-8 pb-10">
               {filteredQualityPosts.map((post, i) => {
                 const avgRating = getLiveRating(post);
-                const isGuilty = post.votes.forgive < 50;
-                const isExtreme = post.votes.forgive < 25;
+                const isExtreme = post.votes.forgive < 25 || avgRating < 1.5;
+                const isGuilty = post.votes.forgive < 50 || avgRating <= 2.0;
                 const ratingCount = (post.userRatings || []).length;
                 const comments = post.userComments || [];
 
@@ -133,14 +133,26 @@ const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts, activ
                     {/* 1. BEFORE & AFTER IMAGES */}
                     <div className="grid grid-cols-2 gap-1 p-2">
                       <div className="relative aspect-video rounded-[1.5rem] overflow-hidden bg-slate-100 flex items-center justify-center border border-black/5">
-                        {post.beforeImage && (post.beforeImage.startsWith('data:') || post.beforeImage.startsWith('blob:'))
+                        {post.beforeImage && (
+                          post.beforeImage.startsWith('data:') || 
+                          post.beforeImage.startsWith('blob:') || 
+                          post.beforeImage.startsWith('http') || 
+                          post.beforeImage.startsWith('/') || 
+                          post.beforeImage.length > 10
+                        )
                           ? <img src={post.beforeImage} alt="Before" className="w-full h-full object-cover" />
                           : <span className="text-4xl">{post.beforeImage || '📸'}</span>
                         }
                         <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest">Before</div>
                       </div>
                       <div className="relative aspect-video rounded-[1.5rem] overflow-hidden bg-emerald-50 flex items-center justify-center border border-emerald-500/10">
-                        {post.afterImage && (post.afterImage.startsWith('data:') || post.afterImage.startsWith('blob:'))
+                        {post.afterImage && (
+                          post.afterImage.startsWith('data:') || 
+                          post.afterImage.startsWith('blob:') || 
+                          post.afterImage.startsWith('http') || 
+                          post.afterImage.startsWith('/') || 
+                          post.afterImage.length > 10
+                        )
                           ? <img src={post.afterImage} alt="After" className="w-full h-full object-cover" />
                           : <span className="text-4xl">{post.afterImage || '📸'}</span>
                         }
@@ -183,11 +195,27 @@ const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts, activ
                           </div>
                         </div>
 
-                        {/* Rating Enforcement Warning */}
-                        {avgRating < 3.0 && avgRating > 0 && (
-                          <div className={`p-3 rounded-xl mb-4 border ${avgRating < 2.5 ? 'bg-red-50 border-red-100' : 'bg-amber-50 border-amber-100'}`}>
-                            <p className={`text-[10px] font-black uppercase tracking-widest ${avgRating < 2.5 ? 'text-red-600' : 'text-amber-600'}`}>
-                              {avgRating < 2.5 ? '🚫 RATING BELOW 2.5 — ACCOUNT TERMINATION TRIGGERED' : '⚠️ RATING BELOW 3.0 — 1-DAY SUSPENSION WARNING'}
+                        {/* Rating Enforcement Warning / Recognition */}
+                        {avgRating > 0 && (
+                          <div className={`p-3 rounded-xl mb-4 border transition-all duration-300 ${
+                            avgRating < 1.5 
+                              ? 'bg-red-100 border-red-300 animate-pulse' 
+                              : avgRating <= 2.0 
+                                ? 'bg-red-50 border-red-200' 
+                                : avgRating <= 3.0
+                                  ? 'bg-emerald-50 border-emerald-200'
+                                  : 'bg-indigo-50 border-indigo-100'
+                          }`}>
+                            <p className={`text-[10px] font-black uppercase tracking-widest ${
+                              avgRating <= 2.0 ? 'text-red-600' : avgRating <= 3.0 ? 'text-emerald-600' : 'text-indigo-600'
+                            }`}>
+                              {avgRating < 1.5 
+                                ? '🚨 RATING BELOW 1.5 — ACCOUNT TERMINATION WITHIN 7 DAYS' 
+                                : avgRating <= 2.0 
+                                  ? '🚫 RATING BELOW 2.0 — ACCOUNT SUSPENSION WITHIN 3 DAYS' 
+                                  : avgRating <= 3.0
+                                    ? '✨ RATING BETWEEN 2.0 & 3.0 — GOOD WORK' 
+                                    : '🌟 EXCELLENT WORK — REPUTATION SECURED'}
                             </p>
                           </div>
                         )}
@@ -209,12 +237,33 @@ const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts, activ
                       </div>
 
                       {/* 5. ENFORCEMENT STATUS */}
-                      <div className={`p-4 rounded-2xl border flex items-center justify-between ${isExtreme ? 'bg-red-50 border-red-100 text-red-600' : isGuilty ? 'bg-amber-50 border-amber-100 text-amber-600' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
+                      <div className={`p-4 rounded-2xl border flex items-center justify-between transition-all duration-500 ${
+                        isExtreme 
+                          ? 'bg-red-50 border-red-150 text-red-600' 
+                          : isGuilty 
+                            ? 'bg-amber-50 border-amber-150 text-amber-600' 
+                            : 'bg-emerald-50 border-emerald-150 text-emerald-600'
+                      }`}>
                         <div className="flex items-center space-x-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg ${isExtreme ? 'bg-red-500 text-white' : isGuilty ? 'bg-amber-500 text-white' : 'bg-emerald-500 text-white'}`}>{isExtreme ? '🚫' : isGuilty ? '⌛' : '✅'}</div>
-                          <div><p className="text-[10px] font-black uppercase tracking-widest leading-none">Majority Verdict</p><p className="text-xs font-black mt-1">{isExtreme ? 'ACCOUNT TERMINATED' : isGuilty ? 'SUSPENDED (1-DAY)' : 'REPUTATION SECURED'}</p></div>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg transition-all ${
+                            isExtreme 
+                              ? 'bg-red-500 text-white' 
+                              : isGuilty 
+                                ? 'bg-amber-500 text-white' 
+                                : 'bg-emerald-500 text-white'
+                          }`}>{isExtreme ? '🚫' : isGuilty ? '⌛' : '✅'}</div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest leading-none">Majority Verdict</p>
+                            <p className="text-xs font-black mt-1">
+                              {isExtreme 
+                                ? 'ACCOUNT TERMINATED' 
+                                : isGuilty 
+                                  ? 'SUSPENDED (1-DAY)' 
+                                  : 'REPUTATION SECURED'}
+                            </p>
+                          </div>
                         </div>
-                        {isGuilty && <div className="w-8 h-8 bg-white/50 rounded-full flex items-center justify-center animate-spin-slow">⚖️</div>}
+                        {isGuilty && !isExtreme && <div className="w-8 h-8 bg-white/50 rounded-full flex items-center justify-center animate-spin-slow">⚖️</div>}
                       </div>
 
                       {/* 6. JURY DISCUSSIONS (Real-Time) */}

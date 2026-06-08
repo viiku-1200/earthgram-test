@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { COMMUNITY_GROUPS, REELS_DATA, LOCAL_SPOTS, EXPLORE_CATEGORIES, COUNTRIES } from '../../data/constants';
 import { createUserIcon } from '../maps/ScopeMap';
+import ExploreVideoPlayer from './ExploreVideoPlayer';
 
 // Fix Leaflet marker icon issue in React
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -195,6 +196,8 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
   const [activeTab, setActiveTab] = useState('pulse');
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [activeExploreVideoIndex, setActiveExploreVideoIndex] = useState(null);
+  const [exploreVideoFeed, setExploreVideoFeed] = useState([]);
   
   // Real-Time Location State
   const [userPos, setUserPos] = useState(() => {
@@ -265,6 +268,13 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
     { type: 'spot', data: LOCAL_SPOTS[2] },
   ];
 
+  const openExploreVideo = (clickedItem) => {
+    const videoItems = FEED_DATA.filter(item => item.type === 'reel' || item.type === 'userReel');
+    const index = videoItems.findIndex(item => item.data === clickedItem.data);
+    setExploreVideoFeed(videoItems);
+    setActiveExploreVideoIndex(index >= 0 ? index : 0);
+  };
+
   const handleScroll = (e) => {
     const currentScrollY = e.currentTarget.scrollTop;
     if (currentScrollY > lastScrollY && currentScrollY > 50) {
@@ -307,11 +317,12 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
   };
 
   return (
-  <div 
-    onScroll={handleScroll}
-    className={`h-full flex flex-col pt-0 pb-20 overflow-y-auto hide-scrollbar transition-all duration-500 ${
-    isDarkMode ? 'bg-[#0f172a] text-white' : 'bg-gradient-to-b from-gray-50 to-gray-100 text-gray-900'
-  }`}>
+  <div className="h-full relative overflow-hidden">
+    <div 
+      onScroll={handleScroll}
+      className={`h-full flex flex-col pt-0 pb-20 overflow-y-auto hide-scrollbar transition-all duration-500 ${
+      isDarkMode ? 'bg-[#0f172a] text-white' : 'bg-gradient-to-b from-gray-50 to-gray-100 text-gray-900'
+    }`}>
     {/* Smooth Animated Header & Tabs */}
     <div className={`sticky top-0 z-20 px-5 pt-10 pb-3 backdrop-blur-xl transition-all duration-300 ease-in-out ${
       isDarkMode ? 'bg-[#0f172a]/80 border-b border-slate-800' : 'bg-white/80 border-b border-gray-100 shadow-sm'
@@ -475,7 +486,11 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
 
             {/* Active Providers */}
             {REELS_DATA.slice(0, 5).map((reel, i) => (
-              <div key={i} className="flex flex-col items-center flex-shrink-0 animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }} onClick={() => navigate('/reels')}>
+              <div key={i} className="flex flex-col items-center flex-shrink-0 animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }} onClick={() => {
+                const videoItems = REELS_DATA.slice(0, 5).map(r => ({ type: 'reel', data: r }));
+                setExploreVideoFeed(videoItems);
+                setActiveExploreVideoIndex(i);
+              }}>
                 <div className="relative">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 p-[2px] shadow-sm cursor-pointer active:scale-95 transition-transform">
                     <div className={`w-full h-full rounded-full border-2 flex items-center justify-center overflow-hidden ${isDarkMode ? 'border-slate-900 bg-slate-800' : 'border-white bg-gray-100'}`}>
@@ -566,7 +581,7 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
 
               {/* USER REEL CARD — real-time from userReels */}
               {item.type === 'userReel' && (
-                <div className="relative overflow-hidden cursor-pointer" onClick={() => navigate('/reels')}>
+                <div className="relative overflow-hidden cursor-pointer" onClick={() => openExploreVideo(item)}>
                   <div className="relative h-52 w-full">
                     {item.data.mediaType === 'video'
                       ? <video src={item.data.mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
@@ -665,7 +680,7 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
                 </div>
               )}
               {item.type === 'reel' && (
-                <div className="relative h-72 w-full group cursor-pointer" onClick={() => navigate('/reels')}>
+                <div className="relative h-72 w-full group cursor-pointer" onClick={() => openExploreVideo(item)}>
                   <video src={item.data.videoUrl} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
                   <div className="absolute bottom-4 left-4">
@@ -679,10 +694,11 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
         </div>
       </>
     )}
+    </div> {/* End of scrollable container */}
 
     {/* AD MODAL */}
     {activeMiningAd && (
-      <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-6 animate-fade-in">
+      <div className="absolute inset-0 z-[100] bg-black/95 flex items-center justify-center p-6 animate-fade-in">
          <div className={`relative w-full max-w-sm rounded-[2rem] p-8 text-center overflow-hidden border ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-100'}`}>
             <div className={`w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-5xl mb-8 shadow-lg bg-gradient-to-br ${activeMiningAd.gradient}`}>{activeMiningAd.icon}</div>
             <h2 className={`text-2xl font-black mb-2 tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{activeMiningAd.brand}</h2>
@@ -703,6 +719,18 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
             )}
          </div>
       </div>
+    )}
+
+    {/* EXPLORE VIDEO PLAYER OVERLAY */}
+    {activeExploreVideoIndex !== null && (
+      <ExploreVideoPlayer
+        feed={exploreVideoFeed}
+        initialIndex={activeExploreVideoIndex}
+        onClose={() => setActiveExploreVideoIndex(null)}
+        isDarkMode={isDarkMode}
+        adCoins={adCoins}
+        setAdCoins={setAdCoins}
+      />
     )}
   </div>
   );
