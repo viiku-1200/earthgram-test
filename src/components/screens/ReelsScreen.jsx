@@ -97,7 +97,7 @@ const ReelVideo = ({ src, isActive }) => {
   );
 };
 
-const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], activeScope = 'local', setActiveScope, selectedCountry = 'in' }) => {
+const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], activeScope = 'local', setActiveScope, selectedCountry = 'in', setIsScrolling }) => {
   const [activeLang, setActiveLang] = useState('All');
   const [liked, setLiked] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -108,6 +108,7 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
   const [showBonus, setShowBonus] = useState(false);
   const scrollRef = useRef(null);
   const timerRef = useRef(null);
+  const scrollTimeoutRef = useRef(null);
 
   // Dynamic country data for filtering
   const selectedCountryData = COUNTRIES.find(c => c.id === selectedCountry);
@@ -234,6 +235,14 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
   }, [currentIndex, currentItem, completedAds, onAdComplete]);
 
   const handleScroll = () => {
+    if (setIsScrolling) {
+      setIsScrolling(true);
+      clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsScrolling(false);
+      }, 300); // Wait 300ms after scrolling stops to show nav again
+    }
+
     if (!scrollRef.current) return;
     const idx = Math.round(scrollRef.current.scrollTop / scrollRef.current.clientHeight);
     if (idx !== currentIndex) setCurrentIndex(idx);
@@ -329,7 +338,7 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
                 </div>
 
                 {/* Side actions */}
-                <div className="absolute right-3 bottom-[220px] flex flex-col items-center space-y-4 z-20">
+                <div className="absolute right-3 bottom-48 flex flex-col items-center space-y-4 z-20">
                   <button onClick={() => setLiked(p => ({ ...p, [item.data.id]: !p[item.data.id] }))} className="flex flex-col items-center">
                     <div className={`w-11 h-11 rounded-full flex items-center justify-center mb-1 transition-all ${liked[item.data.id] ? 'bg-red-500 scale-110' : 'bg-white/15 backdrop-blur-sm'}`}>
                       <svg className="w-5 h-5 text-white" fill={liked[item.data.id] ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -357,7 +366,7 @@ const ReelsScreen = ({ isDarkMode, adCoins = 0, setAdCoins, userReels = [], acti
                 </div>
 
                 {/* Bottom creator info */}
-                <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-[100px] bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-20">
+                <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-8 bg-gradient-to-t from-black/90 via-black/40 to-transparent pt-20">
                   <div className="flex items-center space-x-3 mb-2">
                     <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-black border-2 border-white shadow-lg">
                       {(() => {

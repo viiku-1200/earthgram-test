@@ -45,6 +45,7 @@ const AppContent = () => {
   });
   const [showSplash, setShowSplash] = useState(true);
   const [incomingCall, setIncomingCall] = useState(null);
+  const [isReelsScrolling, setIsReelsScrolling] = useState(false);
   const navigate = useNavigate();
 
   // AUTH STATE
@@ -407,7 +408,7 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<HomeScreen isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} qualityPosts={qualityPosts} customProviders={customProviders} adCoins={adCoins} setAdCoins={setAdCoins} />} />
           <Route path="/explore" element={<ExploreScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} qualityPosts={qualityPosts} userReels={userReels} activeScope={activeScope} selectedCountry={selectedCountry} customProviders={customProviders} />} />
-          <Route path="/reels" element={<ReelsScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} userReels={userReels} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} />} />
+          <Route path="/reels" element={<ReelsScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} userReels={userReels} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setIsScrolling={setIsReelsScrolling} />} />
           <Route path="/community" element={<CommunityScreen isDarkMode={isDarkMode} qualityPosts={qualityPosts} setQualityPosts={setQualityPosts} activeScope={activeScope} selectedCountry={selectedCountry} />} />
 
           <Route path="/auth" element={<AuthScreen isDarkMode={isDarkMode} onLoginSuccess={handleLoginSuccess} />} />
@@ -488,7 +489,9 @@ const AppContent = () => {
       </div>
 
       {!hideOverlays && <QuickAccessBar isDarkMode={isDarkMode} />}
-      {!hideOverlays && <BottomNav isDarkMode={isDarkMode} />}
+      <div className={`fixed bottom-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${isReelsScrolling ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}>
+        {!hideOverlays && <BottomNav isDarkMode={isDarkMode} />}
+      </div>
 
       {/* Global Incoming Call Overlay */}
       {incomingCall && (
