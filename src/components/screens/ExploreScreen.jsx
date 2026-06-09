@@ -359,7 +359,7 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
   });
 
   // Dynamic real-time feed: user reels + static base content
-  const FEED_DATA = [
+  const BASE_FEED_DATA = [
     // User-uploaded reels (Filtered)
     ...filteredUserReels.map(reel => ({ type: 'userReel', data: reel })),
     // Static base content
@@ -370,6 +370,26 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
     { type: 'reel', data: REELS_DATA[1] },
     { type: 'spot', data: LOCAL_SPOTS[2] },
   ];
+
+  const FEED_DATA = [];
+  let widgetIndex = 0;
+  const WIDGETS = ['widget_challenges', 'widget_happening_near_you'];
+
+  BASE_FEED_DATA.forEach((item) => {
+    FEED_DATA.push(item);
+    // Inject a widget after every video/ad if we have widgets left
+    if (item.type === 'reel' || item.type === 'userReel' || item.type === 'ad') {
+       if (widgetIndex < WIDGETS.length) {
+          FEED_DATA.push({ type: WIDGETS[widgetIndex] });
+          widgetIndex++;
+       }
+    }
+  });
+  // If no videos triggered the widgets, push remaining widgets at the end
+  while (widgetIndex < WIDGETS.length) {
+     FEED_DATA.push({ type: WIDGETS[widgetIndex] });
+     widgetIndex++;
+  }
 
   const openExploreVideo = (clickedItem) => {
     const videoItems = FEED_DATA.filter(item => item.type === 'reel' || item.type === 'userReel');
@@ -515,8 +535,8 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
       </div>
     ) : (
       <>
-        {/* Search (Previous) */}
-        <div className="px-5 mt-4 mb-4">
+        {/* Top Sticky Bar: Search + Live Stories */}
+        <div className="px-5 pt-4 pb-2 z-10 sticky top-0 bg-inherit">
           <div 
             onClick={() => navigate('/explore-search')}
             className={`flex items-center rounded-2xl px-4 py-3 cursor-pointer active:scale-[0.98] transition-transform ${
@@ -529,7 +549,7 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
           </div>
         </div>
 
-        {/* Explore Categories (Interests) - Restored and moved up */}
+        {/* Discover Interests (Moved right below Search) */}
         <div className="px-5 mt-2 mb-2">
           <h2 className={`text-sm font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Discover Interests</h2>
         </div>
@@ -538,17 +558,13 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
             <div key={cat.id} className={`flex flex-col items-center justify-center p-4 rounded-[2rem] shadow-premium-sm border card-lift animate-fade-in ${
               isDarkMode ? 'bg-slate-900/40 border-slate-800' : 'bg-white border-gray-100/50'
             }`} style={{ animationDelay: `${i * 0.05}s` }}>
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl mb-2 bg-gradient-to-br ${cat.gradient} shadow-lg text-white`}>
-                {cat.icon}
-              </div>
-              <span className={`text-[9px] font-black uppercase tracking-tighter text-center leading-none ${isDarkMode ? 'text-slate-300' : 'text-slate-800'}`}>
-                {cat.name}
-              </span>
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl mb-2 bg-gradient-to-br ${cat.gradient} shadow-lg text-white`}>{cat.icon}</div>
+              <span className={`text-[9px] font-black uppercase tracking-tighter text-center leading-none ${isDarkMode ? 'text-slate-300' : 'text-slate-800'}`}>{cat.name}</span>
             </div>
           ))}
         </div>
 
-        {/* Buddies Nearby (Hobby Matcher) */}
+        {/* Buddies Nearby (Moved right below Discover Interests) */}
         <div className="px-5 mb-6">
           <div className="flex justify-between items-center mb-2">
             <h2 className={`text-sm font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Buddies Nearby</h2>
@@ -559,8 +575,6 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
               <span>Radar Active</span>
             </span>
           </div>
-
-          {/* Hobby filter tags */}
           <div className="flex space-x-2 overflow-x-auto hide-scrollbar mb-3">
             {['All', 'Sports', 'Music', 'Fitness', 'Tech'].map(hobby => (
               <button
@@ -578,19 +592,9 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
               </button>
             ))}
           </div>
-
-          {/* Buddies List */}
           <div className="flex space-x-4 overflow-x-auto hide-scrollbar pb-2">
             {BUDDY_DATA.filter(b => selectedHobby === 'All' || b.hobby === selectedHobby).map((buddy, i) => (
-              <div 
-                key={i} 
-                className="flex flex-col items-center animate-fade-in cursor-pointer active:scale-95 transition-transform flex-shrink-0" 
-                style={{ animationDelay: `${i * 0.06}s` }}
-                onClick={() => {
-                  alert(`Opening Direct Message with ${buddy.name}...`);
-                  navigate('/messages');
-                }}
-              >
+              <div key={i} className="flex flex-col items-center animate-fade-in cursor-pointer active:scale-95 transition-transform flex-shrink-0" onClick={() => { alert(`Opening Direct Message with ${buddy.name}...`); navigate('/messages'); }}>
                 <div className="relative">
                   <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${buddy.gradient} flex items-center justify-center text-white text-sm font-bold shadow-premium ${buddy.online ? 'ring-2 ring-green-400 ring-offset-2' : ''}`}>
                     {buddy.initials}
@@ -607,110 +611,9 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
           </div>
         </div>
 
-        {/* Neighborhood Polls Section */}
-        <div className="px-5 mb-6">
-          <h2 className={`text-sm font-extrabold mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Local Opinion Polls</h2>
-          <div className="space-y-3">
-            {localPolls.map(poll => {
-              const hasVoted = poll.userVoted !== null;
-              return (
-                <div key={poll.id} className={`p-4 rounded-3xl border shadow-sm ${
-                  isDarkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-gray-100'
-                }`}>
-                  <p className={`text-xs font-bold mb-3 ${isDarkMode ? 'text-slate-200' : 'text-gray-800'}`}>{poll.question}</p>
-                  <div className="space-y-2">
-                    {poll.options.map((opt, idx) => {
-                      const percentage = poll.totalVotes > 0 ? Math.round((opt.votes / poll.totalVotes) * 100) : 0;
-                      const isOptionVoted = poll.userVoted === idx;
-                      return (
-                        <button
-                          key={idx}
-                          disabled={hasVoted}
-                          onClick={() => handleVotePoll(poll.id, idx)}
-                          className={`w-full relative h-10 rounded-xl overflow-hidden border text-left transition-all ${
-                            hasVoted 
-                              ? isOptionVoted 
-                                ? 'border-indigo-400 bg-indigo-50/50 text-indigo-700'
-                                : 'border-gray-100 bg-gray-50/30'
-                              : isDarkMode 
-                                ? 'border-slate-800 bg-slate-800/50 hover:bg-slate-800' 
-                                : 'border-gray-100 bg-gray-50 hover:bg-gray-100/60'
-                          }`}
-                        >
-                          {/* Progress bar fill */}
-                          {hasVoted && (
-                            <div 
-                              className="absolute top-0 left-0 bottom-0 bg-indigo-500/10 transition-all duration-700" 
-                              style={{ width: `${percentage}%` }}
-                            ></div>
-                          )}
-                          <div className="absolute inset-0 flex items-center justify-between px-3 text-[10px] font-black uppercase tracking-wider">
-                            <span className={isOptionVoted ? 'text-indigo-600 font-extrabold' : isDarkMode ? 'text-slate-300' : 'text-slate-700'}>
-                              {opt.label} {isOptionVoted && '✓'}
-                            </span>
-                            {hasVoted && (
-                              <span className="text-indigo-600 font-extrabold">{percentage}% ({opt.votes})</span>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="flex justify-between items-center mt-3 text-[8px] font-black uppercase tracking-widest text-slate-400">
-                    <span>{poll.totalVotes} Votes Cast</span>
-                    {hasVoted && <span className="text-indigo-500 font-bold animate-fade-in">Vote Recorded!</span>}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Local Events & Meetups Section */}
-        <div className="px-5 mb-6">
-          <div className="flex justify-between items-center mb-3">
-            <h2 className={`text-sm font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Local Meetups & Events</h2>
-            <span className="text-[9px] font-black uppercase tracking-widest text-indigo-500">Active Board</span>
-          </div>
-          <div className="space-y-3">
-            {localEvents.map(ev => (
-              <div key={ev.id} className={`p-4 rounded-3xl border shadow-sm ${
-                isDarkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-gray-100'
-              }`}>
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className={`text-xs font-black uppercase tracking-wide ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{ev.title}</h3>
-                    <p className="text-[9px] text-indigo-500 font-bold mt-0.5">{ev.time} · {ev.location}</p>
-                  </div>
-                  <button
-                    onClick={() => handleToggleRSVP(ev.id)}
-                    className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
-                      ev.userJoined
-                        ? 'bg-emerald-500 text-white shadow-md'
-                        : 'bg-indigo-600 text-white shadow-md active:scale-95'
-                    }`}
-                  >
-                    {ev.userJoined ? '✓ Joined' : 'RSVP'}
-                  </button>
-                </div>
-                <p className={`text-[10px] font-medium leading-relaxed mb-3 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{ev.desc}</p>
-                <div className="flex items-center space-x-2 pt-2 border-t border-slate-100/50">
-                  <div className="flex -space-x-1.5">
-                    {[1, 2, 3].map(n => (
-                      <div key={n} className="w-5 h-5 rounded-full bg-slate-200 border border-white flex items-center justify-center text-[7px] font-bold">👤</div>
-                    ))}
-                  </div>
-                  <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">+{ev.attendees - 3} Neighbors attending</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Live Stories / Reels Bar */}
-        <div className="mt-4 px-5">
+        <div className="mt-2 px-5 mb-4">
           <div className="flex space-x-3 overflow-x-auto hide-scrollbar pb-2 pt-1">
-            {/* Create Story */}
             <div className="flex flex-col items-center flex-shrink-0" onClick={() => navigate('/upload-reel')}>
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 p-[2px] shadow-sm active:scale-95 transition-transform">
                 <div className={`w-full h-full rounded-full border-2 border-transparent flex items-center justify-center text-white text-2xl font-bold ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}>
@@ -720,7 +623,6 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
               <span className={`text-[10px] font-bold mt-1.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-600'}`}>Go Live</span>
             </div>
 
-            {/* Active Providers */}
             {REELS_DATA.slice(0, 5).map((reel, i) => (
               <div key={i} className="flex flex-col items-center flex-shrink-0 animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }} onClick={() => {
                 const videoItems = REELS_DATA.slice(0, 5).map(r => ({ type: 'reel', data: r }));
@@ -741,33 +643,8 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
           </div>
         </div>
 
-        {/* Nearby Spots (What's happening near you) */}
-        <div className="px-5 mt-6 mb-3 flex items-center justify-between">
-          <h2 className={`text-sm font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Happening Near You</h2>
-          <button className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">See All</button>
-        </div>
-        <div className="px-5 space-y-3">
-          {LOCAL_SPOTS.slice(0, 3).map((spot, i) => (
-            <div key={spot.id} className={`rounded-2xl border overflow-hidden shadow-premium flex animate-slide-up ${
-              isDarkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-gray-100/50'
-            }`} style={{ animationDelay: `${i * 0.1}s` }}>
-              <div className={`w-20 bg-gradient-to-br ${SPOT_GRADIENTS[spot.type] || 'from-gray-400 to-gray-600'} flex items-center justify-center text-2xl flex-shrink-0`}>
-                {SPOT_IMAGES[spot.type] || '📍'}
-              </div>
-              <div className="flex-1 p-3">
-                <div className="flex justify-between items-start">
-                  <span className="text-[7px] font-black uppercase tracking-widest text-gray-400">{spot.type}</span>
-                  <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-gray-100 text-gray-500'}`}>{spot.distance}</span>
-                </div>
-                <h3 className={`font-bold text-xs mt-0.5 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{spot.title}</h3>
-                <p className={`text-[9px] mt-1 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{spot.status} • {spot.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* The Feed (New) */}
-        <div className="px-5 flex items-center justify-between mt-8 mb-2">
+        {/* The Feed (Integrated with Widgets) */}
+        <div className="px-5 flex items-center justify-between mb-3">
           <h2 className={`text-sm font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Neighborhood Pulse</h2>
           <span className="text-[10px] font-bold text-indigo-500 flex items-center space-x-1">
             <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping"></span>
@@ -775,121 +652,275 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
           </span>
         </div>
         <div className="px-3 space-y-4">
-          {FEED_DATA.map((item, index) => (
-            <div key={index} className={`rounded-3xl border overflow-hidden shadow-sm animate-slide-up ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100'}`} style={{ animationDelay: `${index * 0.1}s` }}>
-              
-              {/* USER REEL CARD — real-time from userReels */}
-              {item.type === 'userReel' && (
-                <div className="relative overflow-hidden cursor-pointer" onClick={() => openExploreVideo(item)}>
-                  <div className="relative h-52 w-full">
-                    {item.data.mediaType === 'video'
-                      ? <video src={item.data.mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
-                      : <img src={item.data.mediaUrl} alt="reel" className="w-full h-full object-cover" />
-                    }
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                    <div className="absolute top-3 left-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest shadow-lg">✨ Your Post</div>
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <p className="text-white text-[10px] font-black uppercase tracking-widest">{item.data.category}</p>
-                      <p className="text-white/80 text-xs mt-0.5 line-clamp-2">{item.data.caption}</p>
-                    </div>
+          {FEED_DATA.map((item, index) => {
+            // Widget: Happening Near You
+            if (item.type === 'widget_happening_near_you') {
+              return (
+                <div key={`widget-near-${index}`} className="my-4 pt-2 pb-2">
+                  <div className="px-2 mb-3 flex items-center justify-between">
+                    <h2 className={`text-sm font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Happening Near You</h2>
+                    <button className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">See All</button>
+                  </div>
+                  <div className="flex space-x-4 overflow-x-auto hide-scrollbar pb-4 px-2">
+                    {/* Active Local Meetups listed first */}
+                    {localEvents.map(ev => {
+                      const eventIcon = ev.id === 'event-1' ? '⚽' : ev.id === 'event-2' ? '🧘‍♀️' : '💻';
+                      const eventGradient = ev.id === 'event-1' ? 'from-orange-500 to-rose-500' : ev.id === 'event-2' ? 'from-teal-400 to-emerald-600' : 'from-indigo-500 to-purple-600';
+                      
+                      return (
+                        <div key={ev.id} className={`h-[240px] w-[200px] rounded-[2rem] border overflow-hidden shadow-premium flex flex-col flex-shrink-0 transition-all duration-300 hover:shadow-premium-md ${
+                          isDarkMode ? 'bg-slate-900/60 border-slate-800/80' : 'bg-white border-gray-100'
+                        }`}>
+                          {/* Top Graphic Panel */}
+                          <div className={`h-24 bg-gradient-to-br ${eventGradient} flex items-center justify-center text-4xl relative text-white shadow-inner flex-shrink-0`}>
+                            {eventIcon}
+                            <span className="absolute top-3 left-3 bg-rose-500 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse shadow-md">Live Event</span>
+                            <div className="absolute top-3 right-3 w-2 h-2 bg-white rounded-full animate-ping"></div>
+                            <div className="absolute top-3 right-3 w-2 h-2 bg-white rounded-full"></div>
+                          </div>
+
+                          {/* Bottom Details Panel */}
+                          <div className="p-3 flex flex-col justify-between flex-1">
+                            <div>
+                              <h3 className={`font-black text-[11px] leading-snug line-clamp-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{ev.title}</h3>
+                              <p className={`text-[8px] font-black uppercase tracking-wider mt-1 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                                📅 {ev.time}
+                              </p>
+                              <p className={`text-[9px] mt-1.5 line-clamp-2 leading-relaxed font-medium ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{ev.desc}</p>
+                            </div>
+
+                            <div className="mt-2 pt-2 border-t border-slate-100/50 flex items-center justify-between">
+                              <span className={`text-[8px] font-black uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                                +{ev.attendees} going
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleRSVP(ev.id);
+                                }}
+                                className={`px-2.5 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                                  ev.userJoined
+                                    ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
+                                    : isDarkMode
+                                      ? 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
+                                      : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20'
+                                }`}
+                              >
+                                {ev.userJoined ? 'Joined' : 'RSVP'}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* Bookable Spots / Spaces listed second */}
+                    {LOCAL_SPOTS.slice(0, 3).map((spot) => (
+                      <div key={spot.id} className={`h-[240px] w-[200px] rounded-[2rem] border overflow-hidden shadow-premium flex flex-col flex-shrink-0 transition-all duration-300 hover:shadow-premium-md ${
+                        isDarkMode ? 'bg-slate-900/60 border-slate-800/80' : 'bg-white border-gray-100'
+                      }`}>
+                        {/* Top Graphic Panel */}
+                        <div className={`h-24 bg-gradient-to-br ${SPOT_GRADIENTS[spot.type] || 'from-gray-400 to-gray-600'} flex items-center justify-center text-4xl relative text-white shadow-inner flex-shrink-0`}>
+                          {SPOT_IMAGES[spot.type] || '📍'}
+                          <span className="absolute top-3 left-3 bg-slate-700 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-md">Space</span>
+                          <span className="absolute top-3 right-3 bg-black/40 text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">{spot.distance}</span>
+                        </div>
+
+                        {/* Bottom Details Panel */}
+                        <div className="p-3 flex flex-col justify-between flex-1">
+                          <div>
+                            <h3 className={`font-black text-[11px] leading-snug line-clamp-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{spot.title}</h3>
+                            <p className={`text-[8px] font-black uppercase tracking-wider mt-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                              🟢 {spot.status}
+                            </p>
+                            <p className={`text-[9px] mt-1.5 line-clamp-2 leading-relaxed font-medium ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{spot.desc}</p>
+                          </div>
+
+                          <div className="mt-2 pt-2 border-t border-slate-100/50 flex items-center justify-between">
+                            <span className={`text-[8px] font-black uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>
+                              {spot.type}
+                            </span>
+                            <button 
+                              onClick={() => navigate('/book')}
+                              className="px-2.5 py-1.5 rounded-lg text-[8px] font-black bg-slate-900 hover:bg-slate-850 text-white uppercase tracking-widest active:scale-95 transition-all shadow-md"
+                            >
+                              Book
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              )}
+              );
+            }
 
-              {/* AD FEATURE */}
-              {item.type === 'ad' && (
-                <div onClick={() => startMining(item.data)} className={`p-4 relative cursor-pointer active:scale-[0.98] transition-transform ${isDarkMode ? 'bg-slate-800/50' : 'bg-indigo-50/50'}`}>
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner bg-gradient-to-br ${item.data.gradient}`}>{item.data.icon}</div>
-                    <div>
-                      <h3 className={`text-xs font-black uppercase tracking-wider ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>Sponsored Ad</h3>
-                      <p className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{item.data.brand}</p>
+            // Widget: Trending Challenges
+            if (item.type === 'widget_challenges') {
+              return (
+                <div key={`widget-challenges-${index}`} className="my-6 pt-2 pb-4">
+                  <div className="px-5 flex justify-between items-center mb-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-500 to-orange-400 flex items-center justify-center shadow-lg animate-bounce-slow">
+                        <span className="text-white text-xs">🔥</span>
+                      </div>
+                      <h2 className={`text-sm font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Trending Nearby</h2>
                     </div>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-pink-500">View All</span>
                   </div>
-                  <h4 className={`text-sm font-black mb-2 leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.data.tagline}</h4>
-                  <button className="w-full bg-black text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest shadow-lg active:scale-[0.98] transition-transform">
-                    Watch & Earn +0.15 Coins
-                  </button>
-                </div>
-              )}
-
-              {/* Pulse Feed Content (Same as before) */}
-              {item.type === 'alert' && (
-                <div className="p-4 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-bl-full"></div>
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-xl shadow-inner">⚖️</div>
-                    <div>
-                      <h3 className="text-xs font-black text-red-500 uppercase tracking-wider">Community Vote</h3>
-                      <p className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{item.data.name} • 3.2k members</p>
-                    </div>
-                  </div>
-                  <h4 className={`text-sm font-black mb-2 leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.data.title}</h4>
-                  <p className={`text-xs leading-relaxed mb-4 ${isDarkMode ? 'text-slate-300' : 'text-gray-600'}`}>{item.data.desc}</p>
                   
-                  {/* Poll UI */}
-                  <div className="space-y-2 mb-3">
-                    <div className="relative h-10 rounded-xl overflow-hidden border border-red-200 bg-red-50 cursor-pointer active:scale-[0.98] transition-transform">
-                      <div className="absolute top-0 left-0 bottom-0 bg-red-200 w-[78%] transition-all"></div>
-                      <div className="absolute inset-0 flex items-center justify-between px-4 text-xs font-black text-red-900">
-                        <span>Yes, Suspend</span>
-                        <span>78%</span>
+                  <div className="flex space-x-4 overflow-x-auto hide-scrollbar px-5 pb-4">
+                    {[
+                      { tag: '#Sector4StreetFood', videos: '1.2k', gradient: 'from-orange-500 to-red-500', icon: '🍜', users: ['bg-blue-400', 'bg-emerald-400', 'bg-purple-400'] },
+                      { tag: '#MorningRunGC', videos: '850', gradient: 'from-emerald-400 to-teal-600', icon: '🏃‍♂️', users: ['bg-pink-400', 'bg-orange-400', 'bg-yellow-400'] },
+                      { tag: '#LocalTalent', videos: '3.4k', gradient: 'from-indigo-500 to-purple-600', icon: '🎸', users: ['bg-red-400', 'bg-blue-400', 'bg-green-400'] }
+                    ].map((challenge, idx) => (
+                      <div key={idx} className={`relative w-48 h-64 rounded-[2rem] flex-shrink-0 overflow-hidden shadow-premium group cursor-pointer ${
+                        isDarkMode ? 'border border-slate-700/50' : ''
+                      }`}>
+                        <div className={`absolute inset-0 bg-gradient-to-b ${challenge.gradient} opacity-90`}></div>
+                        
+                        <div className="absolute top-4 left-4 w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shadow-inner border border-white/20">
+                          {challenge.icon}
+                        </div>
+                        
+                        <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md rounded-full px-2.5 py-1 flex items-center space-x-1 border border-white/10">
+                          <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>
+                          <span className="text-white text-[8px] font-black uppercase tracking-widest">{challenge.videos}</span>
+                        </div>
+                        
+                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-12">
+                          <h3 className="text-white font-black text-sm mb-1 line-clamp-1">{challenge.tag}</h3>
+                          
+                          <div className="flex items-center justify-between mt-3">
+                            <div className="flex -space-x-2">
+                              {challenge.users.map((bg, i) => (
+                                <div key={i} className={`w-6 h-6 rounded-full border-2 border-black ${bg} shadow-sm`}></div>
+                              ))}
+                            </div>
+                            <button className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/30 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95">
+                              Join
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+
+            // Standard Feed Item
+            return (
+              <div key={`feed-${index}`} className={`rounded-3xl border overflow-hidden shadow-sm animate-slide-up ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100'}`} style={{ animationDelay: `${index * 0.1}s` }}>
+                {item.type === 'userReel' && (
+                  <div className="relative overflow-hidden cursor-pointer" onClick={() => openExploreVideo(item)}>
+                    <div className="relative h-52 w-full">
+                      {item.data.mediaType === 'video'
+                        ? <video src={item.data.mediaUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+                        : <img src={item.data.mediaUrl} alt="reel" className="w-full h-full object-cover" />
+                      }
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                      <div className="absolute top-3 left-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest shadow-lg">✨ Your Post</div>
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <p className="text-white text-[10px] font-black uppercase tracking-widest">{item.data.category}</p>
+                        <p className="text-white/80 text-xs mt-0.5 line-clamp-2">{item.data.caption}</p>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {item.type === 'vendor' && (
-                <div className="p-4 relative">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xl shadow-inner">{item.data.icon}</div>
-                    <div>
-                      <h3 className="text-xs font-black text-indigo-500 uppercase tracking-wider">Vendor Broadcast</h3>
-                      <p className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{item.data.name} • {item.data.members}</p>
+                {item.type === 'ad' && (
+                  <div onClick={() => startMining(item.data)} className={`p-4 relative cursor-pointer active:scale-[0.98] transition-transform ${isDarkMode ? 'bg-slate-800/50' : 'bg-indigo-50/50'}`}>
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner bg-gradient-to-br ${item.data.gradient}`}>{item.data.icon}</div>
+                      <div>
+                        <h3 className={`text-xs font-black uppercase tracking-wider ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>Sponsored Ad</h3>
+                        <p className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{item.data.brand}</p>
+                      </div>
                     </div>
+                    <h4 className={`text-sm font-black mb-2 leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.data.tagline}</h4>
+                    <button className="w-full bg-black text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest shadow-lg active:scale-[0.98] transition-transform">
+                      Watch & Earn +0.15 Coins
+                    </button>
                   </div>
-                  <h4 className={`text-sm font-black mb-2 leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.data.title}</h4>
-                  <p className={`text-xs leading-relaxed mb-4 ${isDarkMode ? 'text-slate-300' : 'text-gray-600'}`}>{item.data.desc}</p>
-                  <button className="w-full bg-indigo-600 text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-transform">
-                    Claim Deal Now
-                  </button>
-                </div>
-              )}
+                )}
 
-              {item.type === 'spot' && (
-                <div className="flex">
-                  <div className={`w-24 bg-gradient-to-br ${SPOT_GRADIENTS[item.data.type] || 'from-gray-400 to-gray-600'} flex items-center justify-center text-3xl flex-shrink-0`}>
-                    {SPOT_IMAGES[item.data.type] || '📍'}
-                  </div>
-                  <div className="flex-1 p-4">
-                    <div className="flex justify-between items-start">
-                      <span className="text-[8px] font-bold uppercase tracking-wider text-gray-400">{item.data.type}</span>
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-gray-100 text-gray-500'}`}>{item.data.distance}</span>
+                {item.type === 'alert' && (
+                  <div className="p-4 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-bl-full"></div>
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-xl shadow-inner">⚖️</div>
+                      <div>
+                        <h3 className="text-xs font-black text-red-500 uppercase tracking-wider">Community Vote</h3>
+                        <p className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{item.data.name} • 3.2k members</p>
+                      </div>
                     </div>
-                    <h3 className={`font-bold text-sm mt-0.5 leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.data.title}</h3>
-                    <p className={`text-[10px] mt-1 mb-3 leading-snug ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{item.data.desc}</p>
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${item.data.status === 'Open Now' || item.data.status === 'Available' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
-                        {item.data.status}
-                      </span>
-                      <button className="text-indigo-600 text-[10px] font-black uppercase tracking-widest">Visit →</button>
+                    <h4 className={`text-sm font-black mb-2 leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.data.title}</h4>
+                    <p className={`text-xs leading-relaxed mb-4 ${isDarkMode ? 'text-slate-300' : 'text-gray-600'}`}>{item.data.desc}</p>
+                    <div className="space-y-2 mb-3">
+                      <div className="relative h-10 rounded-xl overflow-hidden border border-red-200 bg-red-50 cursor-pointer active:scale-[0.98] transition-transform">
+                        <div className="absolute top-0 left-0 bottom-0 bg-red-200 w-[78%] transition-all"></div>
+                        <div className="absolute inset-0 flex items-center justify-between px-4 text-xs font-black text-red-900">
+                          <span>Yes, Suspend</span>
+                          <span>78%</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-              {item.type === 'reel' && (
-                <div className="relative h-72 w-full group cursor-pointer" onClick={() => openExploreVideo(item)}>
-                  <video src={item.data.videoUrl} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                  <div className="absolute bottom-4 left-4">
-                    <h3 className="text-white text-sm font-black">{item.data.creator}</h3>
-                    <p className="text-white/80 text-xs mt-1">{item.data.desc}</p>
+                )}
+
+                {item.type === 'vendor' && (
+                  <div className="p-4 relative">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xl shadow-inner">{item.data.icon}</div>
+                      <div>
+                        <h3 className="text-xs font-black text-indigo-500 uppercase tracking-wider">Vendor Broadcast</h3>
+                        <p className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{item.data.name} • {item.data.members}</p>
+                      </div>
+                    </div>
+                    <h4 className={`text-sm font-black mb-2 leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.data.title}</h4>
+                    <p className={`text-xs leading-relaxed mb-4 ${isDarkMode ? 'text-slate-300' : 'text-gray-600'}`}>{item.data.desc}</p>
+                    <button className="w-full bg-indigo-600 text-white text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-transform">
+                      Claim Deal Now
+                    </button>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+
+                {item.type === 'spot' && (
+                  <div className="flex">
+                    <div className={`w-24 bg-gradient-to-br ${SPOT_GRADIENTS[item.data.type] || 'from-gray-400 to-gray-600'} flex items-center justify-center text-3xl flex-shrink-0`}>
+                      {SPOT_IMAGES[item.data.type] || '📍'}
+                    </div>
+                    <div className="flex-1 p-4">
+                      <div className="flex justify-between items-start">
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-gray-400">{item.data.type}</span>
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-gray-100 text-gray-500'}`}>{item.data.distance}</span>
+                      </div>
+                      <h3 className={`font-bold text-sm mt-0.5 leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.data.title}</h3>
+                      <p className={`text-[10px] mt-1 mb-3 leading-snug ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>{item.data.desc}</p>
+                      <div className="flex items-center justify-between">
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${item.data.status === 'Open Now' || item.data.status === 'Available' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
+                          {item.data.status}
+                        </span>
+                        <button className="text-indigo-600 text-[10px] font-black uppercase tracking-widest">Visit →</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {item.type === 'reel' && (
+                  <div className="relative h-72 w-full group cursor-pointer" onClick={() => openExploreVideo(item)}>
+                    <video src={item.data.videoUrl} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                    <div className="absolute bottom-4 left-4">
+                      <h3 className="text-white text-sm font-black">{item.data.creator}</h3>
+                      <p className="text-white/80 text-xs mt-1">{item.data.desc}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </>
     )}
