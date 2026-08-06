@@ -33,15 +33,19 @@ const MENU_ITEMS = [
   ), label: 'Settings', desc: 'Account, notifications', bg: 'bg-gray-100', color: 'text-gray-600', key: 'settings' },
 ];
 
-const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, bizBio, setBizBio, isGeneratingBio, setIsGeneratingBio, isRegistered, companyData, addQualityPost, userCoins, setUserCoins, allianceCoins, setAllianceCoins, userTransactions, setUserTransactions, userPassType, onLogout }) => {
+const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, bizBio, setBizBio, isGeneratingBio, setIsGeneratingBio, isRegistered, companyData, addQualityPost, addUserReel, addLocalEvent, userCoins, setUserCoins, allianceCoins, setAllianceCoins, userTransactions, setUserTransactions, userPassType, onLogout }) => {
   const navigate = useNavigate();
   const [gpsData, setGpsData] = useState(null);
   const [userAddress, setUserAddress] = useState(null);
   const [showBusinessCard, setShowBusinessCard] = useState(false);
+  
   const [showQCForm, setShowQCForm] = useState(false);
   const [qcForm, setQcForm] = useState({ provider: '', category: '', desc: '', beforeImage: null, afterImage: null });
   const beforeInputRef = useRef(null);
   const afterInputRef = useRef(null);
+
+  const [showEventForm, setShowEventForm] = useState(false);
+  const [eventForm, setEventForm] = useState({ title: '', time: '', desc: '' });
 
   // States for Send Loyalty Coins Modal
   const [showSendCoinsModal, setShowSendCoinsModal] = useState(false);
@@ -205,6 +209,13 @@ const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, b
             <span className="text-2xl mb-2">💬</span>
             <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Messages</span>
             <span className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>Customer chats</span>
+          </button>
+
+          <button onClick={() => setShowEventForm(true)} className={`p-4 rounded-2xl shadow-premium border flex flex-col items-start active:scale-[0.98] transition-transform text-left relative overflow-hidden ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-100'}`}>
+            <div className="absolute top-0 right-0 bg-orange-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-bl-lg shadow-sm">NEARBY</div>
+            <span className="text-2xl mb-2">📅</span>
+            <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Create Event</span>
+            <span className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>Host community meetups</span>
           </button>
 
           <button onClick={() => setShowQCForm(true)} className="bg-gradient-to-br from-rose-600 to-red-500 p-4 rounded-2xl shadow-premium-lg flex flex-col items-start active:scale-[0.98] transition-transform text-left relative overflow-hidden text-white border-2 border-white/20">
@@ -470,6 +481,55 @@ const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, b
               className="w-full mt-6 bg-gradient-to-r from-rose-600 to-red-500 text-white py-4 rounded-2xl text-sm font-black uppercase tracking-widest active:scale-95 transition-all shadow-xl"
             >
               Submit Quality Check
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Create Event Modal */}
+      {showEventForm && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end justify-center" onClick={() => setShowEventForm(false)}>
+          <div className={`w-full max-w-[480px] rounded-t-[2.5rem] p-6 pb-10 ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`} onClick={e => e.stopPropagation()}>
+            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6"></div>
+            <h2 className={`text-lg font-black mb-6 flex items-center space-x-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+              <span>📅</span>
+              <span>Create Local Event</span>
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 block">Event Title</label>
+                <input value={eventForm.title} onChange={e => setEventForm(p => ({ ...p, title: e.target.value }))} placeholder="e.g., Tech Meetup & Chai" className={`w-full px-4 py-3 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isDarkMode ? 'bg-slate-800 text-white border-slate-700' : 'bg-slate-50 border border-slate-100'}`} />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 block">Date & Time</label>
+                <input value={eventForm.time} onChange={e => setEventForm(p => ({ ...p, time: e.target.value }))} placeholder="e.g., Saturday, 4:00 PM" className={`w-full px-4 py-3 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 ${isDarkMode ? 'bg-slate-800 text-white border-slate-700' : 'bg-slate-50 border border-slate-100'}`} />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 block">Description</label>
+                <textarea value={eventForm.desc} onChange={e => setEventForm(p => ({ ...p, desc: e.target.value }))} placeholder="What is this event about?" rows="3" className={`w-full px-4 py-3 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none ${isDarkMode ? 'bg-slate-800 text-white border-slate-700' : 'bg-slate-50 border border-slate-100'}`} />
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                if (!eventForm.title.trim() || !eventForm.time.trim()) return;
+                const newEvent = {
+                  id: 'evt_' + Date.now(),
+                  title: eventForm.title,
+                  time: eventForm.time,
+                  attendees: 1,
+                  userJoined: true,
+                  desc: eventForm.desc
+                };
+                addLocalEvent(newEvent);
+                setEventForm({ title: '', time: '', desc: '' });
+                setShowEventForm(false);
+                navigate('/explore');
+              }}
+              className="w-full mt-6 bg-gradient-to-r from-orange-500 to-amber-500 text-white py-4 rounded-2xl text-sm font-black uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-orange-500/10"
+            >
+              Announce to Neighborhood
             </button>
           </div>
         </div>

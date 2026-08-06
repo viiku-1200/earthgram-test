@@ -177,6 +177,54 @@ const AppContent = () => {
     setUserReels(prev => [stampedReel, ...prev]);
   }, []);
 
+  // Local Events - shared real-time state for Explore & Profile
+  const [localEvents, setLocalEvents] = useState(() => {
+    const saved = localStorage.getItem('earthgram_local_events');
+    if (saved) return JSON.parse(saved);
+    return [
+      {
+        id: 'event-1',
+        title: 'Sector 4 Football Match ⚽',
+        time: 'Today, 5:30 PM',
+        location: { neighborhood: 'Sector 4', city: 'Ghaziabad', country: 'India' },
+        attendees: 14,
+        userJoined: false,
+        desc: 'Casual 7v7 friendly match. All skill levels welcome!'
+      },
+      {
+        id: 'event-2',
+        title: 'Yoga in Gaur City Park 🧘‍♀️',
+        time: 'Tomorrow, 6:00 AM',
+        location: { neighborhood: 'GC-2', city: 'Ghaziabad', country: 'India' },
+        attendees: 32,
+        userJoined: false,
+        desc: 'Bring your own mat. Morning meditation & flow.'
+      }
+    ];
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('earthgram_local_events', JSON.stringify(localEvents));
+    } catch (err) {
+      console.warn('Failed to save local events', err);
+    }
+  }, [localEvents]);
+
+  const addLocalEvent = useCallback((newEvent) => {
+    const savedAddr = localStorage.getItem('earthgram_user_address') || 'Sector 4, Ghaziabad, India';
+    const parts = savedAddr.split(',').map(s => s.trim());
+    const stampedEvent = {
+      ...newEvent,
+      location: {
+        neighborhood: parts[0] || 'Sector 4',
+        city: parts[1] || 'Ghaziabad',
+        country: parts[2] || 'India'
+      }
+    };
+    setLocalEvents(prev => [stampedEvent, ...prev]);
+  }, []);
+
   // AD REWARD COINS — shared across Reels, Wallet, Activity
   const [adCoins, setAdCoins] = useState(() => {
     const saved = localStorage.getItem('earthgram_ad_coins');
@@ -407,9 +455,9 @@ const AppContent = () => {
       <div className="h-full w-full">
         <Routes>
           <Route path="/" element={<HomeScreen isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} qualityPosts={qualityPosts} customProviders={customProviders} adCoins={adCoins} setAdCoins={setAdCoins} />} />
-          <Route path="/explore" element={<ExploreScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} qualityPosts={qualityPosts} userReels={userReels} activeScope={activeScope} selectedCountry={selectedCountry} customProviders={customProviders} />} />
+          <Route path="/explore" element={<ExploreScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} qualityPosts={qualityPosts} userReels={userReels} localEvents={localEvents} setLocalEvents={setLocalEvents} activeScope={activeScope} selectedCountry={selectedCountry} customProviders={customProviders} />} />
           <Route path="/reels" element={<ReelsScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} userReels={userReels} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setIsScrolling={setIsReelsScrolling} />} />
-          <Route path="/community" element={<CommunityScreen isDarkMode={isDarkMode} qualityPosts={qualityPosts} setQualityPosts={setQualityPosts} activeScope={activeScope} selectedCountry={selectedCountry} />} />
+          <Route path="/community" element={<CommunityScreen isDarkMode={isDarkMode} qualityPosts={qualityPosts} setQualityPosts={setQualityPosts} activeScope={activeScope} selectedCountry={selectedCountry} conversations={conversations} setConversations={setConversations} />} />
 
           <Route path="/auth" element={<AuthScreen isDarkMode={isDarkMode} onLoginSuccess={handleLoginSuccess} />} />
 
@@ -428,6 +476,8 @@ const AppContent = () => {
                 companyData={companyData}
                 userBookings={userBookings}
                 addQualityPost={addQualityPost}
+                addUserReel={addUserReel}
+                addLocalEvent={addLocalEvent}
                 activeScope={activeScope}
                 selectedCountry={selectedCountry}
                 userCoins={userCoins}

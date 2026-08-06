@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -190,7 +190,7 @@ const MapTabView = ({ isDarkMode, qualityPosts = [], activeScope, userPos, count
   );
 };
 
-const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], userReels = [], activeScope: propActiveScope = 'local', selectedCountry = 'in' }) => {
+const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], userReels = [], localEvents = [], setLocalEvents, activeScope: propActiveScope = 'local', selectedCountry = 'in' }) => {
   const activeScope = propActiveScope === 'global' ? 'national' : propActiveScope;
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('pulse');
@@ -221,6 +221,130 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
 
   // --- NEIGHBORHOOD FEATURES STATES ---
   const [selectedHobby, setSelectedHobby] = useState('All');
+
+  const [buddies, setBuddies] = useState(BUDDY_DATA);
+  const [joinedChallenges, setJoinedChallenges] = useState({});
+
+  const trendingChallenges = useMemo(() => {
+    const tagCounts = {}; // { tag: { count: number, users: Set<string> } }
+    
+    userReels.forEach(reel => {
+      if (reel.tags && Array.isArray(reel.tags)) {
+        reel.tags.forEach(tag => {
+          if (!tagCounts[tag]) {
+            tagCounts[tag] = { count: 0, users: new Set() };
+          }
+          tagCounts[tag].count += 1;
+          // Collect the creator's avatar or username if avatar is missing
+          if (reel.avatar) {
+             tagCounts[tag].users.add(reel.avatar);
+          } else if (reel.creator) {
+             tagCounts[tag].users.add(reel.creator[0].toUpperCase());
+          }
+        });
+      }
+    });
+
+    const sortedTags = Object.keys(tagCounts).sort((a, b) => tagCounts[b].count - tagCounts[a].count);
+    
+    const computedChallenges = sortedTags.map((tag, idx) => {
+      const gradients = [
+        'from-orange-500 to-red-500',
+        'from-emerald-400 to-teal-600',
+        'from-indigo-500 to-purple-600',
+        'from-pink-500 to-rose-500',
+      ];
+      const icons = ['🔥', '✨', '🚀', '🌟', '💥'];
+      
+      return {
+        id: `computed_${tag}`,
+        tag: tag,
+        videos: tagCounts[tag].count,
+        gradient: gradients[idx % gradients.length],
+        icon: icons[idx % icons.length],
+        // If we don't have enough users, pad with generic color circles just for UI consistency
+        users: Array.from(tagCounts[tag].users),
+        joined: !!joinedChallenges[`computed_${tag}`]
+      };
+    });
+
+    // Default fallback challenges
+    const fallbackChallenges = [
+      { id: 'c1', tag: '#Sector4StreetFood', videos: 1200, gradient: 'from-orange-500 to-red-500', icon: '🍜', users: ['bg-blue-400', 'bg-emerald-400', 'bg-purple-400'], joined: !!joinedChallenges['c1'] },
+      { id: 'c2', tag: '#MorningRunGC', videos: 850, gradient: 'from-emerald-400 to-teal-600', icon: '🏃‍♂️', users: ['bg-pink-400', 'bg-orange-400', 'bg-yellow-400'], joined: !!joinedChallenges['c2'] },
+      { id: 'c3', tag: '#LocalTalent', videos: 3400, gradient: 'from-indigo-500 to-purple-600', icon: '🎸', users: ['bg-red-400', 'bg-blue-400', 'bg-green-400'], joined: !!joinedChallenges['c3'] }
+    ];
+
+    // Combine computed and fallbacks to ensure we have at least 3
+    const finalChallenges = [...computedChallenges];
+    let fallbackIndex = 0;
+    while (finalChallenges.length < 3 && fallbackIndex < fallbackChallenges.length) {
+      const fb = fallbackChallenges[fallbackIndex];
+      if (!finalChallenges.find(c => c.tag === fb.tag)) {
+        finalChallenges.push(fb);
+      }
+      fallbackIndex++;
+    }
+
+    return finalChallenges.slice(0, 3);
+  }, [userReels, joinedChallenges]);
+  const [tickerItems, setTickerItems] = useState([]);
+
+  // Setup initial ticker items based on location
+  useEffect(() => {
+    const savedAddr = localStorage.getItem('earthgram_user_address') || '';
+    const areaName = savedAddr ? savedAddr.split(',')[0].trim() : 'Live';
+    const isGC = areaName.toLowerCase().includes('gaur city') || areaName.toLowerCase().includes('gc');
+    
+    setTickerItems([
+      { id: 't1', icon: isGC ? '🏥' : '🌾', label: isGC ? 'Health' : 'Mandi', text: isGC ? 'Dr. Rajesh: Same-day KFT/CBC tests available in GC-2' : 'Wheat ₹2,125 (+1.2%)', color: 'text-emerald-500' },
+      { id: 't2', icon: '🚜', label: 'Service', text: isGC ? `AC Servicing slots open in ${areaName} for tomorrow` : 'Tractor Rental live in Sector 4', color: 'text-indigo-500' },
+      { id: 't3', icon: '🌤️', label: 'Weather', text: `Clear skies over ${areaName} today`, color: 'text-amber-500' },
+      { id: 't4', icon: '🌍', label: isGC ? 'Society' : 'Global', text: isGC ? 'Community Meeting at 7 PM in Club House' : 'New Agency in Dubai', color: 'text-purple-500' }
+    ]);
+  }, []);
+
+  // Simulated Real-Time Engine
+  useEffect(() => {
+    const realTimeEngine = setInterval(() => {
+      // 1. Randomly toggle buddy online status
+      setBuddies(prev => {
+        const next = [...prev];
+        const randomIdx = Math.floor(Math.random() * next.length);
+        next[randomIdx] = { ...next[randomIdx], online: !next[randomIdx].online };
+        return next;
+      });
+
+      // (Trending challenge calculation is now fully real-time based on userReels)
+    }, 3500); // Fire every 3.5 seconds
+
+    const tickerEngine = setInterval(() => {
+      // 3. Occasionally add a new ticker item
+      setTickerItems(prev => {
+        if (prev.length === 0) return prev;
+        const newEvents = [
+          { id: Date.now().toString(), icon: '🚨', label: 'Alert', text: 'Traffic jam at Sector 4 crossing', color: 'text-red-500' },
+          { id: Date.now().toString(), icon: '🏷️', label: 'Deal', text: '50% off at Sharma Cafe for 1hr', color: 'text-orange-500' },
+          { id: Date.now().toString(), icon: '🎉', label: 'Event', text: 'Yoga starting in 10 mins', color: 'text-pink-500' }
+        ];
+        const randomEvent = newEvents[Math.floor(Math.random() * newEvents.length)];
+        return [randomEvent, ...prev.slice(0, 4)];
+      });
+    }, 15000); // Fire every 15 seconds
+
+    return () => {
+      clearInterval(realTimeEngine);
+      clearInterval(tickerEngine);
+    };
+  }, []);
+
+  const handleJoinChallenge = (e, id) => {
+    e.stopPropagation();
+    setJoinedChallenges(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
   
   const [localPolls, setLocalPolls] = useState(() => {
     const saved = localStorage.getItem('earthgram_local_polls');
@@ -249,47 +373,9 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
     ];
   });
 
-  const [localEvents, setLocalEvents] = useState(() => {
-    const saved = localStorage.getItem('earthgram_local_events');
-    if (saved) return JSON.parse(saved);
-    return [
-      {
-        id: 'event-1',
-        title: 'Sector 4 Football Match ⚽',
-        time: 'Today, 5:30 PM',
-        location: 'Sector 4 Playground',
-        attendees: 14,
-        userJoined: false,
-        desc: 'Casual 7v7 friendly match. All skill levels welcome!'
-      },
-      {
-        id: 'event-2',
-        title: 'Yoga in Gaur City Park 🧘‍♀️',
-        time: 'Tomorrow, 6:00 AM',
-        location: 'GC-2 Central Park',
-        attendees: 32,
-        userJoined: false,
-        desc: 'Bring your own mat. Morning meditation & flow.'
-      },
-      {
-        id: 'event-3',
-        title: 'Tech Meetup & Chai 💻☕',
-        time: 'Saturday, 4:00 PM',
-        location: 'The Chai Club Café',
-        attendees: 8,
-        userJoined: false,
-        desc: 'Discuss web development, AI, and startups.'
-      }
-    ];
-  });
-
   useEffect(() => {
     localStorage.setItem('earthgram_local_polls', JSON.stringify(localPolls));
   }, [localPolls]);
-
-  useEffect(() => {
-    localStorage.setItem('earthgram_local_events', JSON.stringify(localEvents));
-  }, [localEvents]);
 
   // Handle Poll Voting
   const handleVotePoll = (pollId, optionIndex) => {
@@ -313,15 +399,17 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
 
   // Handle Event RSVP
   const handleToggleRSVP = (eventId) => {
-    setLocalEvents(prev => prev.map(ev => {
-      if (ev.id !== eventId) return ev;
-      const userJoined = !ev.userJoined;
-      return {
-        ...ev,
-        userJoined,
-        attendees: userJoined ? ev.attendees + 1 : ev.attendees - 1
-      };
-    }));
+    if (setLocalEvents) {
+      setLocalEvents(prev => prev.map(ev => {
+        if (ev.id !== eventId) return ev;
+        const userJoined = !ev.userJoined;
+        return {
+          ...ev,
+          userJoined,
+          attendees: userJoined ? ev.attendees + 1 : ev.attendees - 1
+        };
+      }));
+    }
   };
 
   // Get selected country's name for dynamic filtering
@@ -498,14 +586,8 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
           {/* Scrolling News Container */}
           <div className="flex-1 relative overflow-hidden h-full flex items-center">
             <div className="flex animate-marquee items-center">
-              {[
-                { icon: isGC ? '🏥' : '🌾', label: isGC ? 'Health' : 'Mandi', text: isGC ? 'Dr. Rajesh: Same-day KFT/CBC tests available in GC-2' : 'Wheat ₹2,125 (+1.2%)', color: isDarkMode ? 'text-emerald-400' : 'text-emerald-700' },
-                { icon: '🚜', label: 'Service', text: isGC ? `AC Servicing slots open in ${areaName} for tomorrow` : 'Tractor Rental live in Sector 4', color: isDarkMode ? 'text-indigo-400' : 'text-indigo-800' },
-                { icon: '🌤️', label: 'Weather', text: `Clear skies over ${areaName} today`, color: isDarkMode ? 'text-amber-400' : 'text-amber-700' },
-                { icon: '🌍', label: isGC ? 'Society' : 'Global', text: isGC ? 'Community Meeting at 7 PM in Club House' : 'New Agency in Dubai', color: isDarkMode ? 'text-purple-400' : 'text-purple-800' },
-                { icon: isGC ? '🏥' : '🌾', label: isGC ? 'Health' : 'Mandi', text: isGC ? 'Dr. Rajesh: Same-day KFT/CBC tests available in GC-2' : 'Wheat ₹2,125 (+1.2%)', color: isDarkMode ? 'text-emerald-400' : 'text-emerald-700' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center space-x-2 px-8 whitespace-nowrap">
+              {[...tickerItems, ...tickerItems].map((item, i) => (
+                <div key={`${item.id}-${i}`} className="flex items-center space-x-2 px-8 whitespace-nowrap">
                   <span className="text-xs">{item.icon}</span>
                   <span className={`text-[9px] font-black uppercase tracking-tighter opacity-50 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.label}:</span>
                   <span className={`text-[10px] font-extrabold ${item.color}`}>{item.text}</span>
@@ -593,7 +675,7 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
             ))}
           </div>
           <div className="flex space-x-4 overflow-x-auto hide-scrollbar pb-2">
-            {BUDDY_DATA.filter(b => selectedHobby === 'All' || b.hobby === selectedHobby).map((buddy, i) => (
+            {buddies.filter(b => selectedHobby === 'All' || b.hobby === selectedHobby).map((buddy, i) => (
               <div key={i} className="flex flex-col items-center animate-fade-in cursor-pointer active:scale-95 transition-transform flex-shrink-0" onClick={() => { alert(`Opening Direct Message with ${buddy.name}...`); navigate('/messages'); }}>
                 <div className="relative">
                   <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${buddy.gradient} flex items-center justify-center text-white text-sm font-bold shadow-premium ${buddy.online ? 'ring-2 ring-green-400 ring-offset-2' : ''}`}>
@@ -770,36 +852,46 @@ const ExploreScreen = ({ isDarkMode, adCoins, setAdCoins, qualityPosts = [], use
                   </div>
                   
                   <div className="flex space-x-4 overflow-x-auto hide-scrollbar px-5 pb-4">
-                    {[
-                      { tag: '#Sector4StreetFood', videos: '1.2k', gradient: 'from-orange-500 to-red-500', icon: '🍜', users: ['bg-blue-400', 'bg-emerald-400', 'bg-purple-400'] },
-                      { tag: '#MorningRunGC', videos: '850', gradient: 'from-emerald-400 to-teal-600', icon: '🏃‍♂️', users: ['bg-pink-400', 'bg-orange-400', 'bg-yellow-400'] },
-                      { tag: '#LocalTalent', videos: '3.4k', gradient: 'from-indigo-500 to-purple-600', icon: '🎸', users: ['bg-red-400', 'bg-blue-400', 'bg-green-400'] }
-                    ].map((challenge, idx) => (
-                      <div key={idx} className={`relative w-48 h-64 rounded-[2rem] flex-shrink-0 overflow-hidden shadow-premium group cursor-pointer ${
+                    {trendingChallenges.map((challenge) => (
+                      <div key={challenge.id} className={`relative w-36 h-48 rounded-[1.5rem] flex-shrink-0 overflow-hidden shadow-premium group cursor-pointer transition-transform active:scale-95 ${
                         isDarkMode ? 'border border-slate-700/50' : ''
-                      }`}>
+                      }`} onClick={() => openExploreVideo({ type: 'reel', data: REELS_DATA[0] })}>
                         <div className={`absolute inset-0 bg-gradient-to-b ${challenge.gradient} opacity-90`}></div>
                         
-                        <div className="absolute top-4 left-4 w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl shadow-inner border border-white/20">
+                        <div className="absolute top-3 left-3 w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-lg shadow-inner border border-white/20">
                           {challenge.icon}
                         </div>
                         
-                        <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md rounded-full px-2.5 py-1 flex items-center space-x-1 border border-white/10">
+                        <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md rounded-full px-2 py-1 flex items-center space-x-1 border border-white/10">
                           <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>
-                          <span className="text-white text-[8px] font-black uppercase tracking-widest">{challenge.videos}</span>
+                          <span className="text-white text-[7px] font-black uppercase tracking-widest">
+                            {challenge.videos >= 1000 ? (challenge.videos / 1000).toFixed(1) + 'k' : challenge.videos}
+                          </span>
                         </div>
                         
-                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-12">
-                          <h3 className="text-white font-black text-sm mb-1 line-clamp-1">{challenge.tag}</h3>
+                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-8">
+                          <h3 className="text-white font-black text-xs mb-1 line-clamp-1">{challenge.tag}</h3>
                           
-                          <div className="flex items-center justify-between mt-3">
-                            <div className="flex -space-x-2">
-                              {challenge.users.map((bg, i) => (
-                                <div key={i} className={`w-6 h-6 rounded-full border-2 border-black ${bg} shadow-sm`}></div>
+                          <div className="flex items-center justify-between mt-2">
+                            <div className="flex -space-x-1.5">
+                              {challenge.users.slice(0, 3).map((userOrBg, i) => (
+                                <div key={i} className={`w-5 h-5 rounded-full border-2 border-black flex items-center justify-center overflow-hidden shadow-sm ${
+                                  userOrBg.startsWith('bg-') ? userOrBg : 'bg-gray-800'
+                                }`}>
+                                  {!userOrBg.startsWith('bg-') && (
+                                    <span className="text-[10px] leading-none text-white">{userOrBg}</span>
+                                  )}
+                                </div>
                               ))}
                             </div>
-                            <button className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/30 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95">
-                              Join
+                            <button 
+                              onClick={(e) => handleJoinChallenge(e, challenge.id)}
+                              className={`backdrop-blur-md border px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                                challenge.joined 
+                                  ? 'bg-white text-indigo-600 border-white shadow-md' 
+                                  : 'bg-white/20 hover:bg-white/30 text-white border-white/30'
+                              }`}>
+                              {challenge.joined ? 'Joined' : 'Join'}
                             </button>
                           </div>
                         </div>

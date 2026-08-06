@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { COMMUNITY_GROUPS, COUNTRIES } from '../../data/constants';
+import WhatsAppChat from './WhatsAppChat';
 
-const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts, activeScope = 'local', selectedCountry = 'in' }) => {
-  const [activeSubTab, setActiveSubTab] = useState('quality');
+const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts, activeScope = 'local', selectedCountry = 'in', conversations = [], setConversations }) => {
+  const [activeSubTab, setActiveSubTab] = useState('explore');
   const [commentInputs, setCommentInputs] = useState({});
 
   // Dynamic country data for filtering
@@ -88,9 +89,9 @@ const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts, activ
       <div className="px-5 mb-6">
         <div className={`flex p-1 rounded-2xl ${isDarkMode ? 'bg-slate-800/50' : 'bg-gray-100'}`}>
           {[
-            { id: 'quality', label: 'Quality Check' },
+            { id: 'explore', label: 'Explore' },
             { id: 'my', label: 'My Communities' },
-            { id: 'explore', label: 'Explore' }
+            { id: 'quality', label: 'Quality Check' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -337,28 +338,10 @@ const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts, activ
           </div>
         )}
 
-        {/* TAB 3: EXPLORE */}
+        {/* TAB 3: EXPLORE — WhatsApp-Style Chat */}
         {activeSubTab === 'explore' && (
-          <div className="animate-fade-in px-5">
-            <h2 className={`text-sm font-extrabold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Public Neighborhood Hubs</h2>
-            <div className="space-y-4">
-              {COMMUNITY_GROUPS.filter(g => g.type === 'vendor').map((group) => (
-                <div key={group.id} className="p-5 rounded-[2rem] bg-gradient-to-br from-indigo-600 to-purple-700 text-white shadow-xl relative overflow-hidden">
-                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-                   <div className="flex justify-between items-start relative z-10 mb-4">
-                      <div className="flex items-center space-x-3">
-                         <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-3xl">{group.icon}</div>
-                         <div>
-                            <h3 className="text-sm font-black uppercase tracking-tight">{group.name}</h3>
-                            <p className="text-[10px] text-white/60 font-bold uppercase tracking-widest">{group.members}</p>
-                         </div>
-                      </div>
-                      <span className="bg-emerald-500 text-white text-[8px] font-black px-2 py-1 rounded-full uppercase animate-pulse shadow-lg">Live</span>
-                   </div>
-                   <button className="w-full bg-white text-indigo-600 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-transform">Join VIP Community</button>
-                </div>
-              ))}
-            </div>
+          <div className="animate-fade-in h-full -mx-0 -mb-20">
+            <WhatsAppChat isDarkMode={isDarkMode} conversations={conversations} setConversations={setConversations} />
           </div>
         )}
       </div>
