@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const RazorpayModal = ({ amount, isDarkMode, onSuccess, onClose }) => {
   const [step, setStep] = useState('methods'); // methods, processing, otp, success
