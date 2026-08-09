@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import RazorpayModal from '../ui/RazorpayModal';
 
-const ShoppingCartScreen = ({ isDarkMode, onClose, cartItems = [], setCartItems }) => {
+const ShoppingCartScreen = ({ isDarkMode, onClose, cartItems = [], setCartItems, provider = null }) => {
   const [paymentStep, setPaymentStep] = useState('cart'); // cart, selection, upi_verify, razorpay, success
   const [useCoins, setUseCoins] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState(''); // 'upi_direct' or 'razorpay'
@@ -42,8 +42,10 @@ const ShoppingCartScreen = ({ isDarkMode, onClose, cartItems = [], setCartItems 
   };
 
   const handleLaunchUpi = () => {
-    const ownerUpiId = 'merchant@upi';
-    const shopName = 'EarthGram Merchant';
+    // If a provider prop is passed, use their UPI ID. Otherwise, try to extract from the first cart item.
+    const cartProvider = provider || cartItems[0]?.providerObj || {};
+    const ownerUpiId = cartProvider.upiId || 'merchant@upi';
+    const shopName = cartProvider.brandName || cartProvider.name || 'EarthGram Shop';
     const upiLink = `upi://pay?pa=${ownerUpiId}&pn=${encodeURIComponent(shopName)}&am=${finalTotal}&cu=INR`;
     
     // Launch deep link
