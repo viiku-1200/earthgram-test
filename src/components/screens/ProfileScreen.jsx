@@ -178,6 +178,15 @@ const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, b
                 <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Service Catalog</span>
                 <span className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>Manage pricing & items</span>
               </button>
+
+              <button onClick={() => navigate('/product-catalog')} className={`p-4 rounded-2xl shadow-premium border flex flex-col items-start active:scale-[0.98] transition-transform text-left relative overflow-hidden ${
+                isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-amber-100 text-gray-900'
+              }`}>
+                <div className="absolute top-0 right-0 bg-amber-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-bl-lg">SHOP</div>
+                <span className="text-2xl mb-2">🛒</span>
+                <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Shop Inventory</span>
+                <span className={`text-[10px] mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>Add physical products</span>
+              </button>
               
               <button onClick={() => setShowSendCoinsModal(true)} className={`p-4 rounded-2xl shadow-premium border flex flex-col items-start active:scale-[0.98] transition-transform text-left relative overflow-hidden ${
                 isDarkMode ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-emerald-100 text-gray-900'
@@ -367,6 +376,21 @@ const ProfileScreen = ({ isDarkMode, setIsDarkMode, isBossMode, setIsBossMode, b
             <span className="text-[8px] font-black text-red-600 bg-white px-2 py-1 rounded-full border border-red-100 animate-pulse">HOT</span>
           </button>
         )}
+
+        {/* Register as Shop */}
+        <button onClick={() => navigate('/register-shop')}
+          className="w-full bg-gradient-to-r from-amber-400 to-yellow-500 p-3.5 rounded-2xl shadow-premium border border-yellow-300 flex justify-between items-center card-lift mt-3">
+          <div className="flex items-center space-x-3.5">
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+              <span className="text-xl">🏬</span>
+            </div>
+            <div className="text-left">
+              <h3 className="font-bold text-amber-900 text-sm">Register Premium Shop ✨</h3>
+              <p className="text-[10px] text-amber-800">Test the Live GPS Button here!</p>
+            </div>
+          </div>
+          <span className="text-[8px] font-black text-white bg-amber-600 px-2 py-1 rounded-full border border-amber-400 animate-bounce">TEST</span>
+        </button>
 
         {/* Log Out Button */}
         {onLogout && (

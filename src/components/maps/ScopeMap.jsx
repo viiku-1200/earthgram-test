@@ -326,7 +326,7 @@ const LocalMap = ({ isDarkMode, countryCenter, selectedCountry, customProviders 
           <div>
             <h3 className={`text-sm font-black uppercase tracking-tighter ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Local Radar</h3>
             <p className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
-              Found 10 providers in scope
+              Found {serviceMarkers.length} providers in scope {customProviders.length > 0 && <span className="text-amber-500 font-black">• {customProviders.filter(p => p.location).length} Shops Live</span>}
             </p>
           </div>
           <button 

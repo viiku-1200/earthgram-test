@@ -2,10 +2,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PROVIDER_PROFILES, generateFallbackProfile } from '../../data/constants';
 import { socket } from '../../utils/socket';
+import ShoppingCartScreen from './ShoppingCartScreen';
 
-const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
-  const [activeTab, setActiveTab] = useState('services');
+const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [], globalCartItems = [], setGlobalCartItems }) => {
+  const location = useLocation();
+  const [isReceivingCall, setIsReceivingCall] = useState(!!location.state?.incomingCall);
+  const navigate = useNavigate();
+  const summaryProfile = location.state?.profile || location.state?.provider;
+  const profile = React.useMemo(() => {
+    return summaryProfile ? (PROVIDER_PROFILES[summaryProfile.id] || generateFallbackProfile(summaryProfile)) : null;
+  }, [summaryProfile]);
+
+  const [activeTab, setActiveTab] = useState(() => {
+    return (summaryProfile && (summaryProfile.isShop || summaryProfile.category?.toLowerCase() === 'shop')) ? 'shop' : 'services';
+  });
   const [showCallScreen, setShowCallScreen] = useState(false);
+  const [showCart, setShowCart] = useState(false);
+  const cartItems = globalCartItems;
+  const setCartItems = setGlobalCartItems || (() => {});
   const [callType, setCallType] = useState('video'); // 'video' or 'audio'
   const [callConnected, setCallConnected] = useState(false);
   const [callStatus, setCallStatus] = useState('Initiating secure peer-to-peer line...');
@@ -18,13 +32,6 @@ const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
   const remoteVideoRef = useRef(null);
   const peerConnection = useRef(null);
   const localStream = useRef(null);
-  const location = useLocation();
-  const [isReceivingCall, setIsReceivingCall] = useState(!!location.state?.incomingCall);
-  const navigate = useNavigate();
-  const summaryProfile = location.state?.profile;
-  const profile = React.useMemo(() => {
-    return summaryProfile ? (PROVIDER_PROFILES[summaryProfile.id] || generateFallbackProfile(summaryProfile)) : null;
-  }, [summaryProfile]);
 
   // Find if this provider has any active/past quality check cases
   const juryCase = profile ? qualityPosts.find(p => p.provider.toLowerCase() === profile.name.toLowerCase()) : null;
@@ -254,9 +261,25 @@ const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full -translate-y-1/2 translate-x-1/4"></div>
         </div>
-        <button onClick={onBack} className="relative z-10 w-9 h-9 bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center text-white active:scale-90 transition-transform">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-        </button>
+        <div className="relative z-10 flex justify-between items-center">
+          <button onClick={onBack} className="w-9 h-9 bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center text-white active:scale-90 transition-transform">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          {/* 🛒 Cart Bucket Icon — only shows when cart has items */}
+          {cartItems.length > 0 && (
+            <button
+              onClick={() => setShowCart(true)}
+              className="relative w-10 h-10 bg-amber-400 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform border-2 border-white/30"
+            >
+              <svg className="w-5 h-5 text-amber-900" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-indigo-700 shadow">
+                {cartItems.reduce((s, i) => s + i.qty, 0)}
+              </span>
+            </button>
+          )}
+        </div>
         
         {/* JURY ALERT RIBBON */}
         {juryCase && (
@@ -392,16 +415,17 @@ const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
 
       {/* Tab Navigation */}
       <div className={`mt-5 flex space-x-1 rounded-xl p-1 mx-5 ${isDarkMode ? 'bg-slate-800/60' : 'bg-gray-100'}`}>
-        {['services', 'gallery', 'reviews'].map(tab => (
+        {['services', 'shop', 'gallery', 'reviews'].map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className={`flex-1 py-2.5 rounded-lg text-[10px] font-bold capitalize transition-all ${
               activeTab === tab 
                 ? (isDarkMode ? 'bg-slate-900 text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm') 
                 : 'text-gray-500'
             }`}>
-            {tab === 'services' ? `Services (${profile.services.length})` :
-             tab === 'gallery' ? `Gallery (${profile.gallery.length})` :
-             `Reviews (${profile.reviewsList.length})`}
+            {tab === 'services' ? `Services (${profile.services?.length || 0})` :
+             tab === 'shop' ? `Shop` :
+             tab === 'gallery' ? `Gallery (${profile.gallery?.length || 0})` :
+             `Reviews (${profile.reviewsList?.length || 0})`}
           </button>
         ))}
       </div>
@@ -412,7 +436,7 @@ const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
           <div className="space-y-3">
             {profile.services.map((service, i) => (
               <div key={service.id} className={`p-4 rounded-2xl border shadow-premium card-lift animate-fade-in ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100/50'}`}
-                style={{ animationDelay: `${i * 0.05}s`, opacity: 0 }}>
+                style={{ animationDelay: `${i * 0.05}s` }}>
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h4 className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{service.name}</h4>
@@ -432,13 +456,63 @@ const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
           </div>
         )}
 
-        {activeTab === 'gallery' && (
-          <div className="grid grid-cols-3 gap-2">
-            {profile.gallery.map((item, i) => (
-              <div key={i} className={`aspect-square bg-gradient-to-br ${GALLERY_GRADIENTS[i % GALLERY_GRADIENTS.length]} rounded-2xl flex items-center justify-center text-3xl shadow-premium cursor-pointer active:scale-95 transition-transform`}>
-                {item}
+        {activeTab === 'shop' && (
+          <div className="grid grid-cols-2 gap-3">
+            {(profile.products || [
+              { id: 1, name: 'Premium Coffee Beans', desc: 'Freshly roasted', price: '₹450', image: '☕' },
+              { id: 2, name: 'Handcrafted Mug', desc: 'Ceramic artisan mug', price: '₹299', image: '🏺' },
+              { id: 3, name: 'Organic Honey', desc: 'Raw & unfiltered', price: '₹350', image: '🍯' },
+              { id: 4, name: 'Tea Sampler', desc: '5 assorted green teas', price: '₹199', image: '🍵' }
+            ]).map((product, i) => (
+              <div key={product.id} className={`p-3 rounded-2xl border shadow-premium card-lift flex flex-col ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100/50'}`}>
+                <div className="w-full aspect-square bg-amber-50 rounded-xl flex items-center justify-center text-4xl mb-3 border border-amber-100/50 overflow-hidden">
+                  {product.isRealImage || (product.image && product.image.startsWith('data:image')) ? (
+                    <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                  ) : (
+                    product.image
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h4 className={`text-[11px] font-bold leading-tight line-clamp-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{product.name}</h4>
+                  <p className="text-[9px] text-gray-400 mt-0.5 line-clamp-1">{product.desc}</p>
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <span className="text-sm font-black text-amber-600">{product.price}</span>
+                </div>
+                <button 
+                  onClick={() => {
+                    setCartItems(prev => {
+                      const existing = prev.find(p => p.id === product.id);
+                      if (existing) return prev.map(p => p.id === product.id ? { ...p, qty: p.qty + 1 } : p);
+                      return [...prev, { ...product, qty: 1, price: parseInt(product.price.replace('₹', '')) }];
+                    });
+                    setShowCart(true);
+                  }}
+                  className="mt-3 w-full py-2 rounded-xl bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-widest hover:bg-amber-200 active:scale-95 transition-all">
+                  + Add
+                </button>
               </div>
             ))}
+          </div>
+        )}
+
+        {activeTab === 'gallery' && (
+          <div className="grid grid-cols-3 gap-2">
+            {profile.gallery.map((item, i) => {
+              const GALLERY_GRADIENTS = [
+                'from-indigo-100 to-indigo-50 dark:from-indigo-900/40 dark:to-indigo-800/20',
+                'from-purple-100 to-purple-50 dark:from-purple-900/40 dark:to-purple-800/20',
+                'from-rose-100 to-rose-50 dark:from-rose-900/40 dark:to-rose-800/20',
+                'from-emerald-100 to-emerald-50 dark:from-emerald-900/40 dark:to-emerald-800/20',
+                'from-amber-100 to-amber-50 dark:from-amber-900/40 dark:to-amber-800/20',
+                'from-sky-100 to-sky-50 dark:from-sky-900/40 dark:to-sky-800/20'
+              ];
+              return (
+                <div key={i} className={`aspect-square bg-gradient-to-br ${GALLERY_GRADIENTS[i % GALLERY_GRADIENTS.length]} rounded-2xl flex items-center justify-center text-3xl shadow-premium cursor-pointer active:scale-95 transition-transform`}>
+                  {item}
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -447,7 +521,9 @@ const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
             <div className={`p-4 rounded-2xl border shadow-premium flex items-center space-x-4 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-100/50'}`}>
               <div className="text-center">
                 <p className={`text-3xl font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{profile.rating}</p>
-                {renderStars(profile.rating)}
+                <div className="flex justify-center text-yellow-500 text-[10px] my-1">
+                  {'★'.repeat(Math.round(profile.rating))}{'☆'.repeat(5 - Math.round(profile.rating))}
+                </div>
                 <p className="text-[9px] text-gray-400 mt-1">{profile.reviews} reviews</p>
               </div>
               <div className="flex-1 space-y-1">
@@ -697,6 +773,29 @@ const ProviderProfileScreen = ({ isDarkMode, onBack, qualityPosts = [] }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Floating Cart Button */}
+      {cartItems.length > 0 && !showCart && (
+        <button 
+          onClick={() => setShowCart(true)}
+          className="fixed bottom-24 right-5 z-40 bg-amber-400 text-amber-900 w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform border-4 border-white dark:border-[#0A1128]"
+        >
+          <span className="text-2xl">🛒</span>
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-[#0A1128]">
+            {cartItems.reduce((sum, item) => sum + item.qty, 0)}
+          </span>
+        </button>
+      )}
+
+      {/* Shopping Cart Overlay */}
+      {showCart && (
+        <ShoppingCartScreen 
+          isDarkMode={isDarkMode} 
+          onClose={() => setShowCart(false)} 
+          cartItems={cartItems}
+          setCartItems={setCartItems}
+        />
       )}
     </div>
   );

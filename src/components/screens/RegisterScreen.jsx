@@ -25,6 +25,7 @@ const RegisterScreen = ({ isDarkMode, onClose, onRegisterSuccess }) => {
     enableGroupDiscussion: false,
     teamMembers: [],
     location: null,
+    businessType: 'service', // 'service' or 'shop'
   });
   const [showAddMember, setShowAddMember] = useState(false);
   const [newMember, setNewMember] = useState({ name: '', domain: '', rate: '', description: '' });
@@ -58,9 +59,27 @@ const RegisterScreen = ({ isDarkMode, onClose, onRegisterSuccess }) => {
   const PlanSelection = () => (
     <div className="space-y-4">
       <div className="text-center mb-6">
-        <span className="text-5xl block mb-3">🚀</span>
-        <h2 className="text-2xl font-black text-gray-900">Start Your Virtual Company</h2>
+        <span className="text-5xl block mb-3">{formData.businessType === 'shop' ? '🏬' : '🚀'}</span>
+        <h2 className="text-2xl font-black text-gray-900">
+          {formData.businessType === 'shop' ? 'Open a Premium Shop' : 'Start Your Virtual Company'}
+        </h2>
         <p className="text-sm text-gray-500 mt-2">We take <span className="font-bold text-green-600">0% Commission</span>. You keep 100% of earnings.</p>
+        
+        {/* Business Type Toggle */}
+        <div className="mt-6 flex bg-gray-100 p-1 rounded-xl w-64 mx-auto shadow-inner">
+          <button 
+            onClick={() => updateField('businessType', 'service')}
+            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${formData.businessType === 'service' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Virtual Company
+          </button>
+          <button 
+            onClick={() => updateField('businessType', 'shop')}
+            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${formData.businessType === 'shop' ? 'bg-gradient-to-r from-amber-200 to-yellow-400 text-amber-900 shadow-md' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Premium Shop ✨
+          </button>
+        </div>
       </div>
 
       {/* Plan Tabs */}

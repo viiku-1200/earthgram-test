@@ -14,8 +14,10 @@ import CommunityScreen from './components/screens/CommunityScreen';
 import ProfileScreen from './components/screens/ProfileScreen';
 import ChatScreen from './components/screens/ChatScreen';
 import RegisterScreen from './components/screens/RegisterScreen';
+import ShopRegisterScreen from './components/screens/ShopRegisterScreen';
 import ProviderProfileScreen from './components/screens/ProviderProfileScreen';
 import BookingScreen from './components/screens/BookingScreen';
+import ProductCatalogScreen from './components/screens/ProductCatalogScreen';
 import SearchScreen from './components/screens/SearchScreen';
 import ExploreSearchScreen from './components/screens/ExploreSearchScreen';
 import MessagingScreen from './components/screens/MessagingScreen';
@@ -46,6 +48,7 @@ const AppContent = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [incomingCall, setIncomingCall] = useState(null);
   const [isReelsScrolling, setIsReelsScrolling] = useState(false);
+  const [globalCartItems, setGlobalCartItems] = useState([]); // Global cart shared across pages
   const navigate = useNavigate();
 
   // AUTH STATE
@@ -483,7 +486,7 @@ const AppContent = () => {
     );
   };
 
-  const hideOverlays = ['/chat', '/register', '/search', '/explore-search', '/messages', '/wallet', '/itzpass', '/catalog', '/book', '/provider', '/upload-reel', '/auth'].some(p => location.pathname.startsWith(p));
+  const hideOverlays = ['/chat', '/register', '/register-shop', '/search', '/explore-search', '/messages', '/wallet', '/itzpass', '/catalog', '/book', '/provider', '/upload-reel', '/auth', '/product-catalog'].some(p => location.pathname.startsWith(p));
   const hideBotButton = hideOverlays || location.pathname.startsWith('/explore') || location.pathname.startsWith('/community') || location.pathname.startsWith('/chat');
 
   return (
@@ -492,7 +495,7 @@ const AppContent = () => {
       <PhoneFrame>
       <div className="h-full w-full">
         <Routes>
-          <Route path="/" element={<HomeScreen isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} qualityPosts={qualityPosts} customProviders={customProviders} adCoins={adCoins} setAdCoins={setAdCoins} />} />
+          <Route path="/" element={<HomeScreen isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} qualityPosts={qualityPosts} customProviders={customProviders} adCoins={adCoins} setAdCoins={setAdCoins} cartItems={globalCartItems} setCartItems={setGlobalCartItems} />} />
           <Route path="/explore" element={<ExploreScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} qualityPosts={qualityPosts} userReels={userReels} localEvents={localEvents} setLocalEvents={setLocalEvents} activeScope={activeScope} selectedCountry={selectedCountry} customProviders={customProviders} />} />
           <Route path="/reels" element={<ReelsScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} userReels={userReels} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setIsScrolling={setIsReelsScrolling} />} />
           <Route path="/community" element={<CommunityScreen isDarkMode={isDarkMode} qualityPosts={qualityPosts} setQualityPosts={setQualityPosts} activeScope={activeScope} selectedCountry={selectedCountry} conversations={conversations} setConversations={setConversations} communityGroups={communityGroups} setCommunityGroups={setCommunityGroups} companyData={companyData} />} />
@@ -563,7 +566,16 @@ const AppContent = () => {
             }
             navigate('/profile'); 
           }} />} />
-          <Route path="/provider" element={<ProviderProfileScreen isDarkMode={isDarkMode} onBack={() => navigate(-1)} qualityPosts={qualityPosts} />} />
+          <Route path="/register-shop" element={<ShopRegisterScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} onRegisterSuccess={(data) => {
+            setCompanyData(data); 
+            setIsRegistered(true); 
+            setIsBossMode(true);
+            if (data.providerObj) {
+              setCustomProviders(prev => [data.providerObj, ...prev]);
+            }
+            navigate('/profile'); 
+          }} />} />
+          <Route path="/provider" element={<ProviderProfileScreen isDarkMode={isDarkMode} onBack={() => navigate(-1)} qualityPosts={qualityPosts} globalCartItems={globalCartItems} setGlobalCartItems={setGlobalCartItems} />} />
           <Route path="/book" element={renderProtected(<BookingScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} userBookings={userBookings} addBooking={addBooking} cancelBooking={cancelBooking} userCoins={userCoins} setUserCoins={setUserCoins} allianceCoins={allianceCoins} setAllianceCoins={setAllianceCoins} userTransactions={userTransactions} setUserTransactions={setUserTransactions} />)} />
           <Route path="/activity" element={<ActivityScreen isDarkMode={isDarkMode} adCoins={adCoins} />} />
           <Route path="/search" element={<SearchScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} customProviders={customProviders} />} />
@@ -572,6 +584,7 @@ const AppContent = () => {
           <Route path="/wallet" element={renderProtected(<WalletScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} adCoins={adCoins} userCoins={userCoins} setUserCoins={setUserCoins} allianceCoins={allianceCoins} setAllianceCoins={setAllianceCoins} userTransactions={userTransactions} setUserTransactions={setUserTransactions} userPassType={userPassType} companyData={companyData} />)} />
           <Route path="/itzpass" element={renderProtected(<ItzPassScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} userPassType={userPassType} setUserPassType={setUserPassType} userCoins={userCoins} setUserCoins={setUserCoins} userTransactions={userTransactions} setUserTransactions={setUserTransactions} />)} />
           <Route path="/catalog" element={<ServiceCatalogScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />} />
+          <Route path="/product-catalog" element={renderProtected(<ProductCatalogScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} />)} />
           <Route path="/upload-reel" element={renderProtected(<UploadReelScreen isDarkMode={isDarkMode} onClose={() => navigate(-1)} addUserReel={addUserReel} />)} />
         </Routes>
       </div>

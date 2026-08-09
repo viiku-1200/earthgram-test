@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { CATEGORIES, PROVIDERS, NATIONAL_PROVIDERS, GLOBAL_PROVIDERS, TOP_EXPERTS, HERO_BANNERS, COUNTRIES, SCOPES, FAMOUS_LOCAL_FOOD, LOCAL_RESTAURANTS, LOCAL_HOSPITALS } from '../../data/constants';
 import ScopeMap from '../maps/ScopeMap';
+import ShoppingCartScreen from './ShoppingCartScreen';
 
 const LucideIcon = ({ name, className, size = 24 }) => {
   const IconMap = {
@@ -17,7 +18,15 @@ const LucideIcon = ({ name, className, size = 24 }) => {
   return <Icon className={className} size={size} strokeWidth={2.5} />;
 };
 
-const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, selectedCountry, setSelectedCountry, qualityPosts = [], customProviders = [], adCoins = 0, setAdCoins }) => {
+const SHOP_CATEGORIES = [
+  { id: 'sc1', name: 'Premium Groceries', icon: '🛒', color: 'from-amber-600 to-amber-700', subTabs: ['All', 'Organic Foods', 'Gourmet Snacks', 'Fresh Produce', 'Daily Essentials'] },
+  { id: 'sc2', name: 'Luxury Fashion', icon: '👗', color: 'from-rose-600 to-rose-700', subTabs: ['All', 'Boutique Wear', 'Designer Shoes', 'Accessories', 'Mens Collection'] },
+  { id: 'sc3', name: 'Electronics & Tech', icon: '💻', color: 'from-blue-600 to-blue-700', subTabs: ['All', 'Premium Mobiles', 'Laptops', 'Audio Gear', 'Smart Home'] },
+  { id: 'sc4', name: 'Health & Pharmacy', icon: '💊', color: 'from-emerald-600 to-emerald-700', subTabs: ['All', 'Supplements', 'Skincare', 'Medicine', 'Wellness'] },
+  { id: 'sc5', name: 'Artisan Bakery', icon: '🥐', color: 'from-orange-500 to-orange-600', subTabs: ['All', 'Cakes', 'Pastries', 'Fresh Breads', 'Café Beans'] }
+];
+
+const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, selectedCountry, setSelectedCountry, qualityPosts = [], customProviders = [], adCoins = 0, setAdCoins, cartItems = [], setCartItems }) => {
   const navigate = useNavigate();
   const [activeBanner, setActiveBanner] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -30,7 +39,11 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
   const [countrySearch, setCountrySearch] = useState('');
   const [hasUnreadActivity, setHasUnreadActivity] = useState(true);
   const [activeEmpowerBanner, setActiveEmpowerBanner] = useState(0);
-  const [homeUIVersion, setHomeUIVersion] = useState('v3'); // 'v2' or 'v3' for live A/B testing
+  const [homeUIVersion, setHomeUIVersion] = useState('v3');
+  const [showHomeCart, setShowHomeCart] = useState(false);
+  const [activeCategoryTab, setActiveCategoryTab] = useState('services'); // 'services' or 'shops'
+  const [activeShopCategory, setActiveShopCategory] = useState(SHOP_CATEGORIES[0].id);
+  const [activeShopSubCategory, setActiveShopSubCategory] = useState('All');
   const empowerScrollRef = React.useRef(null);
   const foodRef = useRef(null);
 
@@ -1221,6 +1234,25 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
               </div>
             )}
           </button>
+
+          {/* 🛒 Cart Bucket Icon — appears after heart when cart has items */}
+          <button
+            onClick={() => setShowHomeCart(true)}
+            className={`w-10 h-10 rounded-2xl flex items-center justify-center relative active:scale-90 transition-all ${
+              cartItems.length > 0
+                ? 'bg-amber-400 text-amber-900 shadow-md shadow-amber-300/40'
+                : isDarkMode ? 'bg-slate-800 text-slate-500' : 'bg-gray-100/80 text-gray-400'
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            {cartItems.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white shadow">
+                {cartItems.reduce((s, i) => s + i.qty, 0)}
+              </span>
+            )}
+          </button>
         </div>
       </div>
       
@@ -1611,11 +1643,39 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
       {/* ====== A/B DESIGN TESTING WRAPPER ====== */}
       {homeUIVersion === 'v3' ? (
         <>
-          {/* ====== SECTION TITLE: Services Around Me (V3) ====== */}
-          <div className="mt-8 px-5 animate-fade-in">
-            <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Services Around Me</h2>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Select a category to find premium local experts</p>
+          {/* ====== SERVICE VS SHOP SELECTOR TABS ====== */}
+          <div className="px-5 mt-6 mb-2 flex space-x-3">
+            <button
+              onClick={() => setActiveCategoryTab('services')}
+              className={`flex-1 py-3 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 border transition-all active:scale-95 ${
+                activeCategoryTab === 'services'
+                  ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                  : isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-400' : 'bg-white border-gray-200 text-gray-600'
+              }`}
+            >
+              <span>🛠️</span>
+              <span>Services</span>
+            </button>
+            <button
+              onClick={() => setActiveCategoryTab('shops')}
+              className={`flex-1 py-3 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 border transition-all active:scale-95 ${
+                activeCategoryTab === 'shops'
+                  ? 'bg-amber-500 border-amber-500 text-white shadow-md shadow-amber-500/20'
+                  : isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-400' : 'bg-white border-gray-200 text-gray-600'
+              }`}
+            >
+              <span>🏬</span>
+              <span>Shops</span>
+            </button>
           </div>
+
+          {activeCategoryTab === 'services' ? (
+            <>
+              {/* ====== SECTION TITLE: Services Around Me (V3) ====== */}
+              <div className="mt-6 px-5 animate-fade-in">
+                <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Services Around Me</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Select a category to find premium local experts</p>
+              </div>
 
           {/* ====== SECTION 4: SPLIT-PANE VERTICAL CATEGORY RAIL (V3) ====== */}
           <div className="mt-4 px-5 animate-fade-in">
@@ -1782,17 +1842,189 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
               </div>
             </div>
           </div>
+          </>
+        ) : (
+          /* ====== SHOPS VIEW (PREMIUM LUXURY) ====== */
+          <div className="mt-6 px-5 animate-fade-in pb-10">
+            <div className="mb-4">
+              <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Premium Stores</h2>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Explore curated luxury and retail</p>
+            </div>
+
+            {/* Luxury Category Scroll */}
+            <div className="flex overflow-x-auto hide-scrollbar space-x-3 mb-5 pb-2 -mx-5 px-5">
+              {SHOP_CATEGORIES.map((cat) => {
+                const isActive = activeShopCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => { setActiveShopCategory(cat.id); setActiveShopSubCategory('All'); }}
+                    className={`flex-shrink-0 w-28 h-32 rounded-3xl p-3 flex flex-col items-center justify-center text-center transition-all duration-300 active:scale-95 border ${
+                      isActive 
+                        ? `bg-slate-900 dark:bg-black border-amber-500/50 shadow-lg shadow-amber-500/20` 
+                        : `bg-white dark:bg-slate-900/50 border-gray-100 dark:border-slate-800/60`
+                    }`}
+                  >
+                    <div className={`w-12 h-12 rounded-full mb-3 flex items-center justify-center text-2xl shadow-inner ${
+                      isActive ? `bg-gradient-to-br ${cat.color} text-white border border-white/20` : 'bg-gray-50 dark:bg-slate-800'
+                    }`}>
+                      {cat.icon}
+                    </div>
+                    <span className={`text-[10px] font-black uppercase tracking-wider leading-tight ${
+                      isActive ? 'text-amber-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')
+                    }`}>
+                      {cat.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Subcategory Pills */}
+            {(() => {
+              const activeCat = SHOP_CATEGORIES.find(c => c.id === activeShopCategory);
+              if (!activeCat || !activeCat.subTabs) return null;
+              return (
+                <div className="flex overflow-x-auto hide-scrollbar space-x-2 mb-6 pb-1">
+                  {activeCat.subTabs.map(sub => {
+                    const isSubActive = activeShopSubCategory === sub;
+                    return (
+                      <button
+                        key={sub}
+                        onClick={() => setActiveShopSubCategory(sub)}
+                        className={`flex-shrink-0 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
+                          isSubActive
+                            ? 'bg-gradient-to-r from-amber-600 to-amber-500 text-white shadow-md shadow-amber-500/20'
+                            : isDarkMode ? 'bg-slate-800/80 text-gray-400 border border-slate-700/50' : 'bg-gray-100 text-gray-500'
+                        }`}
+                      >
+                        {sub}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+
+            {/* Shop List */}
+            <div className="space-y-4">
+              {(() => {
+                const activeCat = SHOP_CATEGORIES.find(c => c.id === activeShopCategory);
+                const catName = activeCat ? activeCat.name : 'Store';
+                
+                const mockShops = [
+                  { id: 'ms1', name: 'GC Premium Grocery', category: 'Premium Groceries', subCategory: 'Fresh Produce', distance: '0.3 km', rating: '4.9', avatar: '🍏', banner: '🏬', products: [], isShop: true },
+                  { id: 'ms2', name: 'Organic Nature Foods', category: 'Premium Groceries', subCategory: 'Organic Foods', distance: '1.2 km', rating: '4.8', avatar: '🥬', banner: '🏬', products: [], isShop: true },
+                  { id: 'ms3', name: 'Urban Style Boutique', category: 'Luxury Fashion', subCategory: 'Boutique Wear', distance: '0.8 km', rating: '4.7', avatar: '👗', banner: '🏬', products: [], isShop: true },
+                  { id: 'ms4', name: 'Sneaker X', category: 'Luxury Fashion', subCategory: 'Designer Shoes', distance: '2.1 km', rating: '4.9', avatar: '👟', banner: '🏬', products: [], isShop: true },
+                  { id: 'ms5', name: 'Tech Gadgets Zone', category: 'Electronics & Tech', subCategory: 'Premium Mobiles', distance: '1.2 km', rating: '4.8', avatar: '📱', banner: '🏬', products: [], isShop: true },
+                  { id: 'ms6', name: 'Audio Bliss', category: 'Electronics & Tech', subCategory: 'Audio Gear', distance: '0.5 km', rating: '4.6', avatar: '🎧', banner: '🏬', products: [], isShop: true },
+                  { id: 'ms7', name: 'City Health Pharmacy', category: 'Health & Pharmacy', subCategory: 'Medicine', distance: '0.1 km', rating: '4.9', avatar: '⚕️', banner: '🏬', products: [], isShop: true },
+                  { id: 'ms8', name: 'Artisan Bakes', category: 'Artisan Bakery', subCategory: 'Cakes', distance: '1.5 km', rating: '5.0', avatar: '🍰', banner: '🏬', products: [], isShop: true }
+                ];
+                
+                const customShops = customProviders.filter(p => p.isShop);
+                const allShops = [...customShops, ...mockShops];
+
+                // Filter by category
+                let filteredShops = allShops.filter(shop => shop.category === catName || (shop.category?.toLowerCase() === 'shop' && catName === 'Premium Groceries'));
+                
+                // Filter by subcategory
+                if (activeShopSubCategory !== 'All') {
+                  filteredShops = filteredShops.filter(shop => shop.subCategory === activeShopSubCategory);
+                }
+
+                if (filteredShops.length === 0) {
+                  return (
+                    <div className={`p-8 text-center rounded-3xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-gray-50 border-gray-100'}`}>
+                      <p className={`text-3xl mb-2`}>{activeCat?.icon || '🏬'}</p>
+                      <p className={`text-sm font-bold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>No shops found</p>
+                      <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Check back soon for new {activeShopSubCategory} stores.</p>
+                    </div>
+                  );
+                }
+
+                return filteredShops.map((shop, i) => (
+                  <div
+                    key={shop.id}
+                    onClick={() => navigate('/provider', { state: { provider: shop } })}
+                    className={`flex items-center justify-between p-4 rounded-3xl border cursor-pointer transition-all active:scale-[0.98] hover:shadow-premium ${
+                      isDarkMode ? 'bg-gradient-to-br from-slate-900 to-black border-slate-800/80 shadow-lg' : 'bg-white border-gray-100 shadow-sm'
+                    }`}
+                    style={{ animationDelay: `${i * 0.05}s` }}
+                  >
+                    <div className="flex items-center space-x-3.5">
+                      <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center text-2xl shadow-inner border border-amber-200/50 dark:border-amber-500/20">
+                        {shop.avatar || '🏬'}
+                      </div>
+                      <div>
+                        <div className="flex items-center space-x-1.5">
+                          <h4 className={`text-sm font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{shop.name}</h4>
+                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_5px_rgba(16,185,129,0.5)]"></span>
+                        </div>
+                        <p className="text-[10px] text-amber-600 dark:text-amber-500 font-black uppercase tracking-wider mt-0.5">
+                          {shop.subCategory || 'Retail Store'}
+                        </p>
+                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                          {shop.distance || '0.1 km'} AWAY
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-end space-y-2">
+                      <div className="flex items-center space-x-1 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 px-2.5 py-1 rounded-xl border border-yellow-500/30">
+                        <span className="text-yellow-500 text-[10px]">★</span>
+                        <span className={`text-[10px] font-black ${isDarkMode ? 'text-yellow-400' : 'text-amber-700'}`}>{shop.rating}</span>
+                      </div>
+                      <button className="px-4 py-1.5 text-[8px] font-black uppercase tracking-widest text-white bg-gradient-to-r from-gray-900 to-black dark:from-slate-700 dark:to-slate-800 rounded-xl transition-all shadow-md active:scale-95">
+                        VISIT
+                      </button>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+        )}
         </>
       ) : (
         <>
-          {/* ====== SECTION TITLE: Explore Categories (V2) ====== */}
-          <div className="mt-8 px-5 animate-fade-in">
-            <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Explore Categories</h2>
-            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Select a category to find premium local experts</p>
+          {/* ====== SERVICE VS SHOP SELECTOR TABS ====== */}
+          <div className="px-5 mt-6 mb-2 flex space-x-3">
+            <button
+              onClick={() => setActiveCategoryTab('services')}
+              className={`flex-1 py-3 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 border transition-all active:scale-95 ${
+                activeCategoryTab === 'services'
+                  ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                  : isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-400' : 'bg-white border-gray-200 text-gray-600'
+              }`}
+            >
+              <span>🛠️</span>
+              <span>Services</span>
+            </button>
+            <button
+              onClick={() => setActiveCategoryTab('shops')}
+              className={`flex-1 py-3 px-4 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center justify-center space-x-2 border transition-all active:scale-95 ${
+                activeCategoryTab === 'shops'
+                  ? 'bg-amber-500 border-amber-500 text-white shadow-md shadow-amber-500/20'
+                  : isDarkMode ? 'bg-slate-900 border-slate-800 text-slate-400' : 'bg-white border-gray-200 text-gray-600'
+              }`}
+            >
+              <span>🏬</span>
+              <span>Shops</span>
+            </button>
           </div>
 
-          {/* ====== SECTION 4: COMPACT FOUR-ZONE SERVICE HUB (V2) ====== */}
-          <div className="mt-4 px-5 animate-fade-in">
+          {activeCategoryTab === 'services' ? (
+            <>
+              {/* ====== SECTION TITLE: Explore Categories (V2) ====== */}
+              <div className="mt-6 px-5 animate-fade-in">
+                <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Explore Categories</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Select a category to find premium local experts</p>
+              </div>
+
+              {/* ====== SECTION 4: COMPACT FOUR-ZONE SERVICE HUB (V2) ====== */}
+              <div className="mt-4 px-5 animate-fade-in">
             {/* Dynamic Zone Selector Tabs */}
             <div className="flex overflow-x-auto no-scrollbar space-x-2 mb-4 pb-1">
               {[
@@ -1879,7 +2111,151 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
             </div>
           </div>
         </>
+      ) : (
+        /* ====== SHOPS VIEW (PREMIUM LUXURY) ====== */
+        <div className="mt-6 px-5 animate-fade-in pb-10">
+          <div className="mb-4">
+            <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Premium Stores</h2>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Explore curated luxury and retail</p>
+          </div>
+
+          {/* Luxury Category Scroll */}
+          <div className="flex overflow-x-auto hide-scrollbar space-x-3 mb-5 pb-2 -mx-5 px-5">
+            {SHOP_CATEGORIES.map((cat) => {
+              const isActive = activeShopCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => { setActiveShopCategory(cat.id); setActiveShopSubCategory('All'); }}
+                  className={`flex-shrink-0 w-28 h-32 rounded-3xl p-3 flex flex-col items-center justify-center text-center transition-all duration-300 active:scale-95 border ${
+                    isActive 
+                      ? `bg-slate-900 dark:bg-black border-amber-500/50 shadow-lg shadow-amber-500/20` 
+                      : `bg-white dark:bg-slate-900/50 border-gray-100 dark:border-slate-800/60`
+                  }`}
+                >
+                  <div className={`w-12 h-12 rounded-full mb-3 flex items-center justify-center text-2xl shadow-inner ${
+                    isActive ? `bg-gradient-to-br ${cat.color} text-white border border-white/20` : 'bg-gray-50 dark:bg-slate-800'
+                  }`}>
+                    {cat.icon}
+                  </div>
+                  <span className={`text-[10px] font-black uppercase tracking-wider leading-tight ${
+                    isActive ? 'text-amber-500' : (isDarkMode ? 'text-gray-400' : 'text-gray-500')
+                  }`}>
+                    {cat.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Subcategory Pills */}
+          {(() => {
+            const activeCat = SHOP_CATEGORIES.find(c => c.id === activeShopCategory);
+            if (!activeCat || !activeCat.subTabs) return null;
+            return (
+              <div className="flex overflow-x-auto hide-scrollbar space-x-2 mb-6 pb-1">
+                {activeCat.subTabs.map(sub => {
+                  const isSubActive = activeShopSubCategory === sub;
+                  return (
+                    <button
+                      key={sub}
+                      onClick={() => setActiveShopSubCategory(sub)}
+                      className={`flex-shrink-0 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
+                        isSubActive
+                          ? 'bg-gradient-to-r from-amber-600 to-amber-500 text-white shadow-md shadow-amber-500/20'
+                          : isDarkMode ? 'bg-slate-800/80 text-gray-400 border border-slate-700/50' : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      {sub}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })()}
+
+          {/* Shop List */}
+          <div className="space-y-4">
+            {(() => {
+              const activeCat = SHOP_CATEGORIES.find(c => c.id === activeShopCategory);
+              const catName = activeCat ? activeCat.name : 'Store';
+              
+              const mockShops = [
+                { id: 'ms1', name: 'GC Premium Grocery', category: 'Premium Groceries', subCategory: 'Fresh Produce', distance: '0.3 km', rating: '4.9', avatar: '🍏', banner: '🏬', products: [], isShop: true },
+                { id: 'ms2', name: 'Organic Nature Foods', category: 'Premium Groceries', subCategory: 'Organic Foods', distance: '1.2 km', rating: '4.8', avatar: '🥬', banner: '🏬', products: [], isShop: true },
+                { id: 'ms3', name: 'Urban Style Boutique', category: 'Luxury Fashion', subCategory: 'Boutique Wear', distance: '0.8 km', rating: '4.7', avatar: '👗', banner: '🏬', products: [], isShop: true },
+                { id: 'ms4', name: 'Sneaker X', category: 'Luxury Fashion', subCategory: 'Designer Shoes', distance: '2.1 km', rating: '4.9', avatar: '👟', banner: '🏬', products: [], isShop: true },
+                { id: 'ms5', name: 'Tech Gadgets Zone', category: 'Electronics & Tech', subCategory: 'Premium Mobiles', distance: '1.2 km', rating: '4.8', avatar: '📱', banner: '🏬', products: [], isShop: true },
+                { id: 'ms6', name: 'Audio Bliss', category: 'Electronics & Tech', subCategory: 'Audio Gear', distance: '0.5 km', rating: '4.6', avatar: '🎧', banner: '🏬', products: [], isShop: true },
+                { id: 'ms7', name: 'City Health Pharmacy', category: 'Health & Pharmacy', subCategory: 'Medicine', distance: '0.1 km', rating: '4.9', avatar: '⚕️', banner: '🏬', products: [], isShop: true },
+                { id: 'ms8', name: 'Artisan Bakes', category: 'Artisan Bakery', subCategory: 'Cakes', distance: '1.5 km', rating: '5.0', avatar: '🍰', banner: '🏬', products: [], isShop: true }
+              ];
+              
+              const customShops = customProviders.filter(p => p.isShop);
+              const allShops = [...customShops, ...mockShops];
+
+              // Filter by category
+              let filteredShops = allShops.filter(shop => shop.category === catName || (shop.category?.toLowerCase() === 'shop' && catName === 'Premium Groceries'));
+              
+              // Filter by subcategory
+              if (activeShopSubCategory !== 'All') {
+                filteredShops = filteredShops.filter(shop => shop.subCategory === activeShopSubCategory);
+              }
+
+              if (filteredShops.length === 0) {
+                return (
+                  <div className={`p-8 text-center rounded-3xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-gray-50 border-gray-100'}`}>
+                    <p className={`text-3xl mb-2`}>{activeCat?.icon || '🏬'}</p>
+                    <p className={`text-sm font-bold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>No shops found</p>
+                    <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Check back soon for new {activeShopSubCategory} stores.</p>
+                  </div>
+                );
+              }
+
+              return filteredShops.map((shop, i) => (
+                <div
+                  key={shop.id}
+                  onClick={() => navigate('/provider', { state: { provider: shop } })}
+                  className={`flex items-center justify-between p-4 rounded-3xl border cursor-pointer transition-all active:scale-[0.98] hover:shadow-premium ${
+                    isDarkMode ? 'bg-gradient-to-br from-slate-900 to-black border-slate-800/80 shadow-lg' : 'bg-white border-gray-100 shadow-sm'
+                  }`}
+                  style={{ animationDelay: `${i * 0.05}s` }}
+                >
+                  <div className="flex items-center space-x-3.5">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center text-2xl shadow-inner border border-amber-200/50 dark:border-amber-500/20">
+                      {shop.avatar || '🏬'}
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-1.5">
+                        <h4 className={`text-sm font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{shop.name}</h4>
+                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_5px_rgba(16,185,129,0.5)]"></span>
+                      </div>
+                      <p className="text-[10px] text-amber-600 dark:text-amber-500 font-black uppercase tracking-wider mt-0.5">
+                        {shop.subCategory || 'Retail Store'}
+                      </p>
+                      <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                        {shop.distance || '0.1 km'} AWAY
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end space-y-2">
+                    <div className="flex items-center space-x-1 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 px-2.5 py-1 rounded-xl border border-yellow-500/30">
+                      <span className="text-yellow-500 text-[10px]">★</span>
+                      <span className={`text-[10px] font-black ${isDarkMode ? 'text-yellow-400' : 'text-amber-700'}`}>{shop.rating}</span>
+                    </div>
+                    <button className="px-4 py-1.5 text-[8px] font-black uppercase tracking-widest text-white bg-gradient-to-r from-gray-900 to-black dark:from-slate-700 dark:to-slate-800 rounded-xl transition-all shadow-md active:scale-95">
+                      VISIT
+                    </button>
+                  </div>
+                </div>
+              ));
+            })()}
+          </div>
+        </div>
       )}
+      </>
+    )}
 
       {/* ====== THREE MODE-SPECIFIC LAYOUTS ====== */}
       {locationMode === 'city' && (
@@ -2801,6 +3177,15 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
             </div>
           </div>
         </div>
+      )}
+      {/* 🛒 Cart Overlay from Home Page Bucket Icon */}
+      {showHomeCart && (
+        <ShoppingCartScreen
+          isDarkMode={isDarkMode}
+          onClose={() => setShowHomeCart(false)}
+          cartItems={cartItems}
+          setCartItems={setCartItems}
+        />
       )}
     </div>
   );
