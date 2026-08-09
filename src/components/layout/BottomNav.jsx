@@ -59,10 +59,10 @@ const BottomNav = ({ isDarkMode }) => {
 
     {/* Groups */}
     <button onClick={() => navigate('/community')} className={`flex flex-col items-center justify-center w-12 h-full transition-all duration-200 ${activeTab === 'community' ? `${activeColor} scale-105` : inactiveColor}`}>
-      <svg className="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+      <svg className="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.221-1.15-2.108-2.362-2.193a48.729 48.729 0 0 0-7.296 0c-1.212.085-2.362.972-2.362 2.193v1.874m0 0a5.07 5.07 0 0 0-2.362.242A2.12 2.12 0 0 0 4.5 10.608v4.286c0 1.136.847 2.1 1.98 2.193.34.027.68.052 1.02.072v3.091l3-3c1.354 0 2.694.055 4.02.163a2.115 2.115 0 0 0 .825.242" />
       </svg>
-      <span className="text-[9px] font-bold">Community</span>
+      <span className="text-[9px] font-bold">Chats</span>
     </button>
 
     {/* Profile */}

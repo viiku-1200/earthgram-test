@@ -265,6 +265,14 @@ const AppContent = () => {
     localStorage.setItem('earthgram_user_coins', userCoins.toString());
   }, [userCoins]);
 
+  const [communityGroups, setCommunityGroups] = useState(() => {
+    const saved = localStorage.getItem('earthgram_community_groups');
+    return saved ? JSON.parse(saved) : [];
+  });
+  useEffect(() => {
+    localStorage.setItem('earthgram_community_groups', JSON.stringify(communityGroups));
+  }, [communityGroups]);
+
   useEffect(() => {
     localStorage.setItem('earthgram_alliance_coins', JSON.stringify(allianceCoins));
   }, [allianceCoins]);
@@ -417,10 +425,39 @@ const AppContent = () => {
       setIncomingCall(data);
     };
 
+    const onNewGroup = (groupData) => {
+      setCommunityGroups(prev => {
+        if (prev.find(g => g.id === groupData.id)) return prev;
+        return [groupData, ...prev];
+      });
+    };
+    
+    const onGroupMemberJoined = ({ groupId, userId }) => {
+      setCommunityGroups(prev => prev.map(g => {
+        if (g.id !== groupId) return g;
+        const members = g.members || [];
+        if (members.includes(userId)) return g;
+        return { ...g, members: [...members, userId] };
+      }));
+    };
+
+    const onGroupMemberRemoved = ({ groupId, targetUserId }) => {
+      setCommunityGroups(prev => prev.map(g => {
+        if (g.id !== groupId) return g;
+        return { ...g, members: (g.members || []).filter(u => u !== targetUserId) };
+      }));
+    };
+
     socket.on('incoming_call', handleIncomingCall);
+    socket.on('new_group_created', onNewGroup);
+    socket.on('group_member_joined', onGroupMemberJoined);
+    socket.on('group_member_removed', onGroupMemberRemoved);
 
     return () => {
       socket.off('incoming_call', handleIncomingCall);
+      socket.off('new_group_created', onNewGroup);
+      socket.off('group_member_joined', onGroupMemberJoined);
+      socket.off('group_member_removed', onGroupMemberRemoved);
     };
   }, [isRegistered, companyData]);
 
@@ -447,6 +484,7 @@ const AppContent = () => {
   };
 
   const hideOverlays = ['/chat', '/register', '/search', '/explore-search', '/messages', '/wallet', '/itzpass', '/catalog', '/book', '/provider', '/upload-reel', '/auth'].some(p => location.pathname.startsWith(p));
+  const hideBotButton = hideOverlays || location.pathname.startsWith('/explore') || location.pathname.startsWith('/community') || location.pathname.startsWith('/chat');
 
   return (
     <>
@@ -457,7 +495,7 @@ const AppContent = () => {
           <Route path="/" element={<HomeScreen isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} qualityPosts={qualityPosts} customProviders={customProviders} adCoins={adCoins} setAdCoins={setAdCoins} />} />
           <Route path="/explore" element={<ExploreScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} qualityPosts={qualityPosts} userReels={userReels} localEvents={localEvents} setLocalEvents={setLocalEvents} activeScope={activeScope} selectedCountry={selectedCountry} customProviders={customProviders} />} />
           <Route path="/reels" element={<ReelsScreen isDarkMode={isDarkMode} adCoins={adCoins} setAdCoins={setAdCoins} userReels={userReels} activeScope={activeScope} setActiveScope={setActiveScope} selectedCountry={selectedCountry} setIsScrolling={setIsReelsScrolling} />} />
-          <Route path="/community" element={<CommunityScreen isDarkMode={isDarkMode} qualityPosts={qualityPosts} setQualityPosts={setQualityPosts} activeScope={activeScope} selectedCountry={selectedCountry} conversations={conversations} setConversations={setConversations} />} />
+          <Route path="/community" element={<CommunityScreen isDarkMode={isDarkMode} qualityPosts={qualityPosts} setQualityPosts={setQualityPosts} activeScope={activeScope} selectedCountry={selectedCountry} conversations={conversations} setConversations={setConversations} communityGroups={communityGroups} setCommunityGroups={setCommunityGroups} companyData={companyData} />} />
 
           <Route path="/auth" element={<AuthScreen isDarkMode={isDarkMode} onLoginSuccess={handleLoginSuccess} />} />
 
@@ -574,7 +612,7 @@ const AppContent = () => {
         </div>
       )}
 
-      {!hideOverlays && (
+      {!hideBotButton && (
         <button
           onClick={() => navigate('/chat')}
           className={`absolute bottom-20 right-5 w-16 h-16 rounded-full flex items-center justify-center shadow-[0_8px_15px_rgba(0,0,0,0.12)] border z-40 active:scale-90 transition-all duration-300 ${botMood === 'idle' ? 'animate-bounce' : ''} hover:animate-none ${

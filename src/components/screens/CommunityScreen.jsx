@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
+import { socket } from '../../utils/socket';
 import { COMMUNITY_GROUPS, COUNTRIES } from '../../data/constants';
 import WhatsAppChat from './WhatsAppChat';
 
-const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts, activeScope = 'local', selectedCountry = 'in', conversations = [], setConversations }) => {
+const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts, activeScope = 'local', selectedCountry = 'in', conversations = [], setConversations, communityGroups = [], setCommunityGroups, companyData }) => {
   const [activeSubTab, setActiveSubTab] = useState('explore');
   const [commentInputs, setCommentInputs] = useState({});
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [activeGroupId, setActiveGroupId] = useState(null);
+
+  const getUserId = () => { const cd = localStorage.getItem('earthgram_company_data'); return cd ? JSON.parse(cd).brandName : 'user_default'; };
 
   // Dynamic country data for filtering
   const selectedCountryData = COUNTRIES.find(c => c.id === selectedCountry);
@@ -75,15 +81,54 @@ const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts, activ
     return ratings.reduce((a, b) => a + b, 0) / ratings.length;
   };
 
+  const handleCreateGroup = () => {
+    if (!newGroupName.trim()) return;
+    const userId = getUserId();
+    const newGroup = {
+      id: `group_${Date.now()}`,
+      name: newGroupName,
+      avatar: ['🥘', '⚽', '🎮', '💼', '🏡', '📚'][Math.floor(Math.random() * 6)],
+      adminId: userId,
+      members: [userId],
+      isGroup: true
+    };
+    socket.emit('create_group', newGroup);
+    setShowCreateGroup(false);
+    setNewGroupName('');
+  };
+
+  const handleJoinOrChatGroup = (group) => {
+    const userId = getUserId();
+    if (!group.members.includes(userId)) {
+      socket.emit('join_group', { groupId: group.id, userId });
+    }
+    
+    // Check if we already have a conversation for this group
+    const existingConv = conversations.find(c => c.provider === group.name && c.isGroup);
+    if (!existingConv) {
+      const newConv = {
+        id: `conv_${group.id}`,
+        provider: group.name,
+        category: 'Community Group',
+        avatar: 'gradient-3',
+        messages: [],
+        unread: 0,
+        isGroup: true,
+        groupId: group.id,
+        adminId: group.adminId
+      };
+      setConversations(prev => [newConv, ...prev]);
+    }
+    
+    // Set active group to open it within My Communities tab
+    setActiveGroupId(group.id);
+  };
+
   return (
     <div className={`h-full flex flex-col pt-8 pb-20 overflow-y-auto hide-scrollbar transition-all duration-500 ${
       isDarkMode ? 'bg-[#0f172a] text-white' : 'bg-gradient-to-b from-white to-gray-50/80 text-gray-900'
     }`}>
-      {/* Header */}
-      <div className="px-5 pt-2 pb-4">
-        <h1 className={`text-2xl font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Community</h1>
-        <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>Governance, Loyalty & Discovery</p>
-      </div>
+
 
       {/* 3-Tab Sub Navigation */}
       <div className="px-5 mb-6">
@@ -315,33 +360,71 @@ const CommunityScreen = ({ isDarkMode, qualityPosts = [], setQualityPosts, activ
 
         {/* TAB 2: MY COMMUNITIES */}
         {activeSubTab === 'my' && (
-          <div className="animate-fade-in px-5">
-            <h2 className={`text-sm font-extrabold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>My Service Communities</h2>
-            <div className="space-y-4">
-              <div className={`p-4 rounded-2xl border shadow-premium flex items-center justify-between ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-100'}`}>
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-2xl">🥘</div>
-                  <div>
-                    <h4 className={`text-sm font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Sharma Tiffin VIPs</h4>
-                    <p className="text-[10px] text-emerald-500 font-bold uppercase">New broadcast today</p>
-                  </div>
+          <div className="animate-fade-in h-full flex flex-col">
+            {!activeGroupId ? (
+              <div className="px-5">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className={`text-sm font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>My Service Communities</h2>
+                  <button onClick={() => setShowCreateGroup(!showCreateGroup)} className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${isDarkMode ? 'bg-indigo-600/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>+ New Group</button>
                 </div>
-                <button className={`p-2 rounded-full ${isDarkMode ? 'bg-slate-700 text-slate-400' : 'bg-gray-50 text-gray-400'}`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
-                </button>
+                
+                {showCreateGroup && (
+                  <div className={`p-4 mb-4 rounded-2xl border flex flex-col space-y-3 animate-fade-in ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-100 shadow-premium'}`}>
+                    <input 
+                      type="text" 
+                      value={newGroupName} 
+                      onChange={(e) => setNewGroupName(e.target.value)} 
+                      placeholder="Group Name (e.g. Weekend Football)" 
+                      className={`px-4 py-2.5 rounded-xl text-sm outline-none font-medium ${isDarkMode ? 'bg-slate-900 text-white placeholder-slate-500' : 'bg-slate-50 text-slate-900 placeholder-slate-400'}`} 
+                    />
+                    <button onClick={handleCreateGroup} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold py-2.5 rounded-xl active:scale-95 transition-transform">Create Group</button>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  {communityGroups.length > 0 ? communityGroups.map(group => (
+                    <div key={group.id} onClick={() => handleJoinOrChatGroup(group)} className={`p-4 rounded-2xl border shadow-premium flex items-center justify-between cursor-pointer active:scale-95 transition-transform ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-100'}`}>
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-2xl">{group.avatar}</div>
+                        <div>
+                          <h4 className={`text-sm font-black flex items-center space-x-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                            <span>{group.name}</span>
+                            {group.adminId === getUserId() && <span className="bg-amber-500 text-white text-[8px] px-1.5 py-0.5 rounded-md">ADMIN</span>}
+                          </h4>
+                          <p className="text-[10px] text-indigo-500 font-bold uppercase">{group.members?.length || 1} members</p>
+                        </div>
+                      </div>
+                      <button className={`p-2 rounded-full ${isDarkMode ? 'bg-slate-700 text-slate-400' : 'bg-gray-50 text-gray-400'}`}>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                      </button>
+                    </div>
+                  )) : (
+                    <div className={`p-8 rounded-3xl border-2 border-dashed flex flex-col items-center text-center ${isDarkMode ? 'border-slate-700' : 'border-gray-100'}`}>
+                      <div className="text-4xl mb-4 opacity-20">🏘️</div>
+                      <p className={`text-xs font-bold ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>No groups created yet. Be the first to start a community!</p>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className={`p-8 rounded-3xl border-2 border-dashed flex flex-col items-center text-center ${isDarkMode ? 'border-slate-700' : 'border-gray-100'}`}>
-                <div className="text-4xl mb-4 opacity-20">🏘️</div>
-                <p className={`text-xs font-bold ${isDarkMode ? 'text-slate-500' : 'text-gray-400'}`}>You haven't joined any other neighborhood groups yet.</p>
+            ) : (
+              <div className="flex-1 -mx-0 z-10 relative bg-inherit">
+                <WhatsAppChat 
+                  isDarkMode={isDarkMode} 
+                  conversations={conversations} 
+                  setConversations={setConversations} 
+                  communityGroups={communityGroups} 
+                  overrideActiveConv={conversations.find(c => c.isGroup && c.groupId === activeGroupId)}
+                  onCloseOverride={() => setActiveGroupId(null)}
+                />
               </div>
-            </div>
+            )}
           </div>
         )}
 
         {/* TAB 3: EXPLORE — WhatsApp-Style Chat */}
         {activeSubTab === 'explore' && (
           <div className="animate-fade-in h-full -mx-0 -mb-20">
-            <WhatsAppChat isDarkMode={isDarkMode} conversations={conversations} setConversations={setConversations} />
+            <WhatsAppChat isDarkMode={isDarkMode} conversations={conversations} setConversations={setConversations} communityGroups={communityGroups} />
           </div>
         )}
       </div>
