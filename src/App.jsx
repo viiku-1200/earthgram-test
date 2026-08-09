@@ -81,8 +81,11 @@ const AppContent = () => {
   const handleLogout = () => {
     localStorage.removeItem('earthgram_token');
     localStorage.removeItem('earthgram_current_user');
+    localStorage.removeItem('earthgram_registered');
     setUserToken(null);
     setCurrentUser(null);
+    setIsRegistered(false);
+    setCompanyData(null);
     navigate('/');
   };
 
