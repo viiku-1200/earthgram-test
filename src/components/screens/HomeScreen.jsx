@@ -1302,7 +1302,7 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
           <div className="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none"></div>
           <div className="flex items-center space-x-4 relative z-10">
             <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex flex-col items-center justify-center p-1 border border-indigo-100 flex-shrink-0">
-              <img src="/earthgram_logo.png" alt="EarthGram" className="w-full h-full object-cover scale-[1.3] rounded-lg" />
+              <img src="/logo.png" alt="EarthGram" className="w-full h-full object-cover scale-[1.3] rounded-lg" />
             </div>
             <div className="flex flex-col">
               <span className={`text-sm font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-indigo-950'}`}>Install EarthGram App</span>

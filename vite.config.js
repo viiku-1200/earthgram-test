@@ -9,7 +9,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'earthgram_logo.png'],
+      includeAssets: ['favicon.svg', 'logo.png'],
       manifest: {
         name: 'EarthGram',
         short_name: 'EarthGram',
@@ -19,17 +19,17 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            src: 'earthgram_logo.png',
+            src: 'logo.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'earthgram_logo.png',
+            src: 'logo.png',
             sizes: '512x512',
             type: 'image/png'
           },
           {
-            src: 'earthgram_logo.png',
+            src: 'logo.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
