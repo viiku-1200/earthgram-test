@@ -44,6 +44,44 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
   const [activeCategoryTab, setActiveCategoryTab] = useState('services'); // 'services' or 'shops'
   const [activeShopCategory, setActiveShopCategory] = useState(SHOP_CATEGORIES[0].id);
   const [activeShopSubCategory, setActiveShopSubCategory] = useState('All');
+  
+  // PWA Install State
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
+
+  useEffect(() => {
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+      setIsAppInstalled(true);
+    }
+
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    
+    window.addEventListener('appinstalled', () => {
+      setIsAppInstalled(true);
+      setDeferredPrompt(null);
+    });
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    }
+  };
+
   const empowerScrollRef = React.useRef(null);
   const foodRef = useRef(null);
 
@@ -1255,6 +1293,30 @@ const HomeScreen = ({ isDarkMode, setIsDarkMode, activeScope, setActiveScope, se
           </button>
         </div>
       </div>
+
+      {/* PWA Install App Banner */}
+      {!isAppInstalled && deferredPrompt && (
+        <div className={`mx-5 mt-4 p-4 rounded-[1.5rem] relative overflow-hidden flex items-center justify-between z-[85] shadow-lg border ${
+          isDarkMode ? 'bg-gradient-to-r from-indigo-900/50 to-purple-900/50 border-indigo-500/30' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-100'
+        }`}>
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="flex items-center space-x-4 relative z-10">
+            <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex flex-col items-center justify-center p-1 border border-indigo-100 flex-shrink-0">
+              <img src="/earthgram_logo.png" alt="EarthGram" className="w-full h-full object-cover scale-[1.3] rounded-lg" />
+            </div>
+            <div className="flex flex-col">
+              <span className={`text-sm font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-indigo-950'}`}>Install EarthGram App</span>
+              <span className={`text-[10px] font-bold ${isDarkMode ? 'text-indigo-200' : 'text-indigo-600/70'}`}>Faster, lighter, native experience</span>
+            </div>
+          </div>
+          <button 
+            onClick={handleInstallClick}
+            className="relative z-10 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-[11px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl shadow-glow-indigo transition-all"
+          >
+            Install
+          </button>
+        </div>
+      )}
       
       {/* ====== LIVE PULSE TICKER (Proper Premium Integration) ====== */}
       {(() => {
