@@ -2,9 +2,9 @@ import React, { useState, useRef } from 'react';
 import RazorpayModal from '../ui/RazorpayModal';
 
 const ShoppingCartScreen = ({ isDarkMode, onClose, cartItems = [], setCartItems, provider = null }) => {
-  const [paymentStep, setPaymentStep] = useState('cart'); // cart, selection, upi_verify, razorpay, success
+  const [paymentStep, setPaymentStep] = useState('cart'); // cart, selection, upi_verify, processing, success
   const [useCoins, setUseCoins] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState(''); // 'upi_direct' or 'razorpay'
+  const [paymentMethod, setPaymentMethod] = useState(''); // 'upi_direct' or 'cashfree'
   const [utrNumber, setUtrNumber] = useState('');
   const [isVerifyingUtr, setIsVerifyingUtr] = useState(false);
 
@@ -34,8 +34,8 @@ const ShoppingCartScreen = ({ isDarkMode, onClose, cartItems = [], setCartItems,
   
   // Calculate final totals based on payment method
   const baseTotal = subtotal + gst - coinDiscount;
-  const razorpayFee = Math.round(baseTotal * 0.02); // 2% gateway fee
-  const finalTotal = paymentMethod === 'razorpay' ? baseTotal + razorpayFee : baseTotal;
+  const gatewayFee = Math.round(baseTotal * 0.02); // 2% gateway fee
+  const finalTotal = paymentMethod === 'cashfree' ? baseTotal + gatewayFee : baseTotal;
 
   const handleCheckoutClick = () => {
     setPaymentStep('selection');
@@ -64,9 +64,61 @@ const ShoppingCartScreen = ({ isDarkMode, onClose, cartItems = [], setCartItems,
     }, 2000);
   };
 
-  const handleRazorpaySuccess = (data) => {
-    setPaymentStep('success');
-    if (setCartItems) setCartItems([]);
+  const handleCashfreePayment = async () => {
+    setPaymentMethod('cashfree');
+    setPaymentStep('processing');
+    try {
+      // 1. Get Payment Session ID from Backend
+      const response = await fetch('http://localhost:5000/api/payment/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: baseTotal + gatewayFee,
+          customerId: 'user_' + Math.floor(Math.random() * 100000),
+          customerPhone: '9999999999',
+          customerName: 'EarthGram User'
+        })
+      });
+      const data = await response.json();
+      
+      if (!data.payment_session_id) {
+        throw new Error('Failed to get payment session');
+      }
+
+      // 2. Load Cashfree SDK if not loaded
+      if (!window.Cashfree) {
+        await new Promise((resolve) => {
+          const script = document.createElement('script');
+          script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+          script.onload = resolve;
+          document.head.appendChild(script);
+        });
+      }
+
+      // 3. Initialize and Open Cashfree
+      const cashfree = window.Cashfree({
+        mode: "sandbox" // change to "production" when live
+      });
+
+      cashfree.checkout({
+        paymentSessionId: data.payment_session_id,
+        redirectTarget: "_modal",
+      }).then((result) => {
+        if(result.error){
+            console.error("Payment failed or cancelled:", result.error);
+            setPaymentStep('selection'); 
+        }
+        if(result.paymentDetails){
+            console.log("Payment completed", result.paymentDetails);
+            setPaymentStep('success');
+            if (setCartItems) setCartItems([]);
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      alert("Payment initiation failed!");
+      setPaymentStep('selection');
+    }
   };
 
   // ========= SUCCESS SCREEN =========
@@ -88,7 +140,7 @@ const ShoppingCartScreen = ({ isDarkMode, onClose, cartItems = [], setCartItems,
           </div>
           <div className="flex justify-between text-sm mb-3">
             <span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>Payment Method</span>
-            <span className="font-bold text-emerald-500">{paymentMethod === 'upi_direct' ? 'UPI Direct (Zero Fee)' : 'Razorpay Gateway'}</span>
+            <span className="font-bold text-emerald-500">{paymentMethod === 'upi_direct' ? 'UPI Direct (Zero Fee)' : 'Cashfree Gateway'}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>Status</span>
@@ -149,9 +201,9 @@ const ShoppingCartScreen = ({ isDarkMode, onClose, cartItems = [], setCartItems,
             </div>
           </div>
 
-          {/* Option 2: Razorpay */}
+          {/* Option 2: Cashfree */}
           <div 
-            onClick={() => { setPaymentMethod('razorpay'); setPaymentStep('razorpay'); }}
+            onClick={handleCashfreePayment}
             className={`p-5 rounded-3xl border-2 cursor-pointer transition-all active:scale-95 ${isDarkMode ? 'bg-slate-900 border-slate-700 hover:border-blue-500' : 'bg-white border-gray-200 hover:border-blue-500'} shadow-sm`}
           >
             <div className="flex justify-between items-start mb-2">
@@ -160,14 +212,25 @@ const ShoppingCartScreen = ({ isDarkMode, onClose, cartItems = [], setCartItems,
               </div>
               <span className="bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-gray-300 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider">Instant</span>
             </div>
-            <h3 className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Razorpay Gateway</h3>
-            <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Credit Cards, Wallets, Auto-verification. Includes 2% convenience fee.</p>
+            <h3 className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Cards, Netbanking & Wallets</h3>
+            <p className={`text-xs mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Powered securely by Cashfree. Includes ~2% gateway fee.</p>
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-800 flex justify-between items-center">
               <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Total to pay:</span>
-              <span className={`text-lg font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{baseTotal + razorpayFee}</span>
+              <span className={`text-lg font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>₹{baseTotal + gatewayFee}</span>
             </div>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // ========= PROCESSING SCREEN =========
+  if (paymentStep === 'processing') {
+    return (
+      <div className={`absolute inset-0 z-[200] flex flex-col items-center justify-center ${isDarkMode ? 'bg-[#060B19]' : 'bg-white'}`}>
+        <div className="w-16 h-16 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-6"></div>
+        <h2 className={`text-xl font-black text-center mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Connecting to Cashfree...</h2>
+        <p className={`text-sm text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Please wait while we securely generate your payment link.</p>
       </div>
     );
   }
@@ -225,16 +288,6 @@ const ShoppingCartScreen = ({ isDarkMode, onClose, cartItems = [], setCartItems,
   // ========= CART + CHECKOUT SCREEN =========
   return (
     <div className={`absolute inset-0 z-[200] flex flex-col ${isDarkMode ? 'bg-[#060B19]' : 'bg-white'}`}>
-      
-      {/* Razorpay Modal Overlay */}
-      {paymentStep === 'razorpay' && (
-        <RazorpayModal 
-          amount={finalTotal} 
-          isDarkMode={isDarkMode} 
-          onSuccess={handleRazorpaySuccess} 
-          onClose={() => setPaymentStep('selection')} 
-        />
-      )}
 
       {/* ── Header ── */}
       <div className={`px-5 pt-14 pb-4 flex items-center justify-between border-b ${isDarkMode ? 'border-white/[0.05] bg-[#0A1128]' : 'border-gray-100 bg-white'}`}>
